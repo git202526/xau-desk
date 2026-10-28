@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.0 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.2 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -15,12 +15,13 @@
   --amber:#E8A33D; --blue:#4C8DFF; --violet:#8B7BE8;
   --r:16px;
 }
-html,body{height:100%}
+html{height:100%}
+body{min-height:100%}
 body{
   background:var(--bg);color:var(--tx);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   font-size:15px;line-height:1.5;
-  padding-bottom:calc(30px + env(safe-area-inset-bottom));
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
   -webkit-font-smoothing:antialiased;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
@@ -87,14 +88,93 @@ body{
 .btn-s.gold{background:rgba(212,162,76,.16);border-color:rgba(212,162,76,.4);color:#E8C079}
 
 /* tabs */
-.tabs{display:flex;gap:5px;margin-top:18px;background:var(--card);padding:4px;border-radius:13px;border:1px solid var(--line)}
-@media(min-width:768px){
-  .tabs{position:sticky;top:52px;z-index:39;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+/* 底部导航：固定贴底，移动端铺满，桌面居中悬浮 */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  display:flex;align-items:stretch;
+  height:calc(56px + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(10,16,28,.92);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);
+  transition:transform .24s cubic-bezier(.2,.8,.3,1)
 }
-.tabs button{flex:1;border:none;background:none;color:var(--tx3);font-size:12.5px;padding:11px 3px;border-radius:10px;cursor:pointer;font-weight:500;white-space:nowrap}
-.tabs button.on{background:var(--card2);color:var(--tx)}
-.panel{display:none;margin-top:13px}
+.tabbar button{
+  position:relative;flex:1 1 0;min-width:0;min-height:44px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border:none;background:none;color:var(--tx3);cursor:pointer;padding:0;
+  -webkit-tap-highlight-color:transparent
+}
+.tabbar button svg{width:21px;height:21px;transition:transform .22s cubic-bezier(.2,.8,.3,1),color .2s ease}
+.tabbar button span{font-size:10px;letter-spacing:.02em;font-weight:500;line-height:1}
+.tabbar button:before{
+  content:"";position:absolute;top:0;left:50%;width:18px;height:2px;border-radius:0 0 2px 2px;
+  background:var(--gold);opacity:0;transform:translate(-50%,-2px);
+  transition:opacity .22s ease,transform .22s ease
+}
+.tabbar button.on{color:var(--gold)}
+.tabbar button.on:before{opacity:1;transform:translate(-50%,0)}
+.tabbar button.on svg{transform:translateY(-1px)}
+.tabbar button.on .badge{display:none}
+.tabbar button:active{transform:scale(.96)}
+.badge{
+  position:absolute;top:6px;left:calc(50% + 4px);
+  min-width:15px;height:15px;padding:0 4px;border-radius:8px;
+  background:var(--up);color:#fff;font-size:9px;font-style:normal;line-height:15px;
+  font-variant-numeric:tabular-nums;text-align:center;
+  box-shadow:0 0 0 2px rgba(10,16,28,.92)
+}
+.badge[hidden]{display:none}
+body.kb .tabbar{transform:translateY(110%)}
+@media(min-width:768px){
+  .tabbar{
+    left:50%;margin-left:-280px;right:auto;width:560px;bottom:14px;
+    height:60px;padding-bottom:0;overflow:hidden;
+    border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 12px 34px rgba(0,0,0,.55)
+  }
+  .tabbar button.on svg{transform:none}
+}
+.panel{display:none;margin-top:12px}
 .panel.on{display:block}
+#panel-ov{margin-top:0}
+
+/* 总览 · 仓位条：整条可点，跳持仓 */
+.posbar{
+  width:100%;display:flex;align-items:stretch;min-height:68px;
+  margin-top:12px;padding:0;border-radius:16px;
+  background:var(--card);border:1px solid var(--line);
+  color:inherit;font:inherit;text-align:left;cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,transform .12s ease
+}
+.posbar:active{transform:scale(.99);background:var(--card2)}
+.posbar .c{flex:1 1 0;min-width:0;padding:11px 12px}
+.posbar .c + .c{border-left:1px solid var(--line)}
+.posbar .k{font-size:10.5px;color:var(--tx3);letter-spacing:.02em}
+.posbar .v{font-size:15px;font-weight:650;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.posbar .v small{font-size:10px;font-weight:500;color:var(--tx3);margin-left:2px}
+.posbar .v.up{color:var(--up)}
+.posbar .v.dn{color:var(--dn)}
+.posbar .arrow{flex:0 0 auto;align-self:center;color:var(--tx3);margin-right:8px}
+
+/* 从总览跳进来的目标卡：金色脉冲一次，提示落点 */
+.card.flash-card{animation:cardPulse 1.2s ease}
+@keyframes cardPulse{
+  0%{border-color:rgba(212,162,76,.9);box-shadow:0 0 0 3px rgba(212,162,76,.13)}
+  100%{border-color:var(--line);box-shadow:none}
+}
+
+/* 顶栏常驻小价格：只在非总览页出现 */
+.tpx{
+  margin-left:auto;font-size:13px;font-weight:600;color:var(--tx);
+  padding:5px 9px;border-radius:9px;background:var(--card2);
+  border:1px solid var(--line);cursor:pointer;white-space:nowrap;
+  font-variant-numeric:tabular-nums;transition:color .25s ease,background .18s ease
+}
+.tpx:active{background:var(--line)}
+.tpx.up{color:var(--up)}
+.tpx.dn{color:var(--dn)}
+body.tab-ov .tpx{display:none}
 
 /* 周期卡 */
 .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -333,12 +413,10 @@ body{
 @keyframes barBreath{0%,100%{opacity:.45}50%{opacity:1}}
 
 /* 按钮触感 */
-.btn-primary,.btn-ghost,.btn-s,.tabs button,.act,.sheet .sh button{
+.btn-primary,.btn-ghost,.btn-s,.act,.sheet .sh button{
   transition:transform .12s ease,filter .16s ease,background .18s ease,color .18s ease,border-color .18s ease
 }
 .btn-primary:active,.btn-ghost:active,.btn-s:active,.act:active{transform:scale(.975);filter:brightness(.94)}
-.tabs button:active{transform:scale(.97)}
-.tabs button.on{transition:background .22s ease,color .22s ease}
 
 /* 输入获得焦点时轻微提亮 */
 .fld input:focus,.fld select:focus{background:#0E1928}
@@ -353,6 +431,9 @@ body{
   .panel.on{animation:none}
 }
 @media(min-width:640px){.hprice{font-size:56px}}
+@media(min-width:768px){
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
@@ -367,9 +448,10 @@ body{
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub">伦敦金行情智能分析 · <span id="verTag">v6.1 · 10/29</span></div>
+        <div class="sub">伦敦金行情智能分析 · <span id="verTag">v6.2 · 10/29</span></div>
       </div>
     </div>
+    <div class="tpx num" id="tpx" role="button" tabindex="0" aria-label="回到总览">--</div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto">
       <div class="conn" id="conn"><span class="dot" id="connDot"></span><span id="connTxt">初始化</span></div>
       <div class="syncbar" id="syncBar" title="点击进入同步设置"><span class="sdot"></span><span id="syncTxt">本地</span></div>
@@ -384,6 +466,8 @@ body{
     <span><b>还没接入云端</b> · 现在记的不会保存</span>
     <button class="wbtn" id="ghWarnBtn">去接入</button>
   </div>
+
+  <section class="panel on" id="panel-ov">
 
   <section class="hero">
     <div class="hlabel">
@@ -413,6 +497,13 @@ body{
     </div>
   </section>
 
+  <button class="posbar" id="posBar" type="button" aria-label="查看持仓明细">
+    <div class="c"><div class="k">持仓</div><div class="v num" id="pbGram">—</div></div>
+    <div class="c"><div class="k">均价</div><div class="v num" id="pbAvg">—</div></div>
+    <div class="c"><div class="k">浮动盈亏</div><div class="v num" id="pbPnl">—</div></div>
+    <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
   <section class="sec">
     <div class="todo quiet" id="todoBox">
       <div class="th">
@@ -423,15 +514,9 @@ body{
     </div>
   </section>
 
-  <div class="tabs">
-    <button class="on" data-tab="struct">结构</button>
-    <button data-tab="plan">建仓</button>
-    <button data-tab="pos">持仓</button>
-    <button data-tab="sig">信号</button>
-    <button data-tab="set">设置</button>
-  </div>
+  </section>
 
-  <section class="panel on" id="panel-struct">
+  <section class="panel" id="panel-struct">
     <div class="sech"><h2>多周期共振 <span class="cnt" id="structMeta"></span></h2></div>
     <div class="pgrid" id="pgrid"></div>
     <div class="card" style="margin-top:10px">
@@ -562,6 +647,36 @@ body{
   </section>
 
 </div>
+
+<nav class="tabbar" id="tabbar" aria-label="主导航">
+  <button class="on" data-tab="ov" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="6.6" height="6.6" rx="2" stroke="currentColor" stroke-width="1.7"/><rect x="13.9" y="3.5" width="6.6" height="6.6" rx="2" stroke="currentColor" stroke-width="1.7"/><rect x="3.5" y="13.9" width="6.6" height="6.6" rx="2" stroke="currentColor" stroke-width="1.7"/><rect x="13.9" y="13.9" width="6.6" height="6.6" rx="2" stroke="currentColor" stroke-width="1.7"/></svg>
+    <span>总览</span>
+  </button>
+  <button data-tab="struct" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20V13M9.3 20V8M14.7 20v-5M20 20V4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span>结构</span>
+  </button>
+  <button data-tab="plan" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 6.5h4v3h4v3.5h4v4h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 14.5v4M18.5 18.5h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span>建仓</span>
+    <i class="badge" id="bdPlan" hidden></i>
+  </button>
+  <button data-tab="pos" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M9.2 9.6h5.6M9.2 12.4h5.6M12 8.4v7.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span>持仓</span>
+    <i class="badge" id="bdPos" hidden></i>
+  </button>
+  <button data-tab="sig" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.4 9.1a12.6 12.6 0 0117.2 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.6 12.6a8.2 8.2 0 0110.8 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9.7 16a3.9 3.9 0 014.6 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="19.3" r="1.2" fill="currentColor"/></svg>
+    <span>信号</span>
+  </button>
+  <button data-tab="set" aria-current="false">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M12 2.6v3M12 18.4v3M4.1 4.1l2.1 2.1M17.8 17.8l2.1 2.1M2.6 12h3M18.4 12h3M4.1 19.9l2.1-2.1M17.8 6.2l2.1-2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span>设置</span>
+    <i class="badge" id="bdSet" hidden></i>
+  </button>
+</nav>
 
 <div class="sheet-mask" id="mask"></div>
 <div class="sheet" id="sheet">
@@ -2130,22 +2245,101 @@ function bindSync(){
   });
 }
 
-function gotoTab(name){
-  Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function(x){
-    x.className = (x.getAttribute("data-tab") === name) ? "on" : "";
+var TABS = ["ov","struct","plan","pos","sig","set"];
+
+function gotoTab(name, opts){
+  opts = opts || {};
+  if(TABS.indexOf(name) < 0) name = "ov";
+  Array.prototype.forEach.call(document.querySelectorAll(".tabbar button"), function(x){
+    var on = x.getAttribute("data-tab") === name;
+    x.className = on ? "on" : "";
+    x.setAttribute("aria-current", on ? "page" : "false");
   });
   Array.prototype.forEach.call(document.querySelectorAll(".panel"), function(p){
     p.className = (p.id === "panel-" + name) ? "panel on" : "panel";
   });
   S.tab = name;
-  // 标签栏已经滚出视口上方时，切回标签栏位置；否则保持当前位置
-  var tb = document.querySelector(".tabs");
-  if(tb){
-    setTimeout(function(){
-      if(tb.getBoundingClientRect().top < -4){
-        window.scrollTo(0, Math.max(0, (tb.offsetTop || 0) - 6));
+  document.body.classList.toggle("tab-ov", name === "ov");
+  // 用 replaceState 写 hash：刷新/分享能回到同一页，又不会污染返回栈
+  if(opts.hash !== false){
+    var h = "#" + name;
+    if(location.hash !== h){
+      try{ history.replaceState(null, "", h); }catch(e){ location.hash = h; }
+    }
+  }
+  if(opts.keepScroll !== true) window.scrollTo(0, 0);
+  if(opts.anchor){
+    var el = $(opts.anchor);
+    if(el){
+      requestAnimationFrame(function(){
+        var card = el.closest ? el.closest(".card") : null;
+        var target = card || el;
+        el.scrollIntoView({ block:"center" });
+        target.classList.remove("flash-card");
+        void target.offsetWidth;   // 强制重排，保证重复点击也能重播动画
+        target.classList.add("flash-card");
+        setTimeout(function(){ target.classList.remove("flash-card"); }, 1250);
+      });
+    }
+  }
+}
+
+function initTabFromHash(){
+  var h = (location.hash || "").replace("#", "");
+  gotoTab(TABS.indexOf(h) >= 0 ? h : "ov");
+}
+
+function bindTabbar(){
+  var bar = $("tabbar");
+  if(!bar) return;
+  bar.addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-tab]") : null;
+    if(!b) return;
+    var name = b.getAttribute("data-tab");
+    if(S.tab === name){
+      if(location.hash !== "#" + name){
+        try{ history.replaceState(null, "", "#" + name); }catch(e){}
       }
-    }, 0);
+      window.scrollTo({ top:0, behavior:"smooth" });
+      return;
+    }
+    gotoTab(name);
+  });
+
+  if($("posBar")) $("posBar").addEventListener("click", function(){
+    gotoTab("pos", { anchor:"posBox" });
+  });
+
+  if($("tpx")){
+    $("tpx").addEventListener("click", function(){ gotoTab("ov"); });
+    $("tpx").addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); gotoTab("ov"); }
+    });
+  }
+
+  window.addEventListener("hashchange", function(){
+    var h = (location.hash || "").replace("#", "");
+    if(TABS.indexOf(h) >= 0 && h !== S.tab) gotoTab(h, { hash:false });
+  });
+
+  /* iOS 键盘弹起时，固定底栏会被顶上来压住输入框 → 让位 */
+  var isField = function(el){
+    return !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+  };
+  document.addEventListener("focusin", function(e){
+    if(isField(e.target)) document.body.classList.add("kb");
+  });
+  document.addEventListener("focusout", function(){
+    setTimeout(function(){
+      if(!isField(document.activeElement)) document.body.classList.remove("kb");
+    }, 60);
+  });
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", function(){
+      var shrunk = window.innerHeight - window.visualViewport.height > 120;
+      if(shrunk) document.body.classList.add("kb");
+      else if(!isField(document.activeElement)) document.body.classList.remove("kb");
+    });
   }
 }
 
@@ -2200,6 +2394,49 @@ function renderHero(){
   $("pAmp").textContent = amp===null?"--":amp.toFixed(2)+"%";
   var d1 = S.struct && S.struct.p && S.struct.p["1d"];
   $("pAtr").textContent = (d1 && d1.atr) ? num(d1.atr,2) : "--";
+
+  // 顶栏小价格：非总览页靠它看现价，点击回总览
+  var tp = $("tpx");
+  if(tp){
+    tp.textContent = p===null ? "--" : num(p,2);
+    var ref2 = S.prev || st.open;
+    tp.className = "tpx num" + (p!==null && ref2 ? (p>ref2?" up":p<ref2?" dn":"") : "");
+  }
+}
+
+/* 总览 · 仓位条；只读数据，不触发其它渲染函数 */
+function renderOv(){
+  var g=$("pbGram"), a=$("pbAvg"), n=$("pbPnl");
+  if(!g || !a || !n) return;
+  var hs = holdStats();
+  if(!hs.grams){
+    g.textContent = "—";
+    a.textContent = "—";
+    n.textContent = "—";
+    n.className = "v num";
+    var bar0 = $("posBar");
+    if(bar0){
+      bar0.title = "还没建仓，去持仓页记一笔";
+      bar0.setAttribute("aria-label", "还没建仓，查看持仓明细");
+    }
+    return;
+  }
+  g.innerHTML = num(hs.grams,1) + "<small>g</small>";
+  a.innerHTML = num(hs.avg,1) + "<small>元/g</small>";
+  var now = nowCnyPrice();
+  if(now === null || !hs.avg){
+    n.textContent = "--";
+    n.className = "v num";
+    return;
+  }
+  var pnl = (now - hs.avg) * hs.grams;
+  n.textContent = (pnl>0?"+":"") + num(pnl,0);
+  n.className = "v num " + (pnl>0?"up":pnl<0?"dn":"");
+  var bar = $("posBar");
+  if(bar){
+    bar.title = "";
+    bar.setAttribute("aria-label", "查看持仓明细，浮动盈亏 " + n.textContent + " 元");
+  }
 }
 
 function dirWord(d){ return d==="up"?"上行":d==="dn"?"下行":"震荡"; }
@@ -2511,7 +2748,12 @@ function renderTake(){
     var lvl = Math.max(0, Math.min(10, Math.round((t.prob||0)/10)));
     var bars = "";
     for(var b=0;b<10;b++) bars += '<i class="'+(b<lvl?"on":"")+'"></i>';
-    var actTxt = isCut ? ((t.belowCost ? "止损 " : "") + t.seq + " · " + t.action) : t.action;
+    var actTxt = isCut ? ((t.belowCost ? "止损 " : "") + t.seq + " · " + t.action) : (t.action || "参考");
+    // 成本位不从 above 里算分，没有 dist/score；缺字段时降级展示，不能让整块崩掉
+    var dnum = Number(t.dist);
+    var distTxt = isFinite(dnum)
+      ? (dnum >= 0 ? "距现价 +" + dnum.toFixed(1) + "%" : "已越过 " + dnum.toFixed(1) + "%")
+      : "";
     var cls = "tw " + (clickable ? "cut" : "ref") + (t.hit ? " hit" : "") + ((t.belowCost && clickable) ? " stop" : "");
 
     html += '<div class="'+cls+'"'+(clickable?' data-sell="'+escapeHtml(t.name)+'"':'')+'>' +
@@ -2522,7 +2764,7 @@ function renderTake(){
         '<span class="act">'+escapeHtml(actTxt)+'</span>' +
       '</div>' +
       '<div class="m">' + (usd?"≈ "+num(usd,1)+" $/oz · ":"") +
-        (t.dist >= 0 ? "距现价 +" + t.dist.toFixed(1) + "%" : "已越过 " + t.dist.toFixed(1) + "%") +
+        distTxt +
         (t.isCost || isHit ? "" : " · 强度 "+t.strength+"/4") + alias +
       '</div>' +
       (t.isCost ? "" : (isHit
@@ -2581,8 +2823,9 @@ function renderFeed(){
   $("feedMeta").textContent = f.length + " 条";
 }
 
-function renderTodo(){
-  var box=$("todoBox"), list=$("todoList"), p=S.price, items=[];
+/* 纯函数：只产出待办数组，不碰 DOM。renderTodo 与 renderBadges 共用 */
+function todoItems(){
+  var p=S.price, items=[];
   var gs = S.gears;
   var lowest = gs.length ? gs[gs.length-1] : null;
   var bought = holdStats().grams;
@@ -2618,14 +2861,20 @@ function renderTodo(){
     items.push({ kind:"ev", t:ne.name, d:"距公布 "+Math.max(0,Math.round((ne.ts-Date.now())/60000))+" 分钟", btn:"", act:"" });
   }
 
+  var PRI = { fatal:0, take:1, buy:2, warn:3, ev:4 };
+  items.sort(function(a,b){ return (PRI[a.kind]===undefined?9:PRI[a.kind]) - (PRI[b.kind]===undefined?9:PRI[b.kind]); });
+  return items;
+}
+
+function renderTodo(){
+  var box=$("todoBox"), list=$("todoList"), items=todoItems();
+
   if(!items.length){
     box.className="todo quiet";
     list.innerHTML='<div class="empty">当前无动作。计划已就位，到价会出现在这里。</div>';
     return;
   }
   box.className="todo";
-  var PRI = { fatal:0, take:1, buy:2, warn:3, ev:4 };
-  items.sort(function(a,b){ return (PRI[a.kind]===undefined?9:PRI[a.kind]) - (PRI[b.kind]===undefined?9:PRI[b.kind]); });
   var html="";
   items.slice(0,7).forEach(function(it){
     html += '<div class="tic k-'+escapeHtml(it.kind)+'"><div class="tl"><div class="tn">'+escapeHtml(it.t)+'</div>' +
@@ -2637,6 +2886,31 @@ function renderTodo(){
   Array.prototype.forEach.call(list.querySelectorAll("[data-act]"), function(b){
     b.onclick = function(){ onAction(b.getAttribute("data-act")); };
   });
+}
+
+/* 底栏角标：到价待买挂建仓，止盈待减挂持仓，基准脱锚挂设置 */
+function setBadge(id, n){
+  var el = $(id);
+  if(!el) return;
+  if(n > 0){
+    el.hidden = false;
+    el.textContent = n > 9 ? "9+" : String(n);
+  }else{
+    el.hidden = true;
+    el.textContent = "";
+  }
+}
+
+function renderBadges(){
+  var items = todoItems(), c = { plan:0, pos:0, set:0 };
+  items.forEach(function(it){
+    if(it.kind === "buy") c.plan++;
+    else if(it.kind === "take") c.pos++;
+    else if(it.kind === "fatal") c.set++;
+  });
+  setBadge("bdPlan", c.plan);
+  setBadge("bdPos", c.pos);
+  setBadge("bdSet", c.set);
 }
 
 function syncKeep(){
@@ -2666,7 +2940,9 @@ function renderStat(){
 function refreshAll(){
   renderHero();
   renderVerdict();
+  renderOv();
   renderTodo();
+  renderBadges();
   renderStruct();
   renderKL();
   renderLadder();
@@ -2983,12 +3259,8 @@ function delBuy(){
 
 function onAction(act){
   if(act === "setbase"){
-    Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function(x){ x.className=""; });
-    qs('[data-tab="set"]').className="on";
-    Array.prototype.forEach.call(document.querySelectorAll(".panel"), function(p){ p.className="panel"; });
-    $("panel-set").className="panel on";
+    gotoTab("set", { anchor:"setBase" });
     $("setBase").focus();
-    $("setBase").scrollIntoView({block:"center"});
     toast("填入新基准，保存后点「按基准重算」");
     return;
   }
@@ -3019,9 +3291,7 @@ function syncParamInputs(){
 }
 
 function bindUI(){
-  Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function(b){
-    b.onclick = function(){ gotoTab(b.getAttribute("data-tab")); };
-  });
+  bindTabbar();
 
   $("mask").onclick = closeSheet;
   $("sheetClose").onclick = closeSheet;
@@ -3176,6 +3446,7 @@ function boot(){
   loadGh();
   loadCfg();
   bindUI();
+  initTabFromHash();
   setConn();
   setSync(ghOn() ? "idle" : "off", "");
   refreshAll();
@@ -3188,6 +3459,21 @@ function boot(){
   setInterval(refreshPrice, TICK_MS);
   setInterval(function(){ renderHero(); setConn(); }, 5000);
   setInterval(refreshData, 5*60*1000);
+}
+
+/* 自动化测试用的最小调试桥：仅在 ?xt=1 时挂载，正常访问不产生任何全局变量 */
+if(/[?&]xt=1/.test(location.search)){
+  window.__xt = {
+    ready:true,
+    gotoTab:gotoTab,
+    refreshAll:refreshAll,
+    compute:compute,
+    refreshPrice:refreshPrice,
+    playSnd:playSnd,
+    holdStats:holdStats,
+    state:function(){ return S; },
+    setPrice:function(p){ S.price = p; renderHero(); }
+  };
 }
 
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
