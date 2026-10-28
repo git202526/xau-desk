@@ -258,11 +258,13 @@ body{
 .sheet .sh button{background:none;border:none;color:var(--tx2);font-size:13px;padding:8px;cursor:pointer}
 .form{padding:14px 16px}
 .fld{margin-bottom:12px}
-.fld label{display:block;font-size:11.5px;color:var(--tx3);margin-bottom:5px}
-.fld input,.fld select{width:100%;background:#0C1522;border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:11px 12px;font-size:16px;font-family:inherit;outline:none}
-.fld input:focus{border-color:rgba(212,162,76,.5)}
-.row2{display:flex;gap:10px}
-.row2 .fld{flex:1}
+.fld label{display:block;font-size:11.5px;color:var(--tx3);margin-bottom:5px;line-height:1.45}
+.fld input,.fld select{width:100%;background:#0C1522;border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:11px 12px;font-size:16px;font-family:inherit;outline:none;transition:border-color .18s,box-shadow .18s}
+.fld input:focus,.fld select:focus{border-color:rgba(212,162,76,.55);box-shadow:0 0 0 3px rgba(212,162,76,.1)}
+/* 两列并排：标签行数不同也让输入框底部对齐 */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+.row2 .fld{flex:1;min-width:0;display:flex;flex-direction:column}
+.row2 .fld label{flex:1 1 auto;margin-bottom:5px}
 .btn-primary{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(150deg,#D9AC5C,#B98A34);color:#1A1206;font-size:15px;font-weight:650;cursor:pointer;margin-top:4px}
 .btn-ghost{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--tx2);font-size:13px;cursor:pointer;margin-top:8px}
 .syncbar{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--tx3);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -290,6 +292,66 @@ body{
 .toast{position:fixed;left:50%;top:62px;transform:translate(-50%,-14px);background:#1B2740;color:var(--tx);padding:10px 17px;border-radius:11px;font-size:12.5px;border:1px solid var(--line);opacity:0;pointer-events:none;transition:.24s;z-index:80;max-width:86vw;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .hide{display:none!important}
+
+/* ===== 动效 ===== */
+.panel.on{display:block;animation:panelIn .26s cubic-bezier(.22,.68,.36,1) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* 价格跳动：涨红跌绿，只做颜色与位移，不用重绘大范围 */
+.hprice{transition:color .25s ease}
+.hprice.flash-up{animation:pfUp .52s cubic-bezier(.2,.7,.3,1)}
+.hprice.flash-dn{animation:pfDn .52s cubic-bezier(.2,.7,.3,1)}
+@keyframes pfUp{
+  0%{color:var(--up);transform:translateY(-3px) scale(1.012)}
+  55%{color:var(--up)}
+  100%{color:var(--tx);transform:none}
+}
+@keyframes pfDn{
+  0%{color:var(--dn);transform:translateY(3px) scale(.994)}
+  55%{color:var(--dn)}
+  100%{color:var(--tx);transform:none}
+}
+.hdelta.pop{animation:popIn .34s cubic-bezier(.2,.8,.3,1)}
+@keyframes popIn{0%{opacity:.2;transform:translateY(4px)}100%{opacity:1;transform:none}}
+
+/* 到价档位：圆点呼吸 */
+.lv.s-hit .rail i{animation:hitDot 1.9s ease-in-out infinite}
+@keyframes hitDot{
+  0%,100%{box-shadow:0 0 0 4px rgba(229,72,77,.14)}
+  50%{box-shadow:0 0 0 7px rgba(229,72,77,.05)}
+}
+
+/* 今日待办：到价项左侧竖条呼吸 */
+.tic{position:relative;transition:background .2s}
+.tic.k-buy,.tic.k-take{padding-left:12px}
+.tic.k-buy:before,.tic.k-take:before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:2px;
+  background:linear-gradient(180deg,#E5484D,rgba(229,72,77,.25));
+  animation:barBreath 2.1s ease-in-out infinite;
+}
+.tic.k-take:before{background:linear-gradient(180deg,#D4A24C,rgba(212,162,76,.25))}
+@keyframes barBreath{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* 按钮触感 */
+.btn-primary,.btn-ghost,.btn-s,.tabs button,.act,.sheet .sh button{
+  transition:transform .12s ease,filter .16s ease,background .18s ease,color .18s ease,border-color .18s ease
+}
+.btn-primary:active,.btn-ghost:active,.btn-s:active,.act:active{transform:scale(.975);filter:brightness(.94)}
+.tabs button:active{transform:scale(.97)}
+.tabs button.on{transition:background .22s ease,color .22s ease}
+
+/* 输入获得焦点时轻微提亮 */
+.fld input:focus,.fld select:focus{background:#0E1928}
+
+/* 顶栏滚动阴影 */
+.topbar{transition:box-shadow .25s ease,border-color .25s ease}
+.topbar.scrolled{box-shadow:0 8px 26px rgba(0,0,0,.42)}
+
+/* 尊重系统的「减少动态效果」 */
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .panel.on{animation:none}
+}
 @media(min-width:640px){.hprice{font-size:56px}}
 </style>
 </head>
@@ -305,7 +367,7 @@ body{
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub">伦敦金行情智能分析 · <span id="verTag">v6.0 · 10/29</span></div>
+        <div class="sub">伦敦金行情智能分析 · <span id="verTag">v6.1 · 10/29</span></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto">
@@ -435,6 +497,21 @@ body{
       <button class="btn-primary" id="btnSaveSet">保存参数</button>
     </div>
 
+    <div class="sech" style="margin-top:20px"><h2>提醒</h2></div>
+    <div class="card">
+      <label class="chkline" style="margin-top:0">
+        <input type="checkbox" id="setSnd" checked>
+        <span>到价时响一声<em>建仓档位跌破、止盈位触发、预警命中时播放提示音；只在页面开着时生效</em></span>
+      </label>
+      <div style="display:flex;gap:9px;margin-top:13px">
+        <button class="btn-ghost" style="margin-top:0;flex:1" id="btnSndBuy">试听 · 买点</button>
+        <button class="btn-ghost" style="margin-top:0;flex:1" id="btnSndTake">试听 · 止盈</button>
+      </div>
+      <div class="note" style="margin-top:11px">
+        只在页面打开时提示，不做后台推送。手机静音模式不会响；iPhone / iPad 需要先点一下页面才允许出声（浏览器限制）。开关只对这台设备生效，不写进云端。
+      </div>
+    </div>
+
     <div class="sech" style="margin-top:20px"><h2>云端数据 · GitHub</h2></div>
     <div class="card ghcard">
       <div class="hd">
@@ -443,17 +520,15 @@ body{
       </div>
       <div class="fld">
         <label>接入码（换设备时粘这里，一步接好）</label>
-        <input type="text" id="ghCode" placeholder="XAU1.…（在已接入的设备点「复制接入码」）" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input type="text" id="ghCode" placeholder="XAU1.… 粘贴接入码" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="note" style="margin:-2px 0 12px">仓库已预填好了。第一次接入只需填下面的「访问令牌」；换手机 / 换电脑可以直接粘接入码。</div>
+      <div class="fld"><label>仓库（owner/repo）</label><input type="text" id="ghRepo" placeholder="git202526/xau-desk-data" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
       <div class="row2">
-        <div class="fld"><label>仓库（owner/repo）</label><input type="text" id="ghRepo" placeholder="git202526/xau-desk-data" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
         <div class="fld"><label>分支</label><input type="text" id="ghBranch" placeholder="main" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-      </div>
-      <div class="row2">
         <div class="fld"><label>数据文件路径</label><input type="text" id="ghPath" placeholder="data.json" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-        <div class="fld"><label>访问令牌</label><input type="password" id="ghToken" placeholder="ghp_… / github_pat_…" autocomplete="off" spellcheck="false"></div>
       </div>
+      <div class="fld"><label>访问令牌</label><input type="password" id="ghToken" placeholder="ghp_… / github_pat_…" autocomplete="off" spellcheck="false"></div>
       <div style="display:flex;gap:9px">
         <button class="btn-ghost" style="margin-top:0;flex:1" id="btnGhPull">重新载入云端</button>
         <button class="btn-ghost" style="margin-top:0;flex:1" id="btnGhPush">立即写入云端</button>
@@ -589,6 +664,62 @@ function fallbackCopy(txt){
   document.body.appendChild(ta); ta.select();
   try{ document.execCommand("copy"); }catch(e){}
   document.body.removeChild(ta);
+}
+
+/* ===== 声音提醒（Web Audio 合成，不引任何音频文件） ===== */
+var SND_KEY = "wb_xau_desk_snd";
+var snd = { on:true, vol:.5, ctx:null };
+
+function loadSnd(){
+  try{
+    var o = JSON.parse(localStorage.getItem(SND_KEY) || "{}") || {};
+    if(o.on === false) snd.on = false;
+    if(o.vol) snd.vol = Math.max(.1, Math.min(1, Number(o.vol) || .5));
+  }catch(e){}
+}
+function saveSnd(){
+  try{ localStorage.setItem(SND_KEY, JSON.stringify({ on:snd.on, vol:snd.vol })); }catch(e){}
+}
+function audioCtx(){
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return null;
+  if(!snd.ctx){
+    try{ snd.ctx = new AC(); }catch(e){ return null; }
+  }
+  if(snd.ctx.state === "suspended"){ try{ snd.ctx.resume(); }catch(e){} }
+  return snd.ctx;
+}
+/* 一个音：起音快、衰减自然，避免爆音 */
+function blip(ctx, freq, at, dur, type, peak){
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || "sine";
+  o.frequency.setValueAtTime(freq, at);
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.exponentialRampToValueAtTime(peak, at + .014);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(at); o.stop(at + dur + .03);
+}
+function playSnd(kind){
+  if(!snd.on) return;
+  var ctx = audioCtx(); if(!ctx) return;
+  var t = ctx.currentTime + .02, v = snd.vol;
+  if(kind === "gear"){            // 买点到价：上行两音
+    blip(ctx, 784.0,  t,        .17, "sine",     v * .55);
+    blip(ctx, 1046.5, t + .14,  .24, "sine",     v * .45);
+  }else if(kind === "take"){      // 止盈触发：上行三音
+    blip(ctx, 880.0,  t,        .14, "triangle", v * .50);
+    blip(ctx, 1108.7, t + .12,  .14, "triangle", v * .44);
+    blip(ctx, 1318.5, t + .24,  .28, "triangle", v * .38);
+  }else if(kind === "warn"){      // 预警：下行两音
+    blip(ctx, 659.3,  t,        .16, "sine",     v * .42);
+    blip(ctx, 493.9,  t + .14,  .24, "sine",     v * .36);
+  }else if(kind === "save"){
+    blip(ctx, 1046.5, t,        .09, "sine",     v * .20);
+  }else if(kind === "error"){
+    blip(ctx, 311.1,  t,        .18, "sine",     v * .32);
+    blip(ctx, 233.1,  t + .15,  .26, "sine",     v * .28);
+  }
 }
 var _ALLOW={DIV:1,SPAN:1,BUTTON:1,I:1,S:1,B:1,STRONG:1,EM:1};
 function _walk(n){
@@ -2007,6 +2138,15 @@ function gotoTab(name){
     p.className = (p.id === "panel-" + name) ? "panel on" : "panel";
   });
   S.tab = name;
+  // 标签栏已经滚出视口上方时，切回标签栏位置；否则保持当前位置
+  var tb = document.querySelector(".tabs");
+  if(tb){
+    setTimeout(function(){
+      if(tb.getBoundingClientRect().top < -4){
+        window.scrollTo(0, Math.max(0, (tb.offsetTop || 0) - 6));
+      }
+    }, 0);
+  }
 }
 
 
@@ -2033,9 +2173,14 @@ function todayStats(){
   return { open:arr[0].o, high:hi, low:lo };
 }
 
+var lastShownPrice = null;
+
 function renderHero(){
   var p = S.price;
   $("pNow").textContent = p===null ? "--" : num(p,2);
+  // 价格变了就闪一下（由渲染入口统一判断，不依赖是哪个调用链刷新）
+  if(p !== null && lastShownPrice !== null && p !== lastShownPrice) flashPrice(lastShownPrice, p);
+  if(p !== null) lastShownPrice = p;
 
   var d = $("pDelta");
   var st0 = todayStats();
@@ -2483,7 +2628,7 @@ function renderTodo(){
   items.sort(function(a,b){ return (PRI[a.kind]===undefined?9:PRI[a.kind]) - (PRI[b.kind]===undefined?9:PRI[b.kind]); });
   var html="";
   items.slice(0,7).forEach(function(it){
-    html += '<div class="tic"><div class="tl"><div class="tn">'+escapeHtml(it.t)+'</div>' +
+    html += '<div class="tic k-'+escapeHtml(it.kind)+'"><div class="tl"><div class="tn">'+escapeHtml(it.t)+'</div>' +
       '<div class="td">'+escapeHtml(it.d)+'</div></div>' +
       (it.btn?'<button class="btn-s gold" data-act="'+escapeHtml(it.act)+'">'+escapeHtml(it.btn)+'</button>':'') +
       '</div>';
@@ -2549,13 +2694,17 @@ function pushFeed(type, text, detail){
   S.cfg.feed = S.cfg.feed.slice(0,60);
 }
 
+var priceSeen = false, takeSaid = {};
+
 function trackChanges(){
+  var dirty = false, quiet = !priceSeen;   // 第一次拿到价格只记录，不响
   var st = S.struct;
   if(st && st.dir){
     if(S.cfg.lastDir && S.cfg.lastDir !== st.dir){
       pushFeed("dir", "方向由 " + dirWord(S.cfg.lastDir) + " 转为 " + dirWord(st.dir), st.text + " · 置信 " + st.conf);
+      dirty = true;
     }
-    S.cfg.lastDir = st.dir;
+    if(S.cfg.lastDir !== st.dir){ S.cfg.lastDir = st.dir; dirty = true; }
   }
   var p = S.price;
   if(p!==null){
@@ -2565,10 +2714,22 @@ function trackChanges(){
       if(p <= g.price && !S.cfg.gearHit[g.name]){
         S.cfg.gearHit[g.name] = 1;
         pushFeed("gear", g.name + " 到价 " + num(g.price,2), "回撤 " + g.pct + "% · 该档 " + g.gram + " 克");
+        dirty = true;
+        if(!quiet) playSnd("gear");
       }
     });
+    // 止盈位触及：只在本次会话里第一次命中时响，避免刷屏
+    (S.takes||[]).forEach(function(tk){
+      if(!(tk.role === "cut" || tk.role === "hit") || !tk.hit || !(tk.cut > 0)) return;
+      var k = String(tk.name||"") + "@" + Math.round(Number(tk.cnyVal || tk.price || 0));
+      if(takeSaid[k]) return;
+      takeSaid[k] = 1;
+      if(!quiet) playSnd("take");
+    });
+    priceSeen = true;
   }
-  saveCfg();
+  // 只有状态真的变了才写云端；否则每 15 秒刷新价格都会产生一次提交
+  if(dirty) saveCfg();
 }
 
 /* ===== 数据刷新 ===== */
@@ -2601,10 +2762,30 @@ function refreshPrice(){
     applyScale();
     compute();
     refreshAll();
-  }).catch(function(){
+  }).catch(function(e){
+    if(window.console && console.warn) console.warn("刷新失败", e);
     S.fail++;
     setConn();
   });
+}
+
+/* 价格变动：涨红跌绿闪一下，幅度很小，不打断阅读 */
+function flashPrice(old, p){
+  if(old === null || old === undefined || old === p) return;
+  var el = $("pNow");
+  if(el){
+    el.classList.remove("flash-up", "flash-dn");
+    void el.offsetWidth;
+    el.classList.add(p > old ? "flash-up" : "flash-dn");
+    setTimeout(function(){ el.classList.remove("flash-up", "flash-dn"); }, 560);
+  }
+  var d = $("pDelta");
+  if(d){
+    d.classList.remove("pop");
+    void d.offsetWidth;
+    d.classList.add("pop");
+    setTimeout(function(){ d.classList.remove("pop"); }, 380);
+  }
 }
 
 function refreshData(){
@@ -2839,14 +3020,7 @@ function syncParamInputs(){
 
 function bindUI(){
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function(b){
-    b.onclick = function(){
-      S.tab = b.getAttribute("data-tab");
-      Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function(x){ x.className=""; });
-      b.className="on";
-      Array.prototype.forEach.call(document.querySelectorAll(".panel"), function(p){ p.className="panel"; });
-      var p = $("panel-"+S.tab);
-      if(p) p.className="panel on";
-    };
+    b.onclick = function(){ gotoTab(b.getAttribute("data-tab")); };
   });
 
   $("mask").onclick = closeSheet;
@@ -2937,6 +3111,33 @@ function bindUI(){
     S.cfg.gearsDone = []; S.cfg.gearHit = {}; S.cfg.feed = []; S.cfg.buys = []; S.cfg.sells = [];
     saveCfg(); compute(); refreshAll(); toast("已清空，正在写入云端");
   };
+
+  /* 声音提醒 */
+  loadSnd();
+  if($("setSnd")){
+    $("setSnd").checked = snd.on;
+    $("setSnd").onchange = function(){
+      snd.on = this.checked;
+      saveSnd();
+      if(snd.on) playSnd("save");
+      toast(snd.on ? "到价提示音已开启" : "到价提示音已关闭");
+    };
+  }
+  if($("btnSndBuy")) $("btnSndBuy").onclick = function(){
+    var keep = snd.on; snd.on = true; playSnd("gear"); snd.on = keep;
+  };
+  if($("btnSndTake")) $("btnSndTake").onclick = function(){
+    var keep = snd.on; snd.on = true; playSnd("take"); snd.on = keep;
+  };
+  // iOS 等要求先有用户手势才允许出声
+  document.addEventListener("pointerdown", function(){ if(snd.on) audioCtx(); }, { once:true });
+
+  var tb = document.querySelector(".topbar");
+  if(tb){
+    var onScroll = function(){ tb.classList.toggle("scrolled", window.scrollY > 6); };
+    window.addEventListener("scroll", onScroll, { passive:true });
+    onScroll();
+  }
 
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden) refreshPrice();
