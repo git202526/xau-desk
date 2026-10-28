@@ -156,12 +156,26 @@ python3 -m http.server 8080
 - 「多空」是方向判定，不是交易动作
 - 不构成投资建议
 
+## 版本与回退
+
+每个发布版都留了完整单文件，出问题直接打开旧版：
+
+| 版本 | 在线地址 | 存储方式 |
+|---|---|---|
+| **v6.0（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| v6.0 存档 | https://git202526.github.io/xau-desk/versions/v6.0.html | 同上 |
+| v5.2 存档 | https://git202526.github.io/xau-desk/versions/v5.2.html | 浏览器本地 + 可选云同步 |
+
+改了什么看 [CHANGELOG.md](CHANGELOG.md)，回退步骤看 [versions/README.md](versions/README.md)。
+
 ## 文件
 
 ```
-index.html       全部内容（CSS / JS 内联，零外部依赖）
-README.md        本文件
-部署指南.md       接入、令牌、更新、常见问题
-docs/PRD-v2.md   当前版本的需求与算法说明
-docs/PRD-v1.0.md 初版需求（历史留档）
+index.html          全部内容（CSS / JS 内联，零外部依赖）· 永远是最新版
+README.md           本文件
+CHANGELOG.md        每次改了什么、有没有数据格式变化
+部署指南.md          接入、令牌、更新、常见问题
+versions/           历史版本完整存档 + 回退说明
+docs/PRD-v2.md      当前版本的需求与算法说明
+docs/PRD-v1.0.md    初版需求（历史留档）
 ```
