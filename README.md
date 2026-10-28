@@ -16,22 +16,24 @@
 
 ## 部署
 
-### GitHub Pages
+线上地址：**https://git202526.github.io/xau-desk/**
+
+页面仓库 `git202526/xau-desk`（公开），数据仓库 `git202526/xau-desk-data`（私有）。两个仓库分开，更新页面不会碰持仓数据。
+
+改完代码推送即可，Pages 一分钟内自动重新发布，网址不变：
 
 ```bash
-git init
-git add .
-git commit -m "init"
-git branch -M main
-git remote add origin git@github.com:<你的账号>/<仓库名>.git
-git push -u origin main
+git add -A
+git commit -m "改了什么"
+git push origin main
 ```
 
-然后在仓库 `Settings → Pages` 里，Source 选 `Deploy from a branch`，分支选 `main`、目录选 `/ (root)`，保存。一分钟后访问：
+### 换到自己的账号部署
 
-```
-https://<你的账号>.github.io/<仓库名>/
-```
+1. 新建公开仓库，把 `index.html` 推上去
+2. `Settings → Pages`，Source 选 `Deploy from a branch`，分支 `main`、目录 `/ (root)`
+3. 新建**私有**仓库放数据，里面建 `data.json`，内容填 `{}`
+4. 打开页面 → 顶部「去接入」→ 填仓库和令牌
 
 ### Vercel / Netlify
 
@@ -44,7 +46,7 @@ python3 -m http.server 8080
 # 打开 http://localhost:8080
 ```
 
-> 直接双击 `index.html` 也能跑（file:// 协议下两个 API 仍可访问）。
+> 直接双击 `index.html` 也能跑，云端读写正常。但每次都要找文件，日常用线上地址更省事。
 
 ## 数据来源
 
@@ -157,7 +159,9 @@ python3 -m http.server 8080
 ## 文件
 
 ```
-index.html   全部内容（CSS / JS 内联，无外部依赖）
-README.md    本文件
-部署指南.md   GitHub 上线 + 开同步的逐步操作说明
+index.html       全部内容（CSS / JS 内联，零外部依赖）
+README.md        本文件
+部署指南.md       接入、令牌、更新、常见问题
+docs/PRD-v2.md   当前版本的需求与算法说明
+docs/PRD-v1.0.md 初版需求（历史留档）
 ```
