@@ -442,9 +442,10 @@ body{
         <span class="ghtag" id="ghTag">未接入</span>
       </div>
       <div class="fld">
-        <label>接入码（新设备粘这里，一步接好）</label>
+        <label>接入码（换设备时粘这里，一步接好）</label>
         <input type="text" id="ghCode" placeholder="XAU1.…（在已接入的设备点「复制接入码」）" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
+      <div class="note" style="margin:-2px 0 12px">仓库已预填好了。第一次接入只需填下面的「访问令牌」；换手机 / 换电脑可以直接粘接入码。</div>
       <div class="row2">
         <div class="fld"><label>仓库（owner/repo）</label><input type="text" id="ghRepo" placeholder="git202526/xau-desk-data" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
         <div class="fld"><label>分支</label><input type="text" id="ghBranch" placeholder="main" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
@@ -1520,7 +1521,7 @@ function loadCfg(){
 }
 /* ===== 云端同步：GitHub 私有仓库（唯一数据源） ===== */
 var GH_KEY = "wb_xau_desk_gh";
-var gh = { token:"", repo:"", branch:"main", path:"data.json", sha:"", state:"off", msg:"" };
+var gh = { token:"", repo:"git202526/xau-desk-data", branch:"main", path:"data.json", sha:"", state:"off", msg:"" };
 var pushTimer = null, pushBusy = false, pullBusy = false;
 var cloudReady = false;   // 是否已成功从云端载入过，未载入时不做任何写入
 
@@ -1561,7 +1562,7 @@ function loadGh(){
     if(raw){
       var o = JSON.parse(raw) || {};
       gh.token = o.token || "";
-      gh.repo = o.repo || "";
+      gh.repo = o.repo || gh.repo;
       gh.branch = o.branch || "main";
       gh.path = o.path || "data.json";
       gh.sha = o.sha || "";
@@ -1974,18 +1975,19 @@ function bindSync(){
   };
   if($("ghWarnBtn")) $("ghWarnBtn").onclick = function(){
     gotoTab("set");
-    setTimeout(function(){ if($("ghCode")) $("ghCode").focus(); }, 320);
+    var card = $("ghRepo") && $("ghRepo").closest(".ghcard");
+    setTimeout(function(){
+      if(card) card.scrollIntoView({ block:"center" });
+      if($("ghToken")) $("ghToken").focus();
+    }, 200);
   };
   var bar = $("syncBar");
   if(bar){
     bar.onclick = function(){
       gotoTab("set");
-      if(!ghOn()){
-        setTimeout(function(){
-          if($("ghCode")) $("ghCode").focus();
-          else if($("ghToken")) $("ghToken").focus();
-        }, 320);
-      }
+      var card = $("ghRepo") && $("ghRepo").closest(".ghcard");
+      if(card) setTimeout(function(){ card.scrollIntoView({ block:"center" }); }, 120);
+      if(!ghOn()) setTimeout(function(){ if($("ghToken")) $("ghToken").focus(); }, 380);
     };
   }
   document.addEventListener("visibilitychange", function(){
