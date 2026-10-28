@@ -162,7 +162,8 @@ python3 -m http.server 8080
 
 | 版本 | 在线地址 | 存储方式 |
 |---|---|---|
-| **v6.1（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| **v6.2（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| v6.2 存档 | https://git202526.github.io/xau-desk/versions/v6.2.html | 同上 |
 | v6.1 存档 | https://git202526.github.io/xau-desk/versions/v6.1.html | 同上 |
 | v6.0 存档 | https://git202526.github.io/xau-desk/versions/v6.0.html | 同上 |
 | v5.2 存档 | https://git202526.github.io/xau-desk/versions/v5.2.html | 浏览器本地 + 可选云同步 |
@@ -179,4 +180,6 @@ CHANGELOG.md        每次改了什么、有没有数据格式变化
 versions/           历史版本完整存档 + 回退说明
 docs/PRD-v2.md      当前版本的需求与算法说明
 docs/PRD-v1.0.md    初版需求（历史留档）
+docs/开发计划书-v6.2-移动版.md   v6.2 改版的开发计划与验收标准
+tests/              自动化测试（Playwright + mock 行情/GitHub API）
 ```
