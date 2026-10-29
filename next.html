@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.11 · 档位已买入可撤销 / 持仓重算 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.13 · 事件日历补全（Actions 抓取 + 同源 JSON） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -363,6 +363,26 @@ body.tab-ov .tpx{display:none}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
 /* 弹药 */
+/* 档位来源切换条 + 均价校验卡 */
+.gsrc{display:flex;align-items:center;gap:9px;margin:0 0 10px;min-width:0}
+.gsrc .lb{font-size:11.5px;color:var(--tx3);flex:0 0 auto}
+.gsrc .seg{display:flex;gap:0;flex:1 1 auto;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:2px;overflow:hidden}
+.gsrc .seg button{flex:1 1 0;min-width:0;font-size:11.5px;color:var(--tx3);background:none;border:none;border-radius:7px;padding:7px 4px;min-height:32px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit}
+.gsrc .seg button.on{background:rgba(212,162,76,.14);color:var(--gold);font-weight:600}
+.gsrc .seg button:disabled{opacity:.42;cursor:not-allowed}
+.gsrc .seg button:active:not(:disabled){transform:scale(.98)}
+.avgc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 13px;margin-top:2px}
+.avgc .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--tx3);flex-wrap:wrap}
+.avgc .hd b{font-size:14px;color:var(--tx);font-weight:650;font-variant-numeric:tabular-nums}
+.avgc .bar{position:relative;height:34px;margin:9px 0 4px}
+.avgc .bar svg{display:block;width:100%;height:34px}
+.avgc .ft{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--tx3);flex-wrap:wrap}
+.avgc .ft b{font-variant-numeric:tabular-nums;font-weight:600;color:var(--tx2)}
+.avgc .ok{color:#3FBF7F}
+.avgc .off{color:#E0913F}
+.avgc .tip{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.05);font-size:11px;color:var(--tx3);line-height:1.6}
+.avgc .tip strong{color:#E0913F;font-weight:600}
+
 .ammo{margin-top:12px}
 .ammo .t{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px}
 .ammo .track{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
@@ -379,6 +399,11 @@ body.tab-ov .tpx{display:none}
 .ev .info .n{font-size:13px;font-weight:600}
 .ev .info .m{font-size:11px;color:var(--tx3);margin-top:2px}
 .ev .src{flex:0 0 auto;font-size:10px;color:var(--tx3);border:1px solid var(--line);padding:1px 6px;border-radius:5px;align-self:flex-start;white-space:nowrap}
+.ev.done{opacity:.55}
+.ev.done .info .n{font-weight:500}
+.ev .cd.off b{font-size:11px;font-weight:600;color:var(--tx3)}
+.ev .info{overflow:hidden}
+.ev .info .m{line-height:1.5}
 .stars{color:var(--gold);font-size:10px;letter-spacing:1px}
 
 /* 信号 */
@@ -514,7 +539,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.11 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.13 · 10/29</span></div>
       </div>
     </div>
     <div class="stat">
@@ -638,14 +663,17 @@ body.tab-ov .tpx{display:none}
         <button class="act" id="btnRebuild">按基准</button>
       </div>
     </div>
+    <div id="gearSrcBox"></div>
     <div class="ammo" style="margin-bottom:10px">
       <div class="t"><span>弹药进度</span><span class="num" id="ammoTxt">0 / 100 克</span></div>
       <div class="track"><div class="fill" id="ammoFill" style="width:0%"></div></div>
     </div>
     <div id="ladder"></div>
+    <div id="avgCard"></div>
     <div class="note">触发价 = 基准 × (1 − 回撤%)，全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
-      <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。</div>
+      <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
+      <br>档位来源可切「结构基准」或<strong>目标均价</strong>：后者由目标反解基准，让 1–4 档买完的均价正好落在目标附近。</div>
 
   </section>
 
@@ -686,6 +714,22 @@ body.tab-ov .tpx{display:none}
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
       <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
       <button class="btn-primary" id="btnSaveSet">保存参数</button>
+    </div>
+
+    <div class="sech" style="margin-top:20px"><h2>建仓目标</h2></div>
+    <div class="card">
+      <div class="gsrc" style="margin-bottom:12px">
+        <span class="lb">档位模式</span>
+        <div class="seg" id="setModeSeg">
+          <button data-gmode="struct" class="on">结构基准</button>
+          <button data-gmode="avg">目标均价</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fld"><label>目标均价（$/oz）</label><input type="number" id="setAvgT" step="1" inputmode="decimal" placeholder="如 3950"></div>
+        <div class="fld"><label>容差 ±（美元）</label><input type="number" id="setAvgB" step="1" min="1" inputmode="decimal" placeholder="20"></div>
+      </div>
+      <div class="note" style="margin-top:0">目标均价模式下，基准由「第 1–4 档打完均价 = 目标」反解，克重按计划等比缩放。克重与持仓仍按人民币克价记录，这里只用美元/盎司定档位。</div>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>提醒</h2></div>
@@ -871,8 +915,9 @@ var S = {
   struct:null, verdict:null, levels:[], gears:[], takes:[],
   levelWin:12, levelOpen:false, levelFilter:"all",
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
+  cal:{ ok:false, events:[], updatedAt:0, week:"" },
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
-  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{} },
+  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, gearMode:"struct", avgTarget:null, avgBand:20 },
   editing:null, tab:"struct"
 };
 
@@ -1602,15 +1647,63 @@ function gearBought(name){
   return g;
 }
 
+var MAIN_GEARS = ["第1档","第2档","第3档","第4档"];
+
+function wAllOf(){ return GEARS.reduce(function(a,g){ return a + (g.warn?0:g.w); }, 0) || 1; }
+function totalGrams(){ return Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100; }
+
+/* 目标均价 → 等效基准：让「第 1–4 档按计划全部成交」的加权均价正好等于 T。
+   一条乘除，不用迭代：H_avg = T / (1 + Σ(w×pct)/Σw / 100) */
+function avgBase(T){
+  T = Number(T);
+  if(!(T > 0)) return null;
+  var ws = 0, wr = 0;
+  GEARS.forEach(function(g){
+    if(MAIN_GEARS.indexOf(g.name) < 0) return;
+    ws += g.w; wr += g.w * g.pct;
+  });
+  if(!ws) return null;
+  return T / (1 + (wr / ws) / 100);
+}
+
+/* 给定基准，算「指定档位按计划全部成交」的加权均价 */
+function planAvg(He, names){
+  He = Number(He);
+  if(!(He > 0)) return null;
+  var total = totalGrams(), wa = wAllOf();
+  var gs = 0, amt = 0;
+  GEARS.forEach(function(g){
+    if(g.warn) return;
+    if(names && names.indexOf(g.name) < 0) return;
+    var gram = total * g.w / wa;
+    gs += gram; amt += gram * He * (1 + g.pct/100);
+  });
+  return gs ? amt / gs : null;
+}
+
+/* 当前生效的档位模式与基准来源。均价模式下 H 由目标反解，结构模式走原逻辑 */
+function gearBase(){
+  var auto = (computeHEff()||{}).h;
+  var mode = S.cfg && S.cfg.gearMode === "avg" ? "avg" : "struct";
+  var T = S.cfg ? Number(S.cfg.avgTarget) : NaN;
+  if(mode === "avg"){
+    var he = avgBase(T);
+    if(he) return { mode:"avg", he:he, auto:auto, target:T, src:"目标均价" };
+    mode = "struct";                       // 没填目标 → 自动退回结构基准，不让页面空转
+  }
+  return { mode:"struct", he:S.H_BASE || auto, auto:auto, target:null, src:S.H_BASE?"手动基准":"结构基准" };
+}
+
 function computeGears(){
-  var he = S.H_BASE || (computeHEff()||{}).h;
+  var base = gearBase();
+  var he = base.he;
   if(!he) return [];
-  var total = Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100;
+  var total = totalGrams();
   var held = holdStats().grams || 0;
   var remain = Math.max(0, total - held);
 
   // 权重总和固定（非预警档），用于把"目标总仓位"分解成每档份额
-  var wAll = GEARS.reduce(function(a,g){ return a + (g.warn?0:g.w); }, 0) || 1;
+  var wAll = wAllOf();
 
   // 已买入判定：标记表 + 买入记录双保险（老数据只写了标记表，少数路径只落了记录）
   var doneSet = {}, doneG = {};
@@ -1627,14 +1720,24 @@ function computeGears(){
   });
   var wSum = open.reduce(function(a,g){ return a + g.w; }, 0);
   var alloc = {}, used = 0;
-  open.forEach(function(g, i){
-    var v;
-    if(i === open.length - 1 || !wSum) v = Math.max(0, remain - used);
-    else { v = Math.round(remain * g.w / wSum * 10)/10; used += v; }
-    alloc[g.name] = Math.max(0, v);
-  });
 
-  return GEARS.map(function(g){
+  if(base.mode === "avg"){
+    /* 均价模式：克重按 plan 等比缩放（remain/total），与「买满 1–4 档即命中目标」自洽。
+       不用「剩余额度按权重重分」，否则最后一档会吃满余额，把均价压到目标下方。 */
+    var k = total > 0 ? Math.min(1, remain / total) : 0;
+    open.forEach(function(g){
+      alloc[g.name] = Math.max(0, Math.round(total * g.w / wAll * k * 10)/10);
+    });
+  } else {
+    open.forEach(function(g, i){
+      var v;
+      if(i === open.length - 1 || !wSum) v = Math.max(0, remain - used);
+      else { v = Math.round(remain * g.w / wSum * 10)/10; used += v; }
+      alloc[g.name] = Math.max(0, v);
+    });
+  }
+
+  var rows = GEARS.map(function(g){
     var done = !!doneSet[g.name];
     return {
       name:g.name, pct:g.pct, w:g.w, warn:!!g.warn,
@@ -1646,6 +1749,52 @@ function computeGears(){
       remain: remain, over: held > total + 0.05
     };
   });
+
+  /* 校验卡要用的元信息。
+     注意：1–4 档的「理论均价」恒等于目标（基准就是由它反解的），拿它做命中判定等于永远命中。
+     真正会偏离的是「已有持仓 + 后续按计划买入」的整体均价，所以判定以 mix 为准。 */
+  var T = base.target;
+  var a14 = planAvg(he, MAIN_GEARS), aAll = planAvg(he, null);
+  var band = Number(S.cfg && S.cfg.avgBand) > 0 ? Number(S.cfg.avgBand) : 20;
+  var needMain = 0;
+  open.forEach(function(g){
+    if(MAIN_GEARS.indexOf(g.name) >= 0) needMain += total * g.w / wAll;
+  });
+
+  var mix = null, hs = holdStats();
+  if(base.mode === "avg" && T){
+    var gOpen = 0, amt = 0;
+    /* 只算 1–4 档：5、6 档是超跌追加，把它们并进来会把整体均价压低，
+       而「目标均价」的口径本来就是「主力四档打完」。 */
+    rows.forEach(function(r){
+      if(r.warn || r.done || MAIN_GEARS.indexOf(r.name) < 0) return;
+      gOpen += r.gram; amt += r.gram * r.price;
+    });
+    var heldG = hs.grams || 0;
+    // 持仓成本是元/克，折成 $/oz 才能和档位价加权（1 oz = 31.1035 g）
+    var avgUsd = (hs.avg > 0 && S.fx > 0) ? hs.avg * 31.1035 / S.fx : null;
+    var totG = heldG + gOpen;
+    if(totG > 0 && (heldG === 0 || avgUsd !== null)){
+      var totAmt = (heldG > 0 ? heldG * avgUsd : 0) + amt;
+      mix = { grams: totG, held: heldG, heldAvg: avgUsd, avg: totAmt / totG };
+      mix.diff = mix.avg - T;
+      mix.hit = Math.abs(mix.diff) <= band;
+    }
+  }
+
+  var meta = {
+    mode: base.mode, src: base.src, he: he, auto: base.auto,
+    target: T, band: band, avg14: a14, avgAll: aAll,
+    diff14: (T && a14) ? (a14 - T) : null,
+    mix: mix,
+    hit: mix ? mix.hit : ((T && a14) ? Math.abs(a14 - T) <= band : null),
+    needMain: needMain,
+    short: base.mode === "avg" ? (remain + 0.05 < needMain) : false,
+    far: (T && S.price) ? Math.abs(he / S.price - 1) : null
+  };
+  try { rows.meta = meta; } catch(e) {}
+  S.gearMeta = meta;
+  return rows;
 }
 function holdStats(){
   var buys = (S.cfg.buys||[]).slice();
@@ -2117,13 +2266,65 @@ function firstFriday(y,m){
   var d=new Date(y,m-1,1);
   return 1+((5-d.getDay()+7)%7);
 }
+/* === 事件日历 ===
+   内置只覆盖「官方日程 + 惯例推算」（FOMC、非农），其余指标靠 calendar.json。
+   那个文件由 GitHub Actions 每 6 小时从 ForexFactory 周历抓一次（源不给跨域头，
+   浏览器取不到，只能服务端抓完以同源静态文件交付）。 */
+var CAL_URL = "calendar.json";
+var CAL_STALE = 3*86400000, CAL_DEAD = 7*86400000;
+
+function calState(){
+  var c = S.cal || {};
+  if(!c.ok) return { ok:false, live:false, txt:"实时日历不可用，只显示已知的固定事件（FOMC 与非农）" };
+  var age = c.updatedAt ? (Date.now() - c.updatedAt) : null;
+  if(age !== null && age > CAL_DEAD)
+    return { ok:false, live:false, txt:"日历数据已超过 7 天未更新，已回落到固定事件" };
+  if(age !== null && age > CAL_STALE)
+    return { ok:true, live:true, stale:true, txt:"日历数据 " + Math.round(age/86400000) + " 天未更新" };
+  return { ok:true, live:true, txt:"" };
+}
+
+function loadCalendar(){
+  if(typeof fetch !== "function") return Promise.resolve(false);
+  var url = CAL_URL + "?v=" + Math.floor(Date.now()/3600000);
+  return fetch(url, { cache:"no-store" })
+    .then(function(r){ if(!r.ok) throw new Error("http " + r.status); return r.json(); })
+    .then(function(d){
+      if(!d || !Array.isArray(d.events)) throw new Error("bad schema");
+      var evs = d.events.filter(function(e){ return e && Number(e.t) > 0 && e.name; })
+        .map(function(e){
+          return {
+            t: Number(e.t), ccy: e.ccy || "", name: String(e.name),
+            impact: Math.max(1, Math.min(5, Number(e.impact) || 3)),
+            fc: e.fc || "", pv: e.pv || ""
+          };
+        });
+      if(evs.length < 3) throw new Error("too few events");
+      S.cal = { ok:true, events:evs,
+                updatedAt: Date.parse(d.updatedAt || "") || 0, week: d.week || "" };
+      return true;
+    })
+    .catch(function(){ S.cal = { ok:false, events:[], updatedAt:0, week:"" }; return false; });
+}
+
+/* 内置事件与实时日历会重叠（FOMC 两边都有）。同一时段同一类别只留一条，
+   内置那条星级更高，优先保留。 */
+function evKey(e){
+  var t = e.ts || e.t || 0;
+  var bucket = Math.floor(t / (3*3600000));      // 3 小时一档，避开时差造成的偏移
+  var n = e.name || "";
+  var cat = /美联储|利率决议/.test(n) ? "fomc" : (/非农/.test(n) ? "nfp" : n.slice(0,6));
+  return bucket + "|" + cat;
+}
+
 function computeEvents(){
   var out=[], now=Date.now(), horizon=now+63*86400000;
   FOMC_DATES.forEach(function(s){
     var y=+s.slice(0,4), m=+s.slice(5,7), d=+s.slice(8,10);
     var ts=etToUtc(y,m,d,14,0);
     if(ts<now-7200000 || ts>horizon) return;
-    out.push({ name:"美联储利率决议", ts:ts, stars:5, src:"官方日程", note:"决议 "+hhmm(ts)+" · 发布会 "+hhmm(ts+1800000) });
+    out.push({ name:"美联储利率决议", ts:ts, stars:5, src:"官方日程", ccy:"USD",
+               note:"决议 "+hhmm(ts)+" · 发布会 "+hhmm(ts+1800000) });
   });
   var d0=new Date();
   for(var k=0;k<=2;k++){
@@ -2131,9 +2332,27 @@ function computeEvents(){
     while(mm>12){ mm-=12; yy++; }
     var ts2=etToUtc(yy,mm,firstFriday(yy,mm),8,30);
     if(ts2<now-7200000 || ts2>horizon) continue;
-    out.push({ name:"美国非农就业", ts:ts2, stars:4, src:"惯例推算", note:"每月第一个周五 "+hhmm(ts2)+" · 遇假日顺延" });
+    out.push({ name:"美国非农就业", ts:ts2, stars:4, src:"惯例推算", ccy:"USD",
+               note:"每月第一个周五 "+hhmm(ts2)+" · 遇假日顺延" });
   }
-  out.sort(function(a,b){ return a.ts-b.ts; });
+
+  var st = calState();
+  if(st.ok){
+    var seen = {};
+    out.forEach(function(e){ seen[evKey(e)] = 1; });
+    (S.cal.events||[]).forEach(function(e){
+      if(!(e.t > now - 6*3600000) || e.t > horizon) return;
+      /* 轻量事件只留美元区的，避免一天几十条把雷达刷满 */
+      if(e.impact < 3 && e.ccy !== "USD") return;
+      var item = { name:e.name, ts:e.t, stars:e.impact, src:"实时日历", ccy:e.ccy,
+                   fc:e.fc, pv:e.pv, note:"" };
+      if(seen[evKey(item)]) return;
+      seen[evKey(item)] = 1;
+      out.push(item);
+    });
+  }
+
+  out.sort(function(a,b){ return a.ts-b.ts || b.stars-a.stars; });
   return out;
 }
 function nextEvent(){
@@ -2156,6 +2375,10 @@ function normCfg(){
   S.cfg.marks = S.cfg.marks || [];
   S.cfg.alerts = S.cfg.alerts || [];
   S.cfg.gearCleared = S.cfg.gearCleared || {};
+  /* 档位双逻辑：struct=结构基准（默认，老数据缺省即此）、avg=按目标均价反解基准 */
+  if(S.cfg.gearMode !== "avg") S.cfg.gearMode = "struct";
+  S.cfg.avgTarget = Number(S.cfg.avgTarget) > 0 ? Number(S.cfg.avgTarget) : null;
+  if(!(Number(S.cfg.avgBand) > 0)) S.cfg.avgBand = 20;
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
@@ -2169,7 +2392,8 @@ function loadCfg(){
   S.cfg = {
     H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[],
     buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{},
-    marks:[], alerts:[], gearCleared:{}
+    marks:[], alerts:[], gearCleared:{},
+    gearMode:"struct", avgTarget:null, avgBand:20
   };
   normCfg();
 }
@@ -2344,6 +2568,7 @@ function isEmptyCfg(c){
   if((c.buys||[]).length || (c.sells||[]).length) return false;
   if((c.marks||[]).length || (c.alerts||[]).length) return false;
   if(c.gearCleared && Object.keys(c.gearCleared).length) return false;
+  if(c.gearMode === "avg" || Number(c.avgTarget) > 0) return false;
   if(c.H_BASE || c.TOTAL !== undefined) return false;
   return true;
 }
@@ -3525,13 +3750,17 @@ function renderLadder(){
   $("ammoTxt").textContent = num(bt,1).replace(".0","") + " / " + total + " 克";
   $("ammoFill").style.width = Math.max(0,Math.min(100, bt/total*100)) + "%";
 
-  var he = computeHEff();
+  var m = S.gearMeta || {};
   var tail = "";
   if(bt > total + 0.05) tail = " · 已超目标 " + num(bt-total,1) + " 克";
   else if(total - bt < 0.1) tail = " · 已建满";
   else tail = " · 待建 " + num(total-bt,1) + " 克";
-  $("ladderMeta").textContent =
-    (he ? ("基准 " + num(S.H_BASE||he.h,0) + " · " + (S.H_BASE?"手动":"自动 "+he.win)) : "") + tail;
+  var head = "";
+  if(m.he){
+    var how = m.mode === "avg" ? "目标反解" : (S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || "")));
+    head = "基准 " + num(m.he,0) + " · " + how;
+  }
+  $("ladderMeta").textContent = head + tail;
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-gear]"), function(node){
     node.onclick = function(e){
@@ -3540,6 +3769,103 @@ function renderLadder(){
       openSheet(node.getAttribute("data-gear"));
     };
   });
+}
+
+/* 档位来源条：结构基准 / 目标均价。切换只改 cfg.gearMode，买卖与持仓一律不动 */
+function setGearMode(mode){
+  if(mode !== "struct" && mode !== "avg") return;
+  if(mode === "avg" && !(Number(S.cfg.avgTarget) > 0)){
+    toast("先在设置里填目标均价");
+    return;
+  }
+  if(S.cfg.gearMode === mode) return;
+  S.cfg.gearMode = mode;
+  saveCfg(); compute(); refreshAll();
+  toast(mode === "avg" ? "已切到目标均价导向" : "已切回结构基准");
+}
+
+function renderGearSrc(){
+  var box = $("gearSrcBox"); if(!box) return;
+  var m = S.gearMeta || { mode:"struct" };
+  var hasT = Number(S.cfg && S.cfg.avgTarget) > 0;
+  box.innerHTML = '<div class="gsrc"><span class="lb">档位来源</span><div class="seg">' +
+    '<button data-gmode="struct" class="' + (m.mode === "struct" ? "on" : "") + '">结构基准</button>' +
+    '<button data-gmode="avg" class="' + (m.mode === "avg" ? "on" : "") + '"' +
+      (hasT ? "" : ' disabled title="先填目标均价"') + '>目标均价</button>' +
+    '</div></div>';
+  Array.prototype.forEach.call(box.querySelectorAll("[data-gmode]"), function(b){
+    b.onclick = function(){ if(!b.disabled) setGearMode(b.getAttribute("data-gmode")); };
+  });
+}
+
+/* 均价校验卡：目标区间带状图 + 「已持仓 + 后续按计划」的整体均价落点 */
+function renderAvgCard(){
+  var box = $("avgCard"); if(!box) return;
+  var m = S.gearMeta;
+  if(!m || m.mode !== "avg" || !m.target){ box.innerHTML = ""; return; }
+
+  var T = m.target, band = m.band, mix = m.mix, a14 = m.avg14, aAll = m.avgAll;
+  var cur = (mix && mix.avg) ? mix.avg : a14;      // 落在图上的是整体均价
+  var lo = T - band, hi = T + band;
+  var pts = [lo, hi]; if(cur) pts.push(cur); if(aAll) pts.push(aAll);
+  var vmin = Math.min.apply(null, pts), vmax = Math.max.apply(null, pts);
+  var pad = Math.max(1, (vmax - vmin) * 0.14); vmin -= pad; vmax += pad;
+  var W = 300, L = 8, R = 292, Y = 18;
+  function X(v){ return L + (Math.min(vmax, Math.max(vmin, v)) - vmin) / (vmax - vmin || 1) * (R - L); }
+
+  var col = m.hit ? "#3FBF7F" : "#E0913F";
+  /* 不用 preserveAspectRatio="none"：非等比拉伸会把圆点压成椭圆 */
+  var svg = '<svg viewBox="0 0 ' + W + ' 34" aria-hidden="true">' +
+    '<rect x="' + L + '" y="' + (Y-1) + '" width="' + (R-L) + '" height="3" rx="1.5" fill="rgba(255,255,255,.10)"/>' +
+    '<rect x="' + X(lo).toFixed(1) + '" y="' + (Y-6) + '" width="' + Math.max(2, X(hi)-X(lo)).toFixed(1) +
+      '" height="13" rx="3" fill="rgba(212,162,76,.20)" stroke="rgba(212,162,76,.42)" stroke-width="1"/>' +
+    '<line x1="' + X(T).toFixed(1) + '" y1="' + (Y-9) + '" x2="' + X(T).toFixed(1) + '" y2="' + (Y+7) +
+      '" stroke="' + col + '" stroke-width="1.4"/>' +
+    (aAll !== null ? '<circle cx="' + X(aAll).toFixed(1) + '" cy="' + Y + '" r="2.6" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>' : '') +
+    (cur !== null ? '<circle cx="' + X(cur).toFixed(1) + '" cy="' + Y + '" r="3.8" fill="' + col + '"/>' : '') +
+    '</svg>';
+
+  var diff = cur !== null ? cur - T : null;
+  var verdict, vcls;
+  if(m.hit === null || diff === null){ verdict = "未设目标"; vcls = ""; }
+  else if(m.hit){ verdict = "✓ 命中"; vcls = "ok"; }
+  else { verdict = (diff > 0 ? "偏高 " : "偏低 ") + Math.abs(diff).toFixed(1); vcls = "off"; }
+
+  var tips = [];
+  if(mix && mix.held > 0)
+    tips.push("已含已持仓 " + num(mix.held, 0) + "g，成本折算 $" + num(mix.heldAvg, 0) + "/oz");
+  if(m.short) tips.push("剩余额度买不满 1–4 档（需 " + num(m.needMain, 0) + "g），均价会偏离目标");
+  if(m.far !== null && m.far > 0.25) tips.push("档位整体<b>偏离现价 " + (m.far*100).toFixed(0) + "%</b>，可能长期不触发");
+
+  box.innerHTML = '<div class="avgc">' +
+    '<div class="hd"><span>目标均价 <b>' + num(T, 0) + '</b> ±' + num(band, 0) + '</span>' +
+      '<span class="' + vcls + '">整体均价 <b class="' + vcls + '">' + num(cur, 1) + '</b> ' + verdict + '</span></div>' +
+    '<div class="bar">' + svg + '</div>' +
+    '<div class="ft"><span>1–4 档理论 <b>' + num(a14, 1) + '</b></span>' +
+      '<span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
+      '<span>反解基准 <b>' + num(m.he, 0) + '</b></span></div>' +
+    (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
+    '</div>';
+}
+
+/* 设置页的「建仓目标」区块：模式同步 + 均价模式下基准输入置灰 */
+function renderSetGear(){
+  var seg = $("setModeSeg"); if(!seg) return;
+  var m = S.gearMeta || { mode:"struct" };
+  Array.prototype.forEach.call(seg.querySelectorAll("[data-gmode]"), function(b){
+    var isOn = b.getAttribute("data-gmode") === m.mode;
+    if(b.classList.contains("on") !== isOn) b.className = isOn ? "on" : "";
+    b.onclick = function(){ setGearMode(b.getAttribute("data-gmode")); };
+  });
+  var base = $("setBase");
+  if(base){
+    var avgOn = m.mode === "avg";
+    base.disabled = avgOn;
+    base.placeholder = avgOn ? "均价模式由目标反解" : "自动";
+  }
+  var at = $("setAvgT"), ab = $("setAvgB");
+  if(at && document.activeElement !== at) at.value = S.cfg.avgTarget ? String(S.cfg.avgTarget) : "";
+  if(ab && document.activeElement !== ab) ab.value = String(S.cfg.avgBand || 20);
 }
 
 function renderPos(){
@@ -3700,27 +4026,51 @@ function renderTake(){
   });
 }
 
+function evBadge(e){
+  var bits = [];
+  if(e.ccy) bits.push(e.ccy);
+  if(e.fc) bits.push("预期 " + e.fc);
+  if(e.pv) bits.push("前值 " + e.pv);
+  return bits.join(" · ");
+}
+
 function renderEvents(){
-  var list = computeEvents().filter(function(e){ return e.ts > Date.now()-21600000; }).slice(0,8);
-  if(!list.length){ $("evList").innerHTML='<div class="muted">未来没有高影响事件。</div>'; $("evMeta").textContent=""; return; }
-  var html="", now=Date.now();
+  var all = computeEvents(), now = Date.now();
+  var live = all.filter(function(e){ return e.ts > now; })
+                .sort(function(a,b){ return a.ts-b.ts || b.stars-a.stars; });
+  var past = all.filter(function(e){ return e.ts <= now; })
+                .sort(function(a,b){ return b.ts-a.ts; });
+  var list = live.slice(0,8).concat(past.slice(0,3));
+  if(!list.length){
+    $("evList").innerHTML='<div class="muted">未来没有高影响事件。</div>';
+    $("evMeta").textContent=""; $("evNote").textContent="";
+    return;
+  }
+  var html="";
   list.forEach(function(e){
-    var left = e.ts-now;
-    var hot = left>=0 && left<3600000;
-    var lock = left>=-1200000 && left<900000;
-    var cd = left<0?"已过":left<3600000?Math.round(left/60000)+"分":left<86400000?(left/3600000).toFixed(1)+"时":Math.round(left/86400000)+"天";
+    var left = e.ts-now, done = left <= 0;
+    var hot = !done && left<3600000;
+    var lock = !done && left>=-1200000 && left<900000;
+    var cd = done ? "已公布"
+      : left<3600000 ? Math.round(left/60000)+"分"
+      : left<86400000 ? (left/3600000).toFixed(1)+"时"
+      : Math.round(left/86400000)+"天";
     var d = new Date(e.ts);
-    html += '<div class="ev'+(lock?" lock":"")+'">' +
-      '<div class="cd'+(hot?" hot":"")+'"><b class="num">'+cd+'</b><span>'+hhmm(e.ts)+'</span></div>' +
+    var sub = evBadge(e) || e.note || "";
+    html += '<div class="ev'+(lock?" lock":"")+(done?" done":"")+'">' +
+      '<div class="cd'+(hot?" hot":"")+(done?" off":"")+'"><b class="num">'+cd+'</b><span>'+hhmm(e.ts)+'</span></div>' +
       '<div class="info"><div class="n">'+escapeHtml(e.name)+'</div>' +
-      '<div class="m"><span class="stars">'+"★★★★★".slice(0,e.stars)+'</span> · '+(d.getMonth()+1)+'月'+d.getDate()+'日 · '+escapeHtml(e.note)+'</div></div>' +
+      '<div class="m"><span class="stars">'+"★★★★★".slice(0,e.stars)+'</span> · '+
+        (d.getMonth()+1)+'月'+d.getDate()+'日'+(sub?' · '+escapeHtml(sub):'')+'</div></div>' +
       '<span class="src">'+escapeHtml(e.src)+'</span></div>';
   });
   $("evList").innerHTML = sanitizeHtml(html);
-  $("evMeta").textContent = list.length + " 项";
-  $("evNote").innerHTML = "美联储日期取自官方日程，非农按「每月第一个周五」推算。事件前后 15 分钟页面标黄，不自动改档。";
-}
 
+  var st = calState();
+  $("evMeta").textContent = list.length + " 项" + (st.live ? " · 实时" : "");
+  $("evNote").textContent = (st.txt ? st.txt + "。" : "") +
+    "美联储日期取自官方日程，非农按「每月第一个周五」推算；其余指标来自 ForexFactory 周历（每 6 小时更新）。事件前后 15 分钟标黄，不自动改档。";
+}
 function renderFeed(){
   var f = S.cfg.feed || [];
   if(!f.length){ $("feedList").innerHTML='<div class="muted">还没有状态变化记录。方向翻转、档位触发会记在这里。</div>'; $("feedMeta").textContent=""; return; }
@@ -3872,6 +4222,9 @@ function refreshAll(){
   renderKL();
   renderMarks();
   renderLadder();
+  renderGearSrc();
+  renderAvgCard();
+  renderSetGear();
   renderPos();
   renderBuys();
   renderTake();
@@ -4439,9 +4792,19 @@ function bindUI(){
     if(hs.grams && (isNaN(keep) || keep < 0 || keep > hs.grams)){
       toast("底仓保留要在 0 到持仓 " + num(hs.grams,1) + " 克之间"); return;
     }
-    S.cfg.H_BASE = b ? Number(b) : null;
-    S.H_BASE = S.cfg.H_BASE;
+    var atv = $("setAvgT").value.trim(), abv = $("setAvgB").value.trim();
+    var at = atv ? Number(atv) : null, ab = abv ? Number(abv) : 20;
+    if(atv && !(at >= 1000 && at <= 9000)){ toast("目标均价看起来不对（1000-9000）"); return; }
+    if(abv && !(ab >= 1 && ab <= 500)){ toast("容差要在 1-500 美元之间"); return; }
+    if(!$("setBase").disabled){
+      S.cfg.H_BASE = b ? Number(b) : null;
+      S.H_BASE = S.cfg.H_BASE;
+    }
     S.cfg.TOTAL = t; S.TOTAL = t;
+    S.cfg.avgTarget = at;
+    S.cfg.avgBand = ab || 20;
+    // 目标均价被清空时，均价模式自动退回结构基准，避免页面上出现没有基准的空档位
+    if(S.cfg.gearMode === "avg" && !at) S.cfg.gearMode = "struct";
     if(hs.grams) S.cfg.keepGram = keep;
     // 同步一份百分比，方便旧逻辑与导出文件对照
     if(hs.grams) S.cfg.cutRatio = Math.round((hs.grams - keep)/hs.grams*100);
@@ -4557,6 +4920,7 @@ function boot(){
     });
   }
   setInterval(setConn, 1000);                  // 读秒：每秒一次，秒数连续递增
+  loadCalendar().then(function(ok){ if(ok) renderEvents(); });
   setInterval(refreshPrice, TICK_MS);          // 现货锚点：15 秒一次
   setInterval(refreshTick, 5000);              // 逐笔桥接：5 秒一次，报价不再卡 30 秒
   setInterval(refreshData, 5*60*1000);
@@ -4590,6 +4954,14 @@ if(/[?&]xt=1/.test(location.search)){
     saveMark:saveMark,
     saveCfg:saveCfg,
     gearBought:gearBought,
+    avgBase:avgBase,
+    planAvg:planAvg,
+    gearBase:gearBase,
+    setGearMode:setGearMode,
+    loadCalendar:loadCalendar,
+    calState:calState,
+    computeEvents:computeEvents,
+    gearMeta:function(){ return S.gearMeta || null; },
     isEmptyCfg:isEmptyCfg,
     undoGear:undoGear,
     recalcGears:recalcGears,
