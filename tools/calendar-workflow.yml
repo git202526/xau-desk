@@ -1,0 +1,51 @@
+# 事件日历的定时抓取任务。
+#
+# 这个文件要放在 .github/workflows/calendar.yml 才会生效。
+# 为什么没直接推过去：GitHub 要求 token 带 workflow scope 才能通过 API 创建
+# workflow 文件，当前接入码只有 repo 权限（会返回 404）。
+#
+# 启用方式（二选一）：
+#   1) 打开 https://github.com/git202526/xau-desk/new/main/.github/workflows
+#      文件名填 calendar.yml，把本文件内容整段粘进去，提交即可；
+#   2) 换一个带 workflow scope 的 token 后执行：
+#      cp tools/calendar-workflow.yml .github/workflows/calendar.yml && git push
+#
+# 没启用之前也不影响使用：calendar.json 会在每次改版时手动刷新一次，
+# 页面按 updatedAt 判断新鲜度，超过 3 天提示、超过 7 天自动回落到 FOMC + 非农。
+
+name: refresh-calendar
+
+# ForexFactory 周历不返回 CORS 头，浏览器端取不到，只能服务端抓完落成同源静态文件。
+# 每 6 小时一次；schedule 不保证准点（高峰会延迟十几分钟），页面侧另有过期判定。
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch calendar
+        run: python3 tools/fetch_calendar.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "calendar-bot"
+          git config user.email "calendar-bot@users.noreply.github.com"
+          git add calendar.json
+          if git diff --quiet --cached; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -m "chore: refresh calendar"
+          git push
