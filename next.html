@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.3 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.4 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -460,7 +460,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.3 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.4 · 10/29</span></div>
       </div>
     </div>
     <div class="tpx num" id="tpx" role="button" tabindex="0" aria-label="回到总览">--</div>
@@ -532,7 +532,7 @@ body.tab-ov .tpx{display:none}
     <div class="sech"><h2>多周期共振 <span class="cnt" id="structMeta"></span></h2></div>
     <div class="pgrid" id="pgrid"></div>
     <div class="card" style="margin-top:10px">
-      <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">D1 判定依据（满足 3 条即成方向）</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">日线判定依据（满足 3 条即成方向）</div>
       <div class="reasons" id="reasons"></div>
     </div>
 
@@ -1082,7 +1082,8 @@ function computeStruct(){
   out.label = dirWord;
   var parts = [];
   keys.forEach(function(k){
-    if(out.p[k]) parts.push(k.toUpperCase().replace("1W","W1").replace("1D","D1").replace("4H","H4").replace("1H","H1") + " " + (out.p[k].state==="up"?"上行":out.p[k].state==="dn"?"下行":"震荡"));
+    var pname = { "1w":"周线", "1d":"日线", "4h":"4小时", "1h":"1小时" };
+    if(out.p[k]) parts.push((pname[k]||k) + " " + (out.p[k].state==="up"?"上行":out.p[k].state==="dn"?"下行":"震荡"));
   });
   out.text = parts.join(" · ");
   out.same = keys.filter(function(k){ return out.p[k] && out.p[k].state===out.dir; }).length;
@@ -2461,7 +2462,7 @@ function renderVerdict(){
     return;
   }
   var keys=["1w","1d","4h","1h"];
-  var names={ "1w":"W1","1d":"D1","4h":"H4","1h":"H1" };
+  var names={ "1w":"周线","1d":"日线","4h":"4小时","1h":"1小时" };
   var tags="";
   keys.forEach(function(k){
     var j=st.p[k];
@@ -2520,7 +2521,7 @@ function verdictText(st){
 function renderStruct(){
   var st = S.struct;
   var keys=["1w","1d","4h","1h"];
-  var names={ "1w":"周线","1d":"日线","4h":"4 小时","1h":"1 小时" };
+  var names={ "1w":"周线","1d":"日线","4h":"4小时","1h":"1小时" };
   var html="";
   keys.forEach(function(k){
     var j = st && st.p[k];
