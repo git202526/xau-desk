@@ -65,6 +65,30 @@ python3 -m http.server 8080
 
 **已知偏差**：日线按 UTC 00:00 切分，与美东 17:00 收盘口径差 5–6 小时，跨美盘尾段的结构判断可能略有差异。
 
+## 事件日历
+
+事件雷达的数据分两层：
+
+| 层 | 覆盖 | 来源 |
+|---|---|---|
+| 内置 | FOMC 利率决议、非农 | 官方日程表 + 「每月第一个周五」推算 |
+| 实时 | GDP / CPI / PCE / 初请 / 零售 / ISM … | `calendar.json`（ForexFactory 周历） |
+
+`calendar.json` 由 `tools/fetch_calendar.py` 生成。ForexFactory 的周历接口不返回
+`Access-Control-Allow-Origin`，浏览器端直接 fetch 会被拦，所以只能服务端抓完、以同源静态文件交付。
+
+**想让它自动更新**：把 `tools/calendar-workflow.yml` 的内容放到仓库的
+`.github/workflows/calendar.yml`（GitHub 网页端新建文件即可），之后每 6 小时抓一次。
+不启用也能用——`calendar.json` 会在每次改版时刷新一次，页面按 `updatedAt` 判断新鲜度：
+超过 3 天标「N 天未更新」，超过 7 天自动回落到内置的 FOMC + 非农，不会白屏。
+
+手动刷新：
+
+```bash
+python3 tools/fetch_calendar.py          # 写 calendar.json
+python3 tools/fetch_calendar.py --dry-run # 只打印前几条，不写盘
+```
+
 ## 使用步骤
 
 1. 打开页面，等 3–5 秒加载 K 线（右上角变「实时」）
