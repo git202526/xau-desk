@@ -191,7 +191,8 @@ python3 tools/fetch_calendar.py --dry-run # 只打印前几条，不写盘
 
 | 版本 | 在线地址 | 存储方式 |
 |---|---|---|
-| **v6.16（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| **v6.17（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| v6.17 存档 | https://git202526.github.io/xau-desk/versions/v6.17.html | 同上 |
 | v6.16 存档 | https://git202526.github.io/xau-desk/versions/v6.16.html | 同上 |
 | v6.13 存档 | https://git202526.github.io/xau-desk/versions/v6.13.html | 同上 |
 | v6.12 存档 | https://git202526.github.io/xau-desk/versions/v6.12.html | 同上 |
