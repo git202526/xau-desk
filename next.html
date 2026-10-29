@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.9 · 报价桥接 / 读秒 / 顶栏对齐 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.10 · 行情标签 / 今开昨收 / 周期标签不换行 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -61,13 +61,24 @@ body{
 .hprice{font-size:clamp(38px,11.5vw,52px);line-height:1.04;font-weight:660;letter-spacing:-1.5px}
 .hdelta{font-size:14px;font-weight:600;padding-bottom:9px}
 .hdelta.up{color:var(--up)}.hdelta.dn{color:var(--dn)}.hdelta.flat{color:var(--tx2)}
-.hmeta{display:flex;gap:16px;margin-top:9px;flex-wrap:wrap;font-size:11.5px;color:var(--tx3)}
+/* 行情四件套固定三列两行：今开/昨收/振幅、最高/最低/ATR，不随宽度换行 */
+.hmeta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px 8px;margin-top:10px;font-size:11px;color:var(--tx3)}
+.hmeta>div{display:flex;align-items:baseline;gap:4px;min-width:0;white-space:nowrap}
 .hmeta b{color:var(--tx2);font-weight:600;font-size:12.5px}
+.hmeta b.up{color:var(--up)}
+.hmeta b.dn{color:var(--dn)}
+.hunit{margin-left:auto;font-size:10px;letter-spacing:.4px;color:var(--tx3);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+@media(max-width:359px){
+  .hmeta{font-size:10.5px;gap:6px 6px}
+  .hmeta b{font-size:11.5px}
+}
 
 /* 方向判定 */
 .verdict{margin-top:14px;padding:12px;border-radius:13px;background:rgba(255,255,255,.032);border:1px solid var(--line)}
-.vline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.vtag{font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);color:var(--tx2)}
+/* 四个周期固定一行四格：窄屏靠缩字号，不允许折行 */
+.vline{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.vtag{font-size:11px;padding:4px 2px;border-radius:5px;border:1px solid var(--line);color:var(--tx2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(max-width:359px){ .vtag{font-size:10.5px;padding:4px 1px} }
 .vtag.up{color:var(--up);border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.1)}
 .vtag.dn{color:var(--dn);border-color:rgba(47,163,107,.35);background:rgba(47,163,107,.1)}
 .vtag.rg{color:var(--tx2)}
@@ -496,7 +507,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.9 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.10 · 10/29</span></div>
       </div>
     </div>
     <div class="stat">
@@ -525,16 +536,18 @@ body.tab-ov .tpx{display:none}
     <div class="hlabel">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 10l7-7 7 7" stroke="#D4A24C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       XAU/USD · 伦敦金现货
+      <span class="hunit">美元/盎司</span>
     </div>
     <div class="hmain">
       <div class="hprice num" id="pNow">--</div>
       <div class="hdelta flat num" id="pDelta">--</div>
     </div>
     <div class="hmeta">
-      <div>24H 开 <b class="num" id="pOpen">--</b></div>
-      <div>24H 高 <b class="num" id="pHigh">--</b></div>
-      <div>24H 低 <b class="num" id="pLow">--</b></div>
+      <div>今开 <b class="num" id="pOpen">--</b></div>
+      <div>昨收 <b class="num" id="pPrev">--</b></div>
       <div>振幅 <b class="num" id="pAmp">--</b></div>
+      <div>最高 <b class="num" id="pHigh">--</b></div>
+      <div>最低 <b class="num" id="pLow">--</b></div>
       <div>ATR14 <b class="num" id="pAtr">--</b></div>
     </div>
 
@@ -2769,10 +2782,7 @@ function setConn(){
 /* 昨收：日线最后一根若还在走（未收），取它前一根的收盘；否则取最后一根。
    涨跌幅、顶栏涨跌色都以它为基准 —— 之前误用「上一次轮询价」，等于显示 15 秒涨跌 */
 function prevDayClose(){
-  var d = scaled("1d");
-  if(!d || d.length < 2) return null;
-  var last = d[d.length-1], day = 24*3600*1000;
-  return (last.t + day > Date.now()) ? d[d.length-2].c : last.c;
+  return dayStats().prev;
 }
 
 function todayStats(){
@@ -2786,6 +2796,54 @@ function todayStats(){
   return { open:arr[0].o, high:hi, low:lo };
 }
 
+/* 当日行情四件套：今开 / 最高 / 最低 / 昨收。
+   日界按国际现货盘的交易日算 —— 纽约 17:00 收盘换日（夏令时 UTC 21:00，冬令时 UTC 22:00）。
+   这与行情软件一致；K 线本身仍是 UTC 日线（结构、关键位不变），这里只用 1 小时线聚合日内。 */
+function nyCloseUtcHour(ts){
+  var y = new Date(ts).getUTCFullYear();
+  function nthSunday(month, n, hour){
+    var first = Date.UTC(y, month, 1);
+    var dow = new Date(first).getUTCDay();            // 0 = 周日
+    return Date.UTC(y, month, 1 + ((7 - dow) % 7) + (n - 1) * 7, hour);
+  }
+  var start = nthSunday(2, 2, 7);     // 3 月第二个周日 07:00 UTC 起夏令时
+  var end   = nthSunday(10, 1, 6);    // 11 月第一个周日 06:00 UTC 止
+  return (ts >= start && ts < end) ? 21 : 22;
+}
+
+function tradeDayKey(t){
+  var h = nyCloseUtcHour(t);
+  var shift = new Date(t).getUTCHours() >= h ? 0 : -1;
+  return Math.floor(t / 86400000) + shift;
+}
+
+function dayStats(){
+  var h1 = scaled("1h");
+  if(h1 && h1.length >= 30){
+    var groups = [], kPrev = null;
+    h1.forEach(function(b){
+      var k = tradeDayKey(b.t);
+      if(k !== kPrev){ groups.push([]); kPrev = k; }
+      groups[groups.length-1].push(b);
+    });
+    var cur = groups[groups.length-1];
+    if(cur && cur.length){
+      var hi = -Infinity, lo = Infinity;
+      cur.forEach(function(b){ if(b.h > hi) hi = b.h; if(b.l < lo) lo = b.l; });
+      var pg = groups.length >= 2 ? groups[groups.length-2] : null;
+      return { open:cur[0].o, high:hi, low:lo, prev: pg && pg.length ? pg[pg.length-1].c : null };
+    }
+  }
+  // 回退：1 小时线不够时用 UTC 日线，至少让数字出来
+  var d = scaled("1d");
+  if(d && d.length >= 2){
+    var last = d[d.length-1];
+    return { open:last.o, high:last.h, low:last.l, prev:d[d.length-2].c };
+  }
+  var hb = todayStats();
+  return { open:hb.open, high:hb.high, low:hb.low, prev:null };
+}
+
 var lastShownPrice = null;
 
 function renderHero(){
@@ -2795,9 +2853,11 @@ function renderHero(){
   if(p !== null && lastShownPrice !== null && p !== lastShownPrice) flashPrice(lastShownPrice, p);
   if(p !== null) lastShownPrice = p;
 
+  var st = dayStats();
+  var ref = S.prevClose || st.prev || st.open;
+
+  // 涨跌 = 现价 - 昨收；涨跌幅 = 涨跌 / 昨收（与行情软件同一口径）
   var d = $("pDelta");
-  var st0 = todayStats();
-  var ref = S.prevClose || st0.open;
   if(p===null || !ref){ d.textContent="--"; d.className="hdelta flat num"; }
   else {
     var diff = p - ref, pc = diff/ref*100;
@@ -2805,11 +2865,20 @@ function renderHero(){
     d.className = "hdelta num " + (diff>0?"up":diff<0?"dn":"flat");
   }
 
-  var st = todayStats();
   $("pOpen").textContent = st.open===null?"--":num(st.open,2);
+  $("pPrev").textContent = st.prev===null?"--":num(st.prev,2);
   $("pHigh").textContent = st.high===null?"--":num(st.high,2);
   $("pLow").textContent = st.low===null?"--":num(st.low,2);
-  var amp = (st.high && st.low) ? (st.high-st.low)/st.low*100 : null;
+  // 开 / 高 / 低按「相对昨收」着色，跟涨跌幅同一套红涨绿跌
+  [["pOpen",st.open],["pHigh",st.high],["pLow",st.low]].forEach(function(it){
+    var el = $(it[0]);
+    if(!el) return;
+    var cls = "num";
+    if(st.prev && it[1] != null) cls += it[1] > st.prev ? " up" : it[1] < st.prev ? " dn" : "";
+    el.className = cls;
+  });
+  var ampBase = st.prev || st.open;
+  var amp = (st.high && st.low && ampBase) ? (st.high-st.low)/ampBase*100 : null;
   $("pAmp").textContent = amp===null?"--":amp.toFixed(2)+"%";
   var d1 = S.struct && S.struct.p && S.struct.p["1d"];
   $("pAtr").textContent = (d1 && d1.atr) ? num(d1.atr,2) : "--";
@@ -2818,8 +2887,7 @@ function renderHero(){
   var tp = $("tpx");
   if(tp){
     tp.textContent = p===null ? "--" : num(p,2);
-    var ref2 = S.prevClose || st.open;
-    tp.className = "tpx num" + (p!==null && ref2 ? (p>ref2?" up":p<ref2?" dn":"") : "");
+    tp.className = "tpx num" + (p!==null && ref ? (p>ref?" up":p<ref?" dn":"") : "");
   }
 }
 
@@ -4379,6 +4447,7 @@ if(/[?&]xt=1/.test(location.search)){
     refreshPrice:refreshPrice,
     refreshTick:refreshTick,
     prevDayClose:prevDayClose,
+    dayStats:dayStats,
     connInfo:connInfo,
     playSnd:playSnd,
     holdStats:holdStats,
