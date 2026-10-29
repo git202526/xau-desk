@@ -109,7 +109,7 @@ def test_anchor_scrolls_target_into_view(make_env):
     page.evaluate("window.__xt.gotoTab('set', {anchor:'setBase'})")
     page.wait_for_timeout(250)
     assert active_tab(page) == "set"
-    box = page.eval_on_selector("#setBase", "e => { const r = e.getBoundingClientRect(); return [r.top, r.bottom] }")
+    box = page.eval_on_selector("#setHigh", "e => { const r = e.getBoundingClientRect(); return [r.top, r.bottom] }")
     assert 0 <= box[0] and box[1] <= 844 + 1, box
 
 
@@ -129,10 +129,10 @@ def test_keyboard_shrinks_tabbar(make_env):
     env = make_env()
     page = env.page
     page.click('.tabbar button[data-tab="set"]')
-    page.focus("#setBase")
+    page.focus("#setHigh")
     page.wait_for_timeout(120)
     assert page.evaluate("document.body.classList.contains('kb')") is True
-    page.evaluate("document.getElementById('setBase').blur()")
+    page.evaluate("document.getElementById('setHigh').blur()")
     page.wait_for_timeout(200)
     assert page.evaluate("document.body.classList.contains('kb')") is False
 
