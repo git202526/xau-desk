@@ -165,7 +165,8 @@ python3 -m http.server 8080
 
 | 版本 | 在线地址 | 存储方式 |
 |---|---|---|
-| **v6.10（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| **v6.11（当前）** | https://git202526.github.io/xau-desk/ | GitHub 私有仓库为唯一数据源 |
+| v6.11 存档 | https://git202526.github.io/xau-desk/versions/v6.11.html | 同上 |
 | v6.10 存档 | https://git202526.github.io/xau-desk/versions/v6.10.html | 同上 |
 | v6.9 存档 | https://git202526.github.io/xau-desk/versions/v6.9.html | 同上 |
 | v6.8 存档 | https://git202526.github.io/xau-desk/versions/v6.8.html | 同上 |
