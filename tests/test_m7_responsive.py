@@ -1,0 +1,156 @@
+"""M7 自适应回归：任何一档常见手机宽度、任何一个 Tab，都不得横向溢出。
+
+本组用例针对线上反馈「除总览外其它 Tab 溢出屏幕」而建：
+根因是顶栏 brand / 现价 / 状态三块都不能收缩，多出一个现价按钮就把整页顶宽。
+"""
+import pytest
+
+TABS = ["ov", "struct", "plan", "pos", "sig", "set"]
+WIDTHS = [320, 360, 375, 390, 412, 430]
+
+OVERFLOW_JS = """() => {
+  const vw = document.documentElement.clientWidth;
+  const bad = [];
+  document.querySelectorAll('body *').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return;
+    if (getComputedStyle(el).position === 'fixed') return;
+    if (r.right > vw + 1 || r.left < -1) {
+      bad.push(el.tagName.toLowerCase() + '#' + (el.id || '') +
+               '.' + String(el.className || '').slice(0, 24).trim() +
+               '[' + Math.round(r.left) + ',' + Math.round(r.right) + ']');
+    }
+  });
+  return {
+    vw: vw,
+    scrollW: document.documentElement.scrollWidth,
+    bad: bad.slice(0, 8),
+  };
+}"""
+
+GEOM_JS = """() => {
+  const vw = document.documentElement.clientWidth;
+  const brand = document.querySelector('.topbar .brand').getBoundingClientRect();
+  const tpx = document.getElementById('tpx').getBoundingClientRect();
+  const stat = document.querySelector('.topbar .stat').getBoundingClientRect();
+  return {
+    vw: vw,
+    brandRight: Math.round(brand.right),
+    tpxLeft: Math.round(tpx.left),
+    tpxRight: Math.round(tpx.right),
+    statRight: Math.round(stat.right),
+    statLeft: Math.round(stat.left),
+  };
+}"""
+
+
+def open_tab(page, name):
+    page.click('.tabbar button[data-tab="%s"]' % name)
+    page.wait_for_timeout(130)
+
+
+def assert_clean(page, label):
+    r = page.evaluate(OVERFLOW_JS)
+    assert r["scrollW"] <= r["vw"] + 1, "%s 横向溢出：scrollWidth=%s vw=%s" % (label, r["scrollW"], r["vw"])
+    assert r["bad"] == [], "%s 有元素越界：%s" % (label, r["bad"])
+
+
+@pytest.mark.parametrize("tab", TABS)
+def test_every_tab_fits_every_phone_width(make_env, tab):
+    """6 档宽度 × 6 个 Tab 全组合，页面宽度必须等于视口宽度。"""
+    env = make_env(width=390, height=800)
+    page = env.page
+    for w in WIDTHS:
+        page.set_viewport_size({"width": w, "height": 800})
+        page.wait_for_timeout(120)
+        open_tab(page, tab)
+        assert_clean(page, "%dpx / %s" % (w, tab))
+
+
+def test_topbar_keeps_spare_room(make_env):
+    """顶栏三块之间必须留余量，不能刚好卡满——否则换字体、系统字号一变就顶破。"""
+    env = make_env(width=390, height=800)
+    page = env.page
+    open_tab(page, "struct")
+    for w in WIDTHS:
+        page.set_viewport_size({"width": w, "height": 800})
+        page.wait_for_timeout(120)
+        g = page.evaluate(GEOM_JS)
+        assert g["tpxRight"] <= w - 8, "%dpx 现价贴边：%s" % (w, g)
+        assert g["statRight"] <= w - 8, "%dpx 状态列贴边：%s" % (w, g)
+        assert g["tpxLeft"] - g["brandRight"] >= 8, "%dpx 品牌与现价之间无余量：%s" % (w, g)
+
+
+def test_topbar_survives_wider_font(make_env):
+    """把状态与品牌文字拉宽 10%，仍不得溢出（模拟不同系统字体）。"""
+    env = make_env(width=320, height=800)
+    page = env.page
+    open_tab(page, "struct")
+    page.add_style_tag(content=".brand h1,.brand .sub,#connTxt,#syncTxt{letter-spacing:1.1px}")
+    page.wait_for_timeout(120)
+    assert_clean(page, "320px + 宽字体")
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.wait_for_timeout(120)
+    assert_clean(page, "360px + 宽字体")
+
+
+def test_long_status_text_truncates_not_overflows(make_env):
+    """同步/连接状态文案变长时，必须用省略号收敛，不能撑宽页面。"""
+    env = make_env(width=320, height=800)
+    page = env.page
+    open_tab(page, "struct")
+    page.evaluate("""() => {
+      document.getElementById('syncTxt').textContent = '已载入云端 128 条记录'.repeat(6);
+      document.getElementById('connTxt').textContent = '行情连接已断开，正在重试'.repeat(6);
+    }""")
+    page.wait_for_timeout(120)
+    assert_clean(page, "长状态文案")
+    clipped = page.eval_on_selector(
+        "#syncTxt", "e => e.scrollWidth > e.clientWidth + 1"
+    )
+    assert clipped is True, "长文案没有触发省略号，说明是被硬撑开的"
+
+
+def _text_lines(page, sel):
+    """用 Range 数文本实际占几行：折行会得到多个 rect。"""
+    return page.eval_on_selector(sel, """e => {
+      const r = document.createRange();
+      r.selectNodeContents(e);
+      return r.getClientRects().length;
+    }""")
+
+
+def test_section_head_single_line_on_narrow(make_env):
+    """320px 下「买入记录 + 记一笔」这类标题行必须各占一行，不能折成两行。"""
+    env = make_env(width=320, height=800)
+    page = env.page
+    open_tab(page, "pos")
+    assert _text_lines(page, "#btnAddBuy") == 1, "「+ 记一笔」折行了"
+    assert _text_lines(page, "#panel-pos .sech h2") <= 2, "标题文字折行"
+    h = page.eval_on_selector("#panel-pos .sech h2", "e => e.getBoundingClientRect().height")
+    assert h <= 26, "标题行高度 %.1f，说明折行了" % h
+
+
+def test_brand_subtitle_adapts(make_env):
+    """手机只留版本号（省宽），桌面恢复完整描述。"""
+    env = make_env(width=390, height=800)
+    page = env.page
+    assert page.eval_on_selector(".brand .sdesc", "e => getComputedStyle(e).display") == "none"
+    assert page.eval_on_selector("#verTag", "e => e.offsetWidth > 0") is True
+
+    page.set_viewport_size({"width": 768, "height": 900})
+    page.wait_for_timeout(150)
+    assert page.eval_on_selector(".brand .sdesc", "e => getComputedStyle(e).display") != "none"
+    assert_clean(page, "768px")
+
+
+def test_desktop_widths_no_overflow(make_env):
+    """桌面与横屏平板同样不许溢出。"""
+    env = make_env(width=390, height=800)
+    page = env.page
+    for w in (768, 1024, 1440):
+        page.set_viewport_size({"width": w, "height": 900})
+        page.wait_for_timeout(150)
+        for t in ("ov", "struct", "pos", "set"):
+            open_tab(page, t)
+            assert_clean(page, "%dpx / %s" % (w, t))
