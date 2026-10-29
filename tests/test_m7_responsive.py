@@ -99,16 +99,31 @@ def test_long_status_text_truncates_not_overflows(make_env):
     env = make_env(width=320, height=800)
     page = env.page
     open_tab(page, "struct")
-    page.evaluate("""() => {
-      document.getElementById('syncTxt').textContent = '已载入云端 128 条记录'.repeat(6);
-      document.getElementById('connTxt').textContent = '行情连接已断开，正在重试'.repeat(6);
+    # 注入与取样必须在同一帧内完成：syncTxt 是渲染产物，跨帧会被「已同步 HH:MM」覆盖回去，
+    # 那样量到的就是短文本，测试会误报（v6.16 及以前就跑挂过）。
+    info = page.evaluate("""() => {
+      const s = document.getElementById('syncTxt');
+      const c = document.getElementById('connTxt');
+      s.textContent = '已载入云端 128 条记录'.repeat(6);
+      c.textContent = '行情连接已断开，正在重试'.repeat(6);
+      void document.body.offsetWidth;              // 强制同步 layout，抢在下一帧前面
+      const vw = document.documentElement.clientWidth;
+      const bad = [];
+      document.querySelectorAll('body *').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return;
+        if (getComputedStyle(el).position === 'fixed') return;
+        if (r.right > vw + 1 || r.left < -1) bad.push(el.tagName.toLowerCase() + '#' + (el.id || ''));
+      });
+      return {
+        vw: vw, scrollW: document.documentElement.scrollWidth, bad: bad.slice(0, 8),
+        ssw: s.scrollWidth, scw: s.clientWidth, len: s.textContent.length,
+      };
     }""")
-    page.wait_for_timeout(120)
-    assert_clean(page, "长状态文案")
-    clipped = page.eval_on_selector(
-        "#syncTxt", "e => e.scrollWidth > e.clientWidth + 1"
-    )
-    assert clipped is True, "长文案没有触发省略号，说明是被硬撑开的"
+    assert info["len"] == 78, info                       # 长文本确实还在，没被渲染覆盖
+    assert info["scrollW"] <= info["vw"] + 1, info        # 页面整体不横向溢出
+    assert info["bad"] == [], info                        # 没有任何元素越界
+    assert info["ssw"] > info["scw"] + 1, "长文案没有触发省略号，说明是被硬撑开的"
 
 
 def _text_lines(page, sel):
