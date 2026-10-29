@@ -1683,15 +1683,16 @@ function planAvg(He, names){
 
 /* 当前生效的档位模式与基准来源。均价模式下 H 由目标反解，结构模式走原逻辑 */
 function gearBase(){
-  var auto = (computeHEff()||{}).h;
+  var heff = computeHEff() || {};            // 要保留整个对象：h 是价格，win 是「+8%」这类来源说明
   var mode = S.cfg && S.cfg.gearMode === "avg" ? "avg" : "struct";
   var T = S.cfg ? Number(S.cfg.avgTarget) : NaN;
   if(mode === "avg"){
     var he = avgBase(T);
-    if(he) return { mode:"avg", he:he, auto:auto, target:T, src:"目标均价" };
+    if(he) return { mode:"avg", he:he, auto:heff, target:T, src:"目标均价" };
     mode = "struct";                       // 没填目标 → 自动退回结构基准，不让页面空转
   }
-  return { mode:"struct", he:S.H_BASE || auto, auto:auto, target:null, src:S.H_BASE?"手动基准":"结构基准" };
+  return { mode:"struct", he:S.H_BASE || heff.h, auto:heff, target:null,
+           src:S.H_BASE?"手动基准":"结构基准" };
 }
 
 function computeGears(){
