@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.16 · 盈亏配色（盈利红 / 亏损绿）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.17 · 建仓高点统一（结构基准与目标均价共用一个"自动/手动"高点）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -107,6 +107,9 @@ body{
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .muted{color:var(--tx3);font-size:12.5px;line-height:1.6}
 .note{font-size:11px;color:var(--tx3);line-height:1.65;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+/* 卡内小分节标题：参数一多就靠它分区，不额外加卡片 */
+.subh{display:flex;align-items:center;gap:8px;margin:16px 0 9px;font-size:11.5px;font-weight:600;color:var(--tx2);letter-spacing:.02em}
+.subh::after{content:"";flex:1 1 auto;height:1px;background:var(--line)}
 
 /* 今天要做 */
 .todo{border:1px solid rgba(229,72,77,.28);background:linear-gradient(180deg,rgba(229,72,77,.09),rgba(229,72,77,.015));border-radius:var(--r);padding:13px}
@@ -450,6 +453,9 @@ body.tab-ov .tpx{display:none}
 .row2 .fld label{flex:1 1 auto;margin-bottom:5px}
 .btn-primary{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(150deg,#D9AC5C,#B98A34);color:#1A1206;font-size:15px;font-weight:650;cursor:pointer;margin-top:4px}
 .btn-ghost{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--tx2);font-size:13px;cursor:pointer;margin-top:8px}
+/* 卡内并排两个次级按钮：320px 下不换行、不溢出 */
+.btnrow{display:flex;gap:8px;margin-top:9px}
+.btnrow .btn-ghost{margin-top:0;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:12px 6px}
 .syncbar{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--tx3);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;max-width:100%;min-width:0}
 .syncbar .sdot{width:6px;height:6px;border-radius:50%;background:#4B5563;flex:0 0 auto;transition:background .2s}
 .syncbar.on{color:rgba(91,196,138,.85)}
@@ -551,7 +557,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.16 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.17 · 10/29</span></div>
       </div>
     </div>
     <div class="stat">
@@ -672,7 +678,7 @@ body.tab-ov .tpx{display:none}
       <h2>建仓阶梯 <span class="cnt" id="ladderMeta"></span></h2>
       <div class="sact">
         <button class="act" id="btnRecalc">重算档位</button>
-        <button class="act" id="btnRebuild">按基准</button>
+        <button class="act" id="btnRebuild">按高点</button>
       </div>
     </div>
     <div id="gearSrcBox"></div>
@@ -682,10 +688,10 @@ body.tab-ov .tpx{display:none}
     </div>
     <div id="ladder"></div>
     <div id="avgCard"></div>
-    <div class="note">触发价 = 基准 × (1 − 回撤%)，全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
+    <div class="note">触发价 = 高点 × (1 − 回撤%)，全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
       <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
-      <br>档位来源可切「结构基准」或<strong>目标均价</strong>：后者由目标反解基准，让 1–4 档买完的均价正好落在目标附近。</div>
+      <br>高点只有一个：在设置里留空就自动（结构基准按 D60 算、目标均价按目标反解），填了就锁死，两种模式共用。</div>
 
   </section>
 
@@ -713,24 +719,24 @@ body.tab-ov .tpx{display:none}
   </section>
 
   <section class="panel" id="panel-set">
-    <div class="sech"><h2>参数</h2></div>
+    <div class="sech"><h2>建仓参数</h2></div>
     <div class="card">
       <div class="row2">
-        <div class="fld"><label>建仓基准 H_base（$/oz，留空自动算）</label><input type="number" id="setBase" step="0.01" inputmode="decimal" placeholder="自动"></div>
         <div class="fld"><label>目标总克重</label><input type="number" id="setTotal" step="1" inputmode="decimal"></div>
-      </div>
-      <div class="row2">
         <div class="fld"><label>底仓保留（g，涨到位也不动）</label><input type="number" id="setKeep" step="1" min="0" inputmode="decimal" placeholder="10"></div>
-        <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
       </div>
+      <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
       <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
-      <button class="btn-primary" id="btnSaveSet">保存参数</button>
-    </div>
 
-    <div class="sech" style="margin-top:20px"><h2>建仓目标</h2></div>
-    <div class="card">
-      <div class="gsrc" style="margin-bottom:12px">
+      <div class="subh">档位与高点</div>
+      <div class="row2">
+        <div class="fld"><label>建仓高点 $/oz</label><input type="number" id="setHigh" step="1" inputmode="decimal" placeholder="留空 = 自动"></div>
+        <div class="fld"><label>当前生效</label><input type="text" id="setHighLive" readonly style="color:var(--tx3)" placeholder="—"></div>
+      </div>
+      <button class="btn-ghost" id="btnHighAuto" style="margin-top:0">跟随自动（清空高点）</button>
+
+      <div class="gsrc" style="margin:14px 0 12px">
         <span class="lb">档位模式</span>
         <div class="seg" id="setModeSeg">
           <button data-gmode="struct" class="on">结构基准</button>
@@ -741,12 +747,8 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>目标均价（$/oz）</label><input type="number" id="setAvgT" step="1" inputmode="decimal" placeholder="如 3950"></div>
         <div class="fld"><label>容差 ±（美元）</label><input type="number" id="setAvgB" step="1" min="1" inputmode="decimal" placeholder="20"></div>
       </div>
-      <div class="row2">
-        <div class="fld"><label>基准高点（$/oz，留空由目标反解）</label><input type="number" id="setAvgH" step="1" inputmode="decimal" placeholder="留空 = 反解"></div>
-        <div class="fld"><label>反解值（按目标算出的高点）</label><input type="text" id="setAvgHR" readonly style="color:var(--tx3)" placeholder="—"></div>
-      </div>
-      <button class="btn-ghost" id="btnAvgHReset" style="margin-top:0">高点跟随目标反解</button>
-      <div class="note" style="margin-top:10px">目标均价模式下，高点留空即由「第 1–4 档打完均价 = 目标」反解；<strong>填了就锁死高点</strong>，均价改由档位推出来，卡片会告诉你落点偏了多少。克重与持仓仍按人民币克价记录，这里只用美元/盎司定档位。</div>
+      <div class="note" style="margin-top:10px">高点 = 第 1 档触发价。留空即自动：结构基准按 D60 高点算，目标均价模式由「第 1–4 档打完均价 = 目标」反解；<strong>填了就锁死</strong>，两种模式共用这一个高点，均价模式会告诉你落点偏了多少。克重与持仓按人民币克价记录，这里只用美元/盎司定档位。</div>
+      <button class="btn-primary" id="btnSaveSet">保存参数</button>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>提醒</h2></div>
@@ -1699,31 +1701,25 @@ function planAvg(He, names){
 }
 
 /* 当前生效的档位模式与基准来源。
-   均价模式有两种取基准的方式：
-     · avgHigh 填了 → 高点锁死，均价由档位推出来（「我就要从 4800 往下排」）
-     · avgHigh 留空 → 由目标均价反解（「我就要均价落在 3950」）
-   rev 永远保存反解值，方便两套口径随时对照。结构模式走原逻辑。 */
+   高点只有一个：cfg.H_BASE（$/oz，= 第 1 档价格）。两种模式共用，不再分「基准」和「均价高点」两套。
+     · 留空 → 自动：结构模式取 D60 自动基准，目标均价模式由目标反解
+     · 填了 → 手动锁死，两种模式都按它排；均价模式顺带告诉你落点偏了多少
+   rev 永远保存「按目标反解出来的高点」，方便随时对照。 */
 function gearBase(){
   var heff = computeHEff() || {};            // 要保留整个对象：h 是价格，win 是「+8%」这类来源说明
   var mode = S.cfg && S.cfg.gearMode === "avg" ? "avg" : "struct";
-  var T = S.cfg ? Number(S.cfg.avgTarget) : NaN;
+  var T = (S.cfg && Number(S.cfg.avgTarget) > 0) ? Number(S.cfg.avgTarget) : null;
+  var H = (S.cfg && Number(S.cfg.H_BASE) > 0) ? Number(S.cfg.H_BASE) : null;
+  var rev = avgBase(T);
   if(mode === "avg"){
-    var rev = avgBase(T);
-    var Hi = S.cfg ? Number(S.cfg.avgHigh) : NaN;
-    var manual = (Hi > 0) ? Hi : null;
-    if(rev && manual)
-      return { mode:"avg", he:manual, rev:rev, highManual:true, auto:heff, target:T, src:"手动高点" };
-    if(rev)
-      return { mode:"avg", he:rev, rev:rev, highManual:false, auto:heff, target:T, src:"目标反解" };
-    if(manual)                              // 目标被清空但高点还在：仍按高点排，只是没有目标可比
-      return { mode:"avg", he:manual, rev:null, highManual:true, auto:heff, target:null, src:"手动高点" };
-    mode = "struct";                        // 两个都没填 → 退回结构基准，不让页面空转
+    if(H)    return { mode:"avg", he:H, rev:rev, highManual:true, auto:heff, target:T, src:"手动高点" };
+    if(rev)  return { mode:"avg", he:rev, rev:rev, highManual:false, auto:heff, target:T, src:"目标反解" };
+    mode = "struct";                        // 高点与目标都没填 → 退回结构基准，不让页面空转
   }
   /* 结构模式也要把「你填的目标均价」带出来：档位照旧按结构走，但卡片要拿它做对照，
      否则结构模式永远显示「未设目标」，看起来很蠢 */
-  var T2 = (S.cfg && Number(S.cfg.avgTarget) > 0) ? Number(S.cfg.avgTarget) : null;
-  return { mode:"struct", he:S.H_BASE || heff.h, rev:null, highManual:false, auto:heff, target:T2,
-           src:S.H_BASE?"手动基准":"结构基准" };
+  return { mode:"struct", he:H || heff.h, rev:rev, highManual:!!H, auto:heff, target:T,
+           src: H ? "手动高点" : "自动基准" };
 }
 
 function computeGears(){
@@ -1822,8 +1818,8 @@ function computeGears(){
     mix: mix,
     hit: mix ? mix.hit : ((T && a14) ? Math.abs(a14 - T) <= band : null),
     needMain: needMain,
-    /* 结构模式下，如果设了目标，算一下「基准该调到哪」——就是均价模式的反解值 */
-    suggest: (base.mode !== "avg" && T) ? avgBase(T) : (base.rev || null),
+    /* 「要让 1–4 档均价落在目标上，高点该设到哪」——两种模式都用同一个反解值 */
+    suggest: base.rev || null,
     short: base.mode === "avg" ? (remain + 0.05 < needMain) : false,
     far: (T && S.price) ? Math.abs(he / S.price - 1) : null
   };
@@ -2414,8 +2410,13 @@ function normCfg(){
   if(S.cfg.gearMode !== "avg") S.cfg.gearMode = "struct";
   S.cfg.avgTarget = Number(S.cfg.avgTarget) > 0 ? Number(S.cfg.avgTarget) : null;
   if(!(Number(S.cfg.avgBand) > 0)) S.cfg.avgBand = 20;
-  /* 均价模式的高点可自定义：留空则由目标反解，填了就以它为准 */
-  S.cfg.avgHigh = Number(S.cfg.avgHigh) > 0 ? Number(S.cfg.avgHigh) : null;
+  /* 高点统一到 H_BASE（v6.17）：结构基准与目标均价共用一个「建仓高点」，留空即自动。
+     老数据里的 avgHigh 迁移过来——当前是均价模式就优先它（那才是用户眼前生效的值），
+     迁完字段清零，避免两处数值打架。 */
+  S.cfg.H_BASE = Number(S.cfg.H_BASE) > 0 ? Number(S.cfg.H_BASE) : null;
+  var hOld = Number(S.cfg.avgHigh) > 0 ? Number(S.cfg.avgHigh) : null;
+  if(hOld && (!S.cfg.H_BASE || S.cfg.gearMode === "avg")) S.cfg.H_BASE = hOld;
+  S.cfg.avgHigh = null;
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
@@ -2606,7 +2607,6 @@ function isEmptyCfg(c){
   if((c.marks||[]).length || (c.alerts||[]).length) return false;
   if(c.gearCleared && Object.keys(c.gearCleared).length) return false;
   if(c.gearMode === "avg" || Number(c.avgTarget) > 0) return false;
-  if(Number(c.avgHigh) > 0) return false;
   if(c.H_BASE || c.TOTAL !== undefined) return false;
   return true;
 }
@@ -3795,9 +3795,9 @@ function renderLadder(){
   else tail = " · 待建 " + num(total-bt,1) + " 克";
   var head = "";
   if(m.he){
-    var how = m.mode === "avg" ? (m.highManual ? "手动高点" : "目标反解")
-            : (S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || "")));
-    head = "基准 " + num(m.he,0) + " · " + how;
+    var how = m.highManual ? "手动高点"
+            : (m.mode === "avg" ? "目标反解" : ("自动 " + ((m.auto && m.auto.win) || "")));
+    head = "高点 " + num(m.he,0) + " · " + how;
   }
   $("ladderMeta").textContent = head + tail;
 
@@ -3810,11 +3810,12 @@ function renderLadder(){
   });
 }
 
-/* 档位来源条：结构基准 / 目标均价。切换只改 cfg.gearMode，买卖与持仓一律不动 */
+/* 档位来源条：结构基准 / 目标均价。切换只改 cfg.gearMode，买卖、持仓与高点一律不动 ——
+   高点两种模式共用，切模式不会把用户填的数改掉。 */
 function setGearMode(mode){
   if(mode !== "struct" && mode !== "avg") return;
-  if(mode === "avg" && !(Number(S.cfg.avgTarget) > 0)){
-    toast("先在设置里填目标均价");
+  if(mode === "avg" && !(Number(S.cfg.avgTarget) > 0) && !(Number(S.cfg.H_BASE) > 0)){
+    toast("先在设置里填目标均价或建仓高点");
     return;
   }
   if(S.cfg.gearMode === mode) return;
@@ -3826,18 +3827,17 @@ function setGearMode(mode){
 function renderGearSrc(){
   var box = $("gearSrcBox"); if(!box) return;
   var m = S.gearMeta || { mode:"struct" };
-  var hasT = Number(S.cfg && S.cfg.avgTarget) > 0;
+  var hasAnchor = (Number(S.cfg && S.cfg.avgTarget) > 0) || (Number(S.cfg && S.cfg.H_BASE) > 0);
   var hint = "";
   if(m.he){
-    if(m.mode === "avg" && m.highManual){
-      hint = '基准 <b>' + num(m.he,0) + '</b> · 手动高点';
-      if(m.rev) hint += '（反解需 <b>' + num(m.rev,0) + '</b>，差 ' +
+    if(m.highManual){
+      hint = '高点 <b>' + num(m.he,0) + '</b> · 手动';
+      if(m.mode === "avg" && m.rev) hint += '（反解需 <b>' + num(m.rev,0) + '</b>，差 ' +
         (m.he - m.rev >= 0 ? '+' : '') + num(m.he - m.rev, 0) + '）';
     } else if(m.mode === "avg"){
-      hint = '基准 <b>' + num(m.he,0) + '</b> · 由目标 ' + num(m.target,0) + ' 反解';
+      hint = '高点 <b>' + num(m.he,0) + '</b> · 由目标 ' + num(m.target,0) + ' 反解';
     } else {
-      hint = '基准 <b>' + num(m.he,0) + '</b> · ' + (S.H_BASE ? "手动" :
-        ("自动 " + ((m.auto && m.auto.win) || "")));
+      hint = '高点 <b>' + num(m.he,0) + '</b> · 自动 ' + ((m.auto && m.auto.win) || "");
     }
     if(m.far !== null && m.far !== undefined && Math.abs(m.far) > 0.25)
       hint += ' <span class="warn">· 偏离现价 ' + (m.far*100).toFixed(0) + '%</span>';
@@ -3845,7 +3845,7 @@ function renderGearSrc(){
   box.innerHTML = '<div class="gsrc"><span class="lb">档位来源</span><div class="seg">' +
     '<button data-gmode="struct" class="' + (m.mode === "struct" ? "on" : "") + '">结构基准</button>' +
     '<button data-gmode="avg" class="' + (m.mode === "avg" ? "on" : "") + '"' +
-      (hasT ? "" : ' disabled title="先填目标均价"') + '>目标均价</button>' +
+      (hasAnchor ? "" : ' disabled title="先填目标均价或高点"') + '>目标均价</button>' +
     '</div></div>' + (hint ? '<div class="gshint">' + hint + '</div>' : '');
   Array.prototype.forEach.call(box.querySelectorAll("[data-gmode]"), function(b){
     b.onclick = function(){ if(!b.disabled) setGearMode(b.getAttribute("data-gmode")); };
@@ -3882,7 +3882,7 @@ function renderAvgCardAvg(box, m){
     box.innerHTML = '<div class="avgc">' + highRow +
       '<div class="ft" style="margin-top:9px"><span>1–4 档理论 <b>' + num(a14, 1) + '</b></span>' +
         '<span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
-        '<span>基准 <b>' + num(m.he, 0) + '</b></span></div>' +
+        '<span>高点 <b>' + num(m.he, 0) + '</b></span></div>' +
       '<div class="tip">还没填目标均价，只能看档位均价落点。填一个目标，卡片会给出命中判定。</div>' +
       '<button class="btn-ghost" data-go="avgt" style="margin-top:9px">去设置目标均价</button></div>';
     bindAvgCard(box);
@@ -3926,9 +3926,9 @@ function renderAvgCardAvg(box, m){
     highRow + '<div class="bar">' + svg + '</div>' +
     '<div class="ft"><span>1–4 档理论 <b>' + num(a14, 1) + '</b></span>' +
       '<span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
-      '<span>' + (m.highManual ? "基准" : "反解基准") + ' <b>' + num(m.he, 0) + '</b></span></div>' +
+      '<span>' + (m.highManual ? "高点" : "反解高点") + ' <b>' + num(m.he, 0) + '</b></span></div>' +
     (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
-    (m.highManual ? '<button class="btn-ghost" data-avg-sync="1" style="margin-top:9px">高点回到反解值</button>' : '') +
+    (m.highManual ? '<button class="btn-ghost" data-avg-sync="1" style="margin-top:9px">高点跟随自动</button>' : '') +
     '</div>';
   bindAvgCard(box);
 }
@@ -3944,7 +3944,7 @@ function renderAvgCardStruct(box, m){
   var verdict = "";
   if(diff !== null) verdict = hit ? "✓ 命中" : ((diff > 0 ? "偏高 " : "偏低 ") + Math.abs(diff).toFixed(1));
 
-  var how = S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || ""));
+  var how = m.highManual ? "手动高点" : ("自动 " + ((m.auto && m.auto.win) || ""));
   var farPct = (S.price && m.he) ? (m.he / S.price - 1) * 100 : null;
 
   /* 只有设了目标才画目标区间带；没目标就只看落点数值 */
@@ -3969,22 +3969,24 @@ function renderAvgCardStruct(box, m){
   var tips = [];
   if(T && m.suggest){
     var gap = m.suggest - m.he;
-    tips.push("要让 1–4 档均价落在 <b>" + num(T, 0) + "</b>，基准应为 <b>" + num(m.suggest, 0) +
+    tips.push("要让 1–4 档均价落在 <b>" + num(T, 0) + "</b>，高点应为 <b>" + num(m.suggest, 0) +
       "</b>（现在" + (gap >= 0 ? "低 " : "高 ") + num(Math.abs(gap), 0) + "）");
   } else if(!T){
-    tips.push("还没设目标均价，这里只能看「按当前基准买完，均价落在哪」。填一个目标就能给出偏差与建议基准。");
+    tips.push("还没设目标均价，这里只能看「按当前高点买完，均价落在哪」。填一个目标就能给出偏差与建议高点。");
   }
   if(m.short) tips.push("剩余额度买不满 1–4 档（需 " + num(m.needMain, 0) + "g）");
 
   box.innerHTML = '<div class="avgc">' +
-    '<div class="hd"><span>基准 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
+    '<div class="hd"><span>高点 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
       '<span class="' + vcls + '">1–4 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
     bar +
     '<div class="ft"><span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
       (farPct !== null ? '<span>距现价 <b>' + (farPct >= 0 ? "+" : "") + farPct.toFixed(1) + '%</b></span>' : '') +
       '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span></div>' +
     (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
-    (T ? '<button class="btn-ghost" data-set-mode="avg" style="margin-top:9px">切到目标均价导向</button>'
+    (T ? '<div class="btnrow"><button class="btn-ghost" data-use-suggest="' + Math.round(m.suggest) + '">用 ' +
+           num(m.suggest, 0) + ' 作高点</button>' +
+         '<button class="btn-ghost" data-set-mode="avg">切到目标均价导向</button></div>'
        : '<button class="btn-ghost" data-go="avgt" style="margin-top:9px">去设置目标均价</button>') +
     '</div>';
   bindAvgCard(box);
@@ -3993,7 +3995,10 @@ function renderAvgCardStruct(box, m){
 /* 卡片里的两个动作：回退高点到反解、跳去设置页填目标 */
 function bindAvgCard(box){
   Array.prototype.forEach.call(box.querySelectorAll("[data-avg-sync]"), function(b){
-    b.onclick = function(){ setAvgHigh(null); };
+    b.onclick = function(){ setHigh(null); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-use-suggest]"), function(b){
+    b.onclick = function(){ setHigh(b.getAttribute("data-use-suggest")); };
   });
   Array.prototype.forEach.call(box.querySelectorAll("[data-set-mode]"), function(b){
     b.onclick = function(){ setGearMode(b.getAttribute("data-set-mode")); };
@@ -4003,18 +4008,24 @@ function bindAvgCard(box){
   });
 }
 
-/* 高点设定：null = 跟随反解，数值 = 锁死高点 */
-function setAvgHigh(v){
+/* 高点设定：null = 跟随自动（结构算 / 目标反解），数值 = 锁死；两种模式共用同一个值 */
+function setHigh(v){
   var h = (v === null || v === "" || v === undefined) ? null : Number(v);
-  if(h !== null && !(h >= 1000 && h <= 9000)){ toast("基准高点要在 1000-9000 之间"); return; }
-  if((S.cfg.avgHigh || null) === h){ toast(h === null ? "高点已经是反解值" : "高点没变"); return; }
-  S.cfg.avgHigh = h;
+  if(h !== null && !(h >= 1000 && h <= 9000)){ toast("建仓高点要在 1000-9000 之间"); return; }
+  if((Number(S.cfg.H_BASE) || null) === h){ toast(h === null ? "高点已经是自动值" : "高点没变"); return; }
+  S.cfg.H_BASE = h;
+  S.H_BASE = h;
   if(h !== null && S.cfg.gearMode !== "avg" && Number(S.cfg.avgTarget) > 0) S.cfg.gearMode = "avg";
+  // 高点被清空、又没有目标均价 → 均价模式没有锚，退回结构基准
+  if(h === null && S.cfg.gearMode === "avg" && !(Number(S.cfg.avgTarget) > 0)) S.cfg.gearMode = "struct";
   saveCfg(); compute(); refreshAll();
-  toast(h === null ? "高点已跟随目标反解" : "高点已锁定 " + num(h, 0));
+  toast(h === null ? "高点已跟随自动" : "高点已锁定 " + num(h, 0));
 }
+/* 旧名兼容：老调用点与测试钩子仍可用 */
+var setAvgHigh = setHigh;
 
-/* 设置页的「建仓目标」区块：模式同步 + 均价模式下基准输入置灰 */
+/* 设置页的档位区块：模式同步 + 高点「当前生效」回显。
+   高点只剩一个输入（#setHigh），不再按模式置灰——两种模式共用它。 */
 function renderSetGear(){
   var seg = $("setModeSeg"); if(!seg) return;
   var m = S.gearMeta || { mode:"struct" };
@@ -4023,18 +4034,18 @@ function renderSetGear(){
     if(b.classList.contains("on") !== isOn) b.className = isOn ? "on" : "";
     b.onclick = function(){ setGearMode(b.getAttribute("data-gmode")); };
   });
-  var base = $("setBase");
-  if(base){
-    var avgOn = m.mode === "avg";
-    base.disabled = avgOn;
-    base.placeholder = avgOn ? "均价模式由目标反解" : "自动";
+  var hi = $("setHigh");
+  if(hi && document.activeElement !== hi) hi.value = S.cfg.H_BASE ? String(S.cfg.H_BASE) : "";
+  var live = $("setHighLive");
+  if(live){
+    // 只放「数值 + 短来源」：320px 下四字标签会把只读框撑到截断
+    var how = m.highManual ? "手动"
+            : (m.mode === "avg" ? "反解" : ("自动 " + ((m.auto && m.auto.win) || "")));
+    live.value = m.he ? (num(m.he, 0) + " · " + how.trim()) : "—";
   }
   var at = $("setAvgT"), ab = $("setAvgB");
   if(at && document.activeElement !== at) at.value = S.cfg.avgTarget ? String(S.cfg.avgTarget) : "";
   if(ab && document.activeElement !== ab) ab.value = String(S.cfg.avgBand || 20);
-  var ah = $("setAvgH"), ahr = $("setAvgHR");
-  if(ah && document.activeElement !== ah) ah.value = S.cfg.avgHigh ? String(S.cfg.avgHigh) : "";
-  if(ahr) ahr.value = m.rev ? num(m.rev, 0) : "—";
 }
 
 function renderPos(){
@@ -4267,8 +4278,8 @@ function todoItems(){
 
   if(allBroken){
     items.push({ kind:"fatal", t:"六档全部跌破，本轮未建仓",
-      d:"现价 "+num(p,1)+" 已低于第6档 "+num(lowest.price,1)+"，基准 "+(S.H_BASE?num(S.H_BASE,0):"自动")+" 已脱锚",
-      btn:"重设基准", act:"setbase" });
+      d:"现价 "+num(p,1)+" 已低于第6档 "+num(lowest.price,1)+"，高点 "+(S.cfg.H_BASE?num(S.cfg.H_BASE,0):"自动")+" 已脱锚",
+      btn:"重设高点", act:"setbase" });
   }
 
   if(p!==null && !allBroken){
@@ -4377,7 +4388,7 @@ function renderStat(){
     : "持仓由「买入记录」自动汇总，无需手填。";
   syncKeep();
   $("dbStat").textContent = "K线 " + Object.keys(S.kl).map(function(k){ return k+":"+S.kl[k].length; }).join(" · ") +
-    (he ? " · 自动基准 " + num(he.h,1) + "（" + he.win + "）" : "");
+    (he ? " · 自动高点 " + num(he.h,1) + "（" + he.win + "）" : "");
 }
 
 function refreshAll(){
@@ -4784,9 +4795,9 @@ function delBuy(){
 
 function onAction(act){
   if(act === "setbase"){
-    gotoTab("set", { anchor:"setBase" });
-    $("setBase").focus();
-    toast("填入新基准，保存后点「按基准重算」");
+    gotoTab("set", { anchor:"setHigh" });
+    $("setHigh").focus();
+    toast("填入新的建仓高点，保存后点「按基准重算」");
     return;
   }
   if(act === "take"){ openSell(null); return; }
@@ -4843,10 +4854,10 @@ function recalcGears(){
 }
 
 function rebuildGears(){
-  var he = computeHEff();
-  if(!S.H_BASE && he) S.H_BASE = he.h;
-  if(!S.H_BASE){ toast("缺少基准，请先设置"); return; }
-  if(!window.confirm("按基准 " + num(S.H_BASE,2) + " 重算建仓档位触发价？已买入标记保留。")) return;
+  var m = S.gearMeta || {};
+  var he = m.he || (computeHEff() || {}).h;
+  if(!he){ toast("缺少建仓高点，请先设置"); return; }
+  if(!window.confirm("按高点 " + num(he,2) + " 重算建仓档位触发价？已买入标记保留。")) return;
   S.cfg.gearHit = {};
   saveCfg();
   compute();
@@ -4855,8 +4866,8 @@ function rebuildGears(){
 }
 
 function syncParamInputs(){
-  if(!$("setBase")) return;
-  $("setBase").value = S.cfg.H_BASE || "";
+  if(!$("setTotal")) return;
+  if($("setHigh")) $("setHigh").value = S.cfg.H_BASE || "";
   $("setTotal").value = S.TOTAL || 100;
   var g = holdStats().grams;
   if(g) $("setKeep").value = computedKeep(g);
@@ -4952,11 +4963,11 @@ function bindUI(){
   if(pi) pi.addEventListener("input", sub);
 
   $("btnSaveSet").onclick = function(){
-    var b = $("setBase").value.trim();
+    var b = $("setHigh").value.trim();
     var t = Number($("setTotal").value);
     var hs = holdStats();
     var keep = Number($("setKeep").value);
-    if(b && (Number(b) < 1000 || Number(b) > 9000)){ toast("基准价看起来不对（1000-9000）"); return; }
+    if(b && (Number(b) < 1000 || Number(b) > 9000)){ toast("建仓高点看起来不对（1000-9000）"); return; }
     if(!t || t <= 0){ toast("总克重要大于 0"); return; }
     if(hs.grams && (isNaN(keep) || keep < 0 || keep > hs.grams)){
       toast("底仓保留要在 0 到持仓 " + num(hs.grams,1) + " 克之间"); return;
@@ -4965,19 +4976,13 @@ function bindUI(){
     var at = atv ? Number(atv) : null, ab = abv ? Number(abv) : 20;
     if(atv && !(at >= 1000 && at <= 9000)){ toast("目标均价看起来不对（1000-9000）"); return; }
     if(abv && !(ab >= 1 && ab <= 500)){ toast("容差要在 1-500 美元之间"); return; }
-    var ahv = $("setAvgH") ? $("setAvgH").value.trim() : "";
-    var ah = ahv ? Number(ahv) : null;
-    if(ahv && !(ah >= 1000 && ah <= 9000)){ toast("基准高点看起来不对（1000-9000）"); return; }
-    if(!$("setBase").disabled){
-      S.cfg.H_BASE = b ? Number(b) : null;
-      S.H_BASE = S.cfg.H_BASE;
-    }
+    S.cfg.H_BASE = b ? Number(b) : null;
+    S.H_BASE = S.cfg.H_BASE;
     S.cfg.TOTAL = t; S.TOTAL = t;
     S.cfg.avgTarget = at;
     S.cfg.avgBand = ab || 20;
-    S.cfg.avgHigh = ah;
     // 目标均价被清空时：还有手动高点就继续按高点排，否则退回结构基准，避免出现没有基准的空档位
-    if(S.cfg.gearMode === "avg" && !at && !ah) S.cfg.gearMode = "struct";
+    if(S.cfg.gearMode === "avg" && !at && !S.cfg.H_BASE) S.cfg.gearMode = "struct";
     if(hs.grams) S.cfg.keepGram = keep;
     // 同步一份百分比，方便旧逻辑与导出文件对照
     if(hs.grams) S.cfg.cutRatio = Math.round((hs.grams - keep)/hs.grams*100);
@@ -4985,7 +4990,7 @@ function bindUI(){
     saveCfg(); compute(); refreshAll(); syncKeep(); toast("参数已保存，建仓与止盈已按新参数重算");
   };
 
-  if($("btnAvgHReset")) $("btnAvgHReset").onclick = function(){ setAvgHigh(null); };
+  if($("btnHighAuto")) $("btnHighAuto").onclick = function(){ setHigh(null); };
 
   $("btnExport").onclick = function(){
     var blob = new Blob([JSON.stringify(S.cfg,null,2)], {type:"application/json"});
@@ -5133,6 +5138,7 @@ if(/[?&]xt=1/.test(location.search)){
     planAvg:planAvg,
     gearBase:gearBase,
     setGearMode:setGearMode,
+    setHigh:setHigh,
     setAvgHigh:setAvgHigh,
     loadCalendar:loadCalendar,
     calState:calState,
