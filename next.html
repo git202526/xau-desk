@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.13 · 事件日历补全（Actions 抓取 + 同源 JSON） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.16 · 盈亏配色（盈利红 / 亏损绿）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -61,6 +61,11 @@ body{
 .hprice{font-size:clamp(38px,11.5vw,52px);line-height:1.04;font-weight:660;letter-spacing:-1.5px}
 .hdelta{font-size:14px;font-weight:600;padding-bottom:9px}
 .hdelta.up{color:var(--up)}.hdelta.dn{color:var(--dn)}.hdelta.flat{color:var(--tx2)}
+/* 盈亏语义：中文金融惯例 —— 盈利红、亏损绿，与行情涨跌共用同一套变量。
+   这两个类是给持仓汇总 / 止盈分配这类「金额盈亏」用的，不要拿它们表示方向。 */
+.red{color:var(--up)}
+.green{color:var(--dn)}
+.flatc{color:var(--tx2)}
 /* 行情四件套固定三列两行：今开/昨收/振幅、最高/最低/ATR，不随宽度换行 */
 .hmeta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px 8px;margin-top:10px;font-size:11px;color:var(--tx3)}
 .hmeta>div{display:flex;align-items:baseline;gap:4px;min-width:0;white-space:nowrap}
@@ -359,6 +364,10 @@ body.tab-ov .tpx{display:none}
 .tw .prb i.on:nth-child(n+8){background:#E8C079}
 .tw .pr span{font-size:9.5px;color:var(--tx3);white-space:nowrap}
 .tw .rs{font-size:10px;color:var(--tx3);margin-top:4px;opacity:.9}
+/* 持仓汇总的浮盈大字。原来写在内联 style 里，但 sanitizeHtml 只保留 class/value/data-*，
+   style 会被整条删掉 —— 于是这行一直是默认字号。改用类名承载。 */
+.pnllb{font-size:11px;color:var(--tx3)}
+.pnlbig{font-size:26px;font-weight:660;letter-spacing:-.5px;margin-top:2px}
 .posmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
@@ -371,6 +380,9 @@ body.tab-ov .tpx{display:none}
 .gsrc .seg button.on{background:rgba(212,162,76,.14);color:var(--gold);font-weight:600}
 .gsrc .seg button:disabled{opacity:.42;cursor:not-allowed}
 .gsrc .seg button:active:not(:disabled){transform:scale(.98)}
+.gshint{font-size:10.5px;color:var(--tx3);margin:-5px 0 9px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gshint b{color:var(--tx2);font-weight:600;font-variant-numeric:tabular-nums}
+.gshint .warn{color:#E0913F}
 .avgc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 13px;margin-top:2px}
 .avgc .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--tx3);flex-wrap:wrap}
 .avgc .hd b{font-size:14px;color:var(--tx);font-weight:650;font-variant-numeric:tabular-nums}
@@ -539,7 +551,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.13 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.16 · 10/29</span></div>
       </div>
     </div>
     <div class="stat">
@@ -729,7 +741,12 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>目标均价（$/oz）</label><input type="number" id="setAvgT" step="1" inputmode="decimal" placeholder="如 3950"></div>
         <div class="fld"><label>容差 ±（美元）</label><input type="number" id="setAvgB" step="1" min="1" inputmode="decimal" placeholder="20"></div>
       </div>
-      <div class="note" style="margin-top:0">目标均价模式下，基准由「第 1–4 档打完均价 = 目标」反解，克重按计划等比缩放。克重与持仓仍按人民币克价记录，这里只用美元/盎司定档位。</div>
+      <div class="row2">
+        <div class="fld"><label>基准高点（$/oz，留空由目标反解）</label><input type="number" id="setAvgH" step="1" inputmode="decimal" placeholder="留空 = 反解"></div>
+        <div class="fld"><label>反解值（按目标算出的高点）</label><input type="text" id="setAvgHR" readonly style="color:var(--tx3)" placeholder="—"></div>
+      </div>
+      <button class="btn-ghost" id="btnAvgHReset" style="margin-top:0">高点跟随目标反解</button>
+      <div class="note" style="margin-top:10px">目标均价模式下，高点留空即由「第 1–4 档打完均价 = 目标」反解；<strong>填了就锁死高点</strong>，均价改由档位推出来，卡片会告诉你落点偏了多少。克重与持仓仍按人民币克价记录，这里只用美元/盎司定档位。</div>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>提醒</h2></div>
@@ -917,7 +934,7 @@ var S = {
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
   cal:{ ok:false, events:[], updatedAt:0, week:"" },
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
-  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, gearMode:"struct", avgTarget:null, avgBand:20 },
+  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, gearMode:"struct", avgTarget:null, avgBand:20, avgHigh:null },
   editing:null, tab:"struct"
 };
 
@@ -1681,17 +1698,31 @@ function planAvg(He, names){
   return gs ? amt / gs : null;
 }
 
-/* 当前生效的档位模式与基准来源。均价模式下 H 由目标反解，结构模式走原逻辑 */
+/* 当前生效的档位模式与基准来源。
+   均价模式有两种取基准的方式：
+     · avgHigh 填了 → 高点锁死，均价由档位推出来（「我就要从 4800 往下排」）
+     · avgHigh 留空 → 由目标均价反解（「我就要均价落在 3950」）
+   rev 永远保存反解值，方便两套口径随时对照。结构模式走原逻辑。 */
 function gearBase(){
   var heff = computeHEff() || {};            // 要保留整个对象：h 是价格，win 是「+8%」这类来源说明
   var mode = S.cfg && S.cfg.gearMode === "avg" ? "avg" : "struct";
   var T = S.cfg ? Number(S.cfg.avgTarget) : NaN;
   if(mode === "avg"){
-    var he = avgBase(T);
-    if(he) return { mode:"avg", he:he, auto:heff, target:T, src:"目标均价" };
-    mode = "struct";                       // 没填目标 → 自动退回结构基准，不让页面空转
+    var rev = avgBase(T);
+    var Hi = S.cfg ? Number(S.cfg.avgHigh) : NaN;
+    var manual = (Hi > 0) ? Hi : null;
+    if(rev && manual)
+      return { mode:"avg", he:manual, rev:rev, highManual:true, auto:heff, target:T, src:"手动高点" };
+    if(rev)
+      return { mode:"avg", he:rev, rev:rev, highManual:false, auto:heff, target:T, src:"目标反解" };
+    if(manual)                              // 目标被清空但高点还在：仍按高点排，只是没有目标可比
+      return { mode:"avg", he:manual, rev:null, highManual:true, auto:heff, target:null, src:"手动高点" };
+    mode = "struct";                        // 两个都没填 → 退回结构基准，不让页面空转
   }
-  return { mode:"struct", he:S.H_BASE || heff.h, auto:heff, target:null,
+  /* 结构模式也要把「你填的目标均价」带出来：档位照旧按结构走，但卡片要拿它做对照，
+     否则结构模式永远显示「未设目标」，看起来很蠢 */
+  var T2 = (S.cfg && Number(S.cfg.avgTarget) > 0) ? Number(S.cfg.avgTarget) : null;
+  return { mode:"struct", he:S.H_BASE || heff.h, rev:null, highManual:false, auto:heff, target:T2,
            src:S.H_BASE?"手动基准":"结构基准" };
 }
 
@@ -1785,11 +1816,14 @@ function computeGears(){
 
   var meta = {
     mode: base.mode, src: base.src, he: he, auto: base.auto,
+    rev: base.rev || null, highManual: !!base.highManual,
     target: T, band: band, avg14: a14, avgAll: aAll,
     diff14: (T && a14) ? (a14 - T) : null,
     mix: mix,
     hit: mix ? mix.hit : ((T && a14) ? Math.abs(a14 - T) <= band : null),
     needMain: needMain,
+    /* 结构模式下，如果设了目标，算一下「基准该调到哪」——就是均价模式的反解值 */
+    suggest: (base.mode !== "avg" && T) ? avgBase(T) : (base.rev || null),
     short: base.mode === "avg" ? (remain + 0.05 < needMain) : false,
     far: (T && S.price) ? Math.abs(he / S.price - 1) : null
   };
@@ -2380,6 +2414,8 @@ function normCfg(){
   if(S.cfg.gearMode !== "avg") S.cfg.gearMode = "struct";
   S.cfg.avgTarget = Number(S.cfg.avgTarget) > 0 ? Number(S.cfg.avgTarget) : null;
   if(!(Number(S.cfg.avgBand) > 0)) S.cfg.avgBand = 20;
+  /* 均价模式的高点可自定义：留空则由目标反解，填了就以它为准 */
+  S.cfg.avgHigh = Number(S.cfg.avgHigh) > 0 ? Number(S.cfg.avgHigh) : null;
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
@@ -2394,7 +2430,7 @@ function loadCfg(){
     H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[],
     buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{},
     marks:[], alerts:[], gearCleared:{},
-    gearMode:"struct", avgTarget:null, avgBand:20
+    gearMode:"struct", avgTarget:null, avgBand:20, avgHigh:null
   };
   normCfg();
 }
@@ -2570,6 +2606,7 @@ function isEmptyCfg(c){
   if((c.marks||[]).length || (c.alerts||[]).length) return false;
   if(c.gearCleared && Object.keys(c.gearCleared).length) return false;
   if(c.gearMode === "avg" || Number(c.avgTarget) > 0) return false;
+  if(Number(c.avgHigh) > 0) return false;
   if(c.H_BASE || c.TOTAL !== undefined) return false;
   return true;
 }
@@ -3758,7 +3795,8 @@ function renderLadder(){
   else tail = " · 待建 " + num(total-bt,1) + " 克";
   var head = "";
   if(m.he){
-    var how = m.mode === "avg" ? "目标反解" : (S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || "")));
+    var how = m.mode === "avg" ? (m.highManual ? "手动高点" : "目标反解")
+            : (S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || "")));
     head = "基准 " + num(m.he,0) + " · " + how;
   }
   $("ladderMeta").textContent = head + tail;
@@ -3789,26 +3827,70 @@ function renderGearSrc(){
   var box = $("gearSrcBox"); if(!box) return;
   var m = S.gearMeta || { mode:"struct" };
   var hasT = Number(S.cfg && S.cfg.avgTarget) > 0;
+  var hint = "";
+  if(m.he){
+    if(m.mode === "avg" && m.highManual){
+      hint = '基准 <b>' + num(m.he,0) + '</b> · 手动高点';
+      if(m.rev) hint += '（反解需 <b>' + num(m.rev,0) + '</b>，差 ' +
+        (m.he - m.rev >= 0 ? '+' : '') + num(m.he - m.rev, 0) + '）';
+    } else if(m.mode === "avg"){
+      hint = '基准 <b>' + num(m.he,0) + '</b> · 由目标 ' + num(m.target,0) + ' 反解';
+    } else {
+      hint = '基准 <b>' + num(m.he,0) + '</b> · ' + (S.H_BASE ? "手动" :
+        ("自动 " + ((m.auto && m.auto.win) || "")));
+    }
+    if(m.far !== null && m.far !== undefined && Math.abs(m.far) > 0.25)
+      hint += ' <span class="warn">· 偏离现价 ' + (m.far*100).toFixed(0) + '%</span>';
+  }
   box.innerHTML = '<div class="gsrc"><span class="lb">档位来源</span><div class="seg">' +
     '<button data-gmode="struct" class="' + (m.mode === "struct" ? "on" : "") + '">结构基准</button>' +
     '<button data-gmode="avg" class="' + (m.mode === "avg" ? "on" : "") + '"' +
       (hasT ? "" : ' disabled title="先填目标均价"') + '>目标均价</button>' +
-    '</div></div>';
+    '</div></div>' + (hint ? '<div class="gshint">' + hint + '</div>' : '');
   Array.prototype.forEach.call(box.querySelectorAll("[data-gmode]"), function(b){
     b.onclick = function(){ if(!b.disabled) setGearMode(b.getAttribute("data-gmode")); };
   });
 }
 
-/* 均价校验卡：目标区间带状图 + 「已持仓 + 后续按计划」的整体均价落点 */
+/* 均价校验卡：目标区间带状图 + 「已持仓 + 后续按计划」的整体均价落点。
+   highManual 时额外显示「高点 vs 反解」的差额与一键回退，因为这时均价是被推出来的，
+   「命中」与否取决于高点离反解值有多远。 */
 function renderAvgCard(){
   var box = $("avgCard"); if(!box) return;
   var m = S.gearMeta;
-  if(!m || m.mode !== "avg" || !m.target){ box.innerHTML = ""; return; }
+  if(!m || !m.he){ box.innerHTML = ""; return; }
+  return m.mode === "avg" ? renderAvgCardAvg(box, m) : renderAvgCardStruct(box, m);
+}
+
+/* 均价模式的卡片：目标区间 + 整体均价落点 + 高点对照 */
+function renderAvgCardAvg(box, m){
+  if(!(m.target || m.highManual)){ box.innerHTML = ""; return; }
 
   var T = m.target, band = m.band, mix = m.mix, a14 = m.avg14, aAll = m.avgAll;
   var cur = (mix && mix.avg) ? mix.avg : a14;      // 落在图上的是整体均价
+
+  var highRow = "";
+  if(m.highManual){
+    highRow = '<div class="hd" style="margin:8px 0 0"><span>高点 <b>' + num(m.he, 0) + '</b> 手动</span>' +
+      (m.rev ? '<span class="' + (Math.abs(m.he - m.rev) <= (band||20) ? "ok" : "off") + '">反解 <b>' +
+        num(m.rev, 0) + '</b>，顶到 ' + (m.he - m.rev >= 0 ? "+" : "") + num(m.he - m.rev, 0) + '</span>'
+        : '<span>没有目标均价，只按高点排</span>') + '</div>';
+  }
+
+  /* 没有目标就没有区间可比，只给数值行，不画带状图 */
+  if(!T){
+    box.innerHTML = '<div class="avgc">' + highRow +
+      '<div class="ft" style="margin-top:9px"><span>1–4 档理论 <b>' + num(a14, 1) + '</b></span>' +
+        '<span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
+        '<span>基准 <b>' + num(m.he, 0) + '</b></span></div>' +
+      '<div class="tip">还没填目标均价，只能看档位均价落点。填一个目标，卡片会给出命中判定。</div>' +
+      '<button class="btn-ghost" data-go="avgt" style="margin-top:9px">去设置目标均价</button></div>';
+    bindAvgCard(box);
+    return;
+  }
+
   var lo = T - band, hi = T + band;
-  var pts = [lo, hi]; if(cur) pts.push(cur); if(aAll) pts.push(aAll);
+  var pts = [lo, hi]; if(cur) pts.push(cur); if(aAll) pts.push(aAll); if(m.rev) pts.push(m.rev);
   var vmin = Math.min.apply(null, pts), vmax = Math.max.apply(null, pts);
   var pad = Math.max(1, (vmax - vmin) * 0.14); vmin -= pad; vmax += pad;
   var W = 300, L = 8, R = 292, Y = 18;
@@ -3841,12 +3923,95 @@ function renderAvgCard(){
   box.innerHTML = '<div class="avgc">' +
     '<div class="hd"><span>目标均价 <b>' + num(T, 0) + '</b> ±' + num(band, 0) + '</span>' +
       '<span class="' + vcls + '">整体均价 <b class="' + vcls + '">' + num(cur, 1) + '</b> ' + verdict + '</span></div>' +
-    '<div class="bar">' + svg + '</div>' +
+    highRow + '<div class="bar">' + svg + '</div>' +
     '<div class="ft"><span>1–4 档理论 <b>' + num(a14, 1) + '</b></span>' +
       '<span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
-      '<span>反解基准 <b>' + num(m.he, 0) + '</b></span></div>' +
+      '<span>' + (m.highManual ? "基准" : "反解基准") + ' <b>' + num(m.he, 0) + '</b></span></div>' +
     (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
+    (m.highManual ? '<button class="btn-ghost" data-avg-sync="1" style="margin-top:9px">高点回到反解值</button>' : '') +
     '</div>';
+  bindAvgCard(box);
+}
+
+/* 结构基准的推导卡：不设目标也能看落点；设了目标就给出「差多少 + 基准该调到哪」。
+   这里不换任何档位价，只把「按现在这套基准买完，均价会落在哪」摊开。 */
+function renderAvgCardStruct(box, m){
+  var T = m.target, band = m.band || 20, a14 = m.avg14, aAll = m.avgAll;
+  var diff = (T && a14) ? a14 - T : null;
+  var hit = (diff === null) ? null : Math.abs(diff) <= band;
+  var col = (hit === null) ? "#9AA4B2" : (hit ? "#3FBF7F" : "#E0913F");
+  var vcls = (hit === null) ? "" : (hit ? "ok" : "off");
+  var verdict = "";
+  if(diff !== null) verdict = hit ? "✓ 命中" : ((diff > 0 ? "偏高 " : "偏低 ") + Math.abs(diff).toFixed(1));
+
+  var how = S.H_BASE ? "手动" : ("自动 " + ((m.auto && m.auto.win) || ""));
+  var farPct = (S.price && m.he) ? (m.he / S.price - 1) * 100 : null;
+
+  /* 只有设了目标才画目标区间带；没目标就只看落点数值 */
+  var bar = "";
+  if(T){
+    var lo = T - band, hi = T + band;
+    var pts = [lo, hi]; if(a14) pts.push(a14);
+    var vmin = Math.min.apply(null, pts), vmax = Math.max.apply(null, pts);
+    var pad = Math.max(1, (vmax - vmin) * 0.14); vmin -= pad; vmax += pad;
+    var W = 300, L = 8, R = 292, Y = 18;
+    var X = function(v){ return L + (Math.min(vmax, Math.max(vmin, v)) - vmin) / (vmax - vmin || 1) * (R - L); };
+    bar = '<div class="bar"><svg viewBox="0 0 ' + W + ' 34" aria-hidden="true">' +
+      '<rect x="' + L + '" y="' + (Y-1) + '" width="' + (R-L) + '" height="3" rx="1.5" fill="rgba(255,255,255,.10)"/>' +
+      '<rect x="' + X(lo).toFixed(1) + '" y="' + (Y-6) + '" width="' + Math.max(2, X(hi)-X(lo)).toFixed(1) +
+        '" height="13" rx="3" fill="rgba(212,162,76,.20)" stroke="rgba(212,162,76,.42)" stroke-width="1"/>' +
+      '<line x1="' + X(T).toFixed(1) + '" y1="' + (Y-9) + '" x2="' + X(T).toFixed(1) + '" y2="' + (Y+7) +
+        '" stroke="' + col + '" stroke-width="1.4"/>' +
+      (a14 ? '<circle cx="' + X(a14).toFixed(1) + '" cy="' + Y + '" r="3.8" fill="' + col + '"/>' : '') +
+      '</svg></div>';
+  }
+
+  var tips = [];
+  if(T && m.suggest){
+    var gap = m.suggest - m.he;
+    tips.push("要让 1–4 档均价落在 <b>" + num(T, 0) + "</b>，基准应为 <b>" + num(m.suggest, 0) +
+      "</b>（现在" + (gap >= 0 ? "低 " : "高 ") + num(Math.abs(gap), 0) + "）");
+  } else if(!T){
+    tips.push("还没设目标均价，这里只能看「按当前基准买完，均价落在哪」。填一个目标就能给出偏差与建议基准。");
+  }
+  if(m.short) tips.push("剩余额度买不满 1–4 档（需 " + num(m.needMain, 0) + "g）");
+
+  box.innerHTML = '<div class="avgc">' +
+    '<div class="hd"><span>基准 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
+      '<span class="' + vcls + '">1–4 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
+    bar +
+    '<div class="ft"><span>全 6 档 <b>' + num(aAll, 1) + '</b></span>' +
+      (farPct !== null ? '<span>距现价 <b>' + (farPct >= 0 ? "+" : "") + farPct.toFixed(1) + '%</b></span>' : '') +
+      '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span></div>' +
+    (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
+    (T ? '<button class="btn-ghost" data-set-mode="avg" style="margin-top:9px">切到目标均价导向</button>'
+       : '<button class="btn-ghost" data-go="avgt" style="margin-top:9px">去设置目标均价</button>') +
+    '</div>';
+  bindAvgCard(box);
+}
+
+/* 卡片里的两个动作：回退高点到反解、跳去设置页填目标 */
+function bindAvgCard(box){
+  Array.prototype.forEach.call(box.querySelectorAll("[data-avg-sync]"), function(b){
+    b.onclick = function(){ setAvgHigh(null); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-set-mode]"), function(b){
+    b.onclick = function(){ setGearMode(b.getAttribute("data-set-mode")); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-go]"), function(b){
+    b.onclick = function(){ gotoTab("set", { anchor:"setAvgT" }); };
+  });
+}
+
+/* 高点设定：null = 跟随反解，数值 = 锁死高点 */
+function setAvgHigh(v){
+  var h = (v === null || v === "" || v === undefined) ? null : Number(v);
+  if(h !== null && !(h >= 1000 && h <= 9000)){ toast("基准高点要在 1000-9000 之间"); return; }
+  if((S.cfg.avgHigh || null) === h){ toast(h === null ? "高点已经是反解值" : "高点没变"); return; }
+  S.cfg.avgHigh = h;
+  if(h !== null && S.cfg.gearMode !== "avg" && Number(S.cfg.avgTarget) > 0) S.cfg.gearMode = "avg";
+  saveCfg(); compute(); refreshAll();
+  toast(h === null ? "高点已跟随目标反解" : "高点已锁定 " + num(h, 0));
 }
 
 /* 设置页的「建仓目标」区块：模式同步 + 均价模式下基准输入置灰 */
@@ -3867,6 +4032,9 @@ function renderSetGear(){
   var at = $("setAvgT"), ab = $("setAvgB");
   if(at && document.activeElement !== at) at.value = S.cfg.avgTarget ? String(S.cfg.avgTarget) : "";
   if(ab && document.activeElement !== ab) ab.value = String(S.cfg.avgBand || 20);
+  var ah = $("setAvgH"), ahr = $("setAvgHR");
+  if(ah && document.activeElement !== ah) ah.value = S.cfg.avgHigh ? String(S.cfg.avgHigh) : "";
+  if(ahr) ahr.value = m.rev ? num(m.rev, 0) : "—";
 }
 
 function renderPos(){
@@ -3887,8 +4055,8 @@ function renderPos(){
   var pnl = value!==null ? value - costLeft : null;
   var pctv = pnl!==null && costLeft ? pnl/costLeft*100 : null;
   var cls = pnl===null?"flatc":pnl>0?"red":pnl<0?"green":"flatc";
-  var html = '<div style="font-size:11px;color:var(--tx3)">浮动盈亏（元）</div>' +
-    '<div style="font-size:26px;font-weight:660;letter-spacing:-.5px;margin-top:2px" class="'+cls+'">' +
+  var html = '<div class="pnllb">浮动盈亏（元）</div>' +
+    '<div class="pnlbig '+cls+'">' +
       (pnl===null?"--":((pnl>0?"+":"")+money(pnl,2))) + '</div>' +
     '<div class="posmini">' +
       '<div class="it"><span>持仓克重</span><b class="num">'+num(hs.grams,1)+' g</b></div>' +
@@ -4797,6 +4965,9 @@ function bindUI(){
     var at = atv ? Number(atv) : null, ab = abv ? Number(abv) : 20;
     if(atv && !(at >= 1000 && at <= 9000)){ toast("目标均价看起来不对（1000-9000）"); return; }
     if(abv && !(ab >= 1 && ab <= 500)){ toast("容差要在 1-500 美元之间"); return; }
+    var ahv = $("setAvgH") ? $("setAvgH").value.trim() : "";
+    var ah = ahv ? Number(ahv) : null;
+    if(ahv && !(ah >= 1000 && ah <= 9000)){ toast("基准高点看起来不对（1000-9000）"); return; }
     if(!$("setBase").disabled){
       S.cfg.H_BASE = b ? Number(b) : null;
       S.H_BASE = S.cfg.H_BASE;
@@ -4804,14 +4975,17 @@ function bindUI(){
     S.cfg.TOTAL = t; S.TOTAL = t;
     S.cfg.avgTarget = at;
     S.cfg.avgBand = ab || 20;
-    // 目标均价被清空时，均价模式自动退回结构基准，避免页面上出现没有基准的空档位
-    if(S.cfg.gearMode === "avg" && !at) S.cfg.gearMode = "struct";
+    S.cfg.avgHigh = ah;
+    // 目标均价被清空时：还有手动高点就继续按高点排，否则退回结构基准，避免出现没有基准的空档位
+    if(S.cfg.gearMode === "avg" && !at && !ah) S.cfg.gearMode = "struct";
     if(hs.grams) S.cfg.keepGram = keep;
     // 同步一份百分比，方便旧逻辑与导出文件对照
     if(hs.grams) S.cfg.cutRatio = Math.round((hs.grams - keep)/hs.grams*100);
 
     saveCfg(); compute(); refreshAll(); syncKeep(); toast("参数已保存，建仓与止盈已按新参数重算");
   };
+
+  if($("btnAvgHReset")) $("btnAvgHReset").onclick = function(){ setAvgHigh(null); };
 
   $("btnExport").onclick = function(){
     var blob = new Blob([JSON.stringify(S.cfg,null,2)], {type:"application/json"});
@@ -4959,6 +5133,7 @@ if(/[?&]xt=1/.test(location.search)){
     planAvg:planAvg,
     gearBase:gearBase,
     setGearMode:setGearMode,
+    setAvgHigh:setAvgHigh,
     loadCalendar:loadCalendar,
     calState:calState,
     computeEvents:computeEvents,
