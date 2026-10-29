@@ -128,7 +128,8 @@ def make_env(browser):
     created = []
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
-              gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1", hash_=""):
+              gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
+              hash_="", bars=None):
         ctx = browser.new_context(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -149,7 +150,7 @@ def make_env(browser):
                     itv = k
                     break
             route.fulfill(status=200, content_type="application/json",
-                          body=json.dumps(_bars(itv)))
+                          body=json.dumps(bars if bars is not None else _bars(itv)))
 
         page.route("**/data-api.binance.vision/**", kline)
         page.route("**/open.er-api.com/**", lambda r: r.fulfill(
