@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.4 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.5 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -209,6 +209,12 @@ body.tab-ov .tpx{display:none}
 .rz .c b{color:var(--tx);font-weight:600}
 
 /* 关键位 */
+.klfilter{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.klfilter .fchips{display:flex;gap:6px;flex:1 1 auto;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.klfilter button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap}
+.klfilter button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
+.klfilter button.rng{color:var(--tx2);min-width:64px}
+.klfilter button:active{transform:scale(.97)}
 .kl{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
 .kl:first-child{border-top:none}
 .kl .p{width:76px;flex:0 0 auto;font-weight:650;font-size:13.5px}
@@ -460,7 +466,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.4 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.5 · 10/29</span></div>
       </div>
     </div>
     <div class="tpx num" id="tpx" role="button" tabindex="0" aria-label="回到总览">--</div>
@@ -537,6 +543,15 @@ body.tab-ov .tpx{display:none}
     </div>
 
     <div class="sech" style="margin-top:18px"><h2>关键位 <span class="cnt" id="klMeta"></span></h2></div>
+    <div class="klfilter">
+      <div class="fchips" id="klChips">
+        <button data-f="all" class="on">全部</button>
+        <button data-f="sup">支撑</button>
+        <button data-f="res">阻力</button>
+        <button data-f="strong">强位</button>
+      </div>
+      <button class="rng" id="klRange">全部</button>
+    </div>
     <div class="card" id="klist"></div>
     <div class="note">同一价位被多个来源（斐波、枢轴、摆动点、均线）指认时，标为<strong>强位</strong>。距离列是相对现价的百分比。</div>
   </section>
@@ -746,6 +761,7 @@ var S = {
   price:null, prev:null, open:null, high:null, low:null, lastOk:0, fail:0, fx:null, fxAt:0,
   kl:{}, scale:1, ready:false,
   struct:null, verdict:null, levels:[], gears:[], takes:[],
+  levelWin:12, levelOpen:false, levelFilter:"all",
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
   cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{} },
   editing:null, tab:"struct"
@@ -1129,8 +1145,98 @@ function swings(bars, left, right){
   }
   return res;
 }
-function buildLevels(range){
-  var lim = range || 12;
+/* 周起点（UTC 周一 00:00）：用于把日线聚合成"上周" */
+function weekStartUTC(t){
+  var dt = new Date(t);
+  var day = (dt.getUTCDay() + 6) % 7;      // 周一=0
+  return Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate() - day);
+}
+function prevWeekHL(d){
+  var lastKey = weekStartUTC(d[d.length-1].t);
+  var key = null, hi = -Infinity, lo = Infinity, close = null;
+  for(var i=d.length-1;i>=0;i--){
+    var k = weekStartUTC(d[i].t);
+    if(k >= lastKey) continue;             // 跳过本周
+    if(key === null) key = k;
+    if(k !== key) break;                   // 再往前就换周了
+    if(d[i].h > hi) hi = d[i].h;
+    if(d[i].l < lo) lo = d[i].l;
+    if(close === null) close = d[i].c;     // 从后往前，第一根即该周收盘
+  }
+  return key === null ? null : { hi:hi, lo:lo, c:close };
+}
+/* 成交量密集区：把近 120 根按价格分 40 桶，量最大的桶即 POC；
+   从 POC 向两侧扩展到累计 70% 的量，得到价值区上下沿 VAH / VAL。
+   注意：这里的量来自 K 线，只作相对权重，不等于伦敦金实盘成交。 */
+function volumeProfile(d){
+  var bars = d.slice(-120);
+  if(bars.length < 30) return null;
+  var hi = -Infinity, lo = Infinity, hasVol = false;
+  bars.forEach(function(b){
+    if(b.h > hi) hi = b.h;
+    if(b.l < lo) lo = b.l;
+    if(b.v > 0) hasVol = true;
+  });
+  if(!hasVol || !(hi > lo)) return null;
+
+  var B = 40, bw = (hi - lo)/B;
+  var vol = new Array(B);
+  for(var k=0;k<B;k++) vol[k] = 0;
+  bars.forEach(function(b){
+    var mid = (b.h + b.l + b.c)/3;
+    var idx = Math.floor((mid - lo)/bw);
+    if(idx < 0) idx = 0;
+    if(idx > B-1) idx = B-1;
+    vol[idx] += (b.v || 0);
+  });
+  var total = 0, poc = 0;
+  for(var q=0;q<B;q++){ total += vol[q]; if(vol[q] > vol[poc]) poc = q; }
+  if(!(total > 0)) return null;
+
+  var acc = vol[poc], a = poc, b2 = poc;
+  while(acc < total*0.7 && (a > 0 || b2 < B-1)){
+    var left = a > 0 ? vol[a-1] : -1;
+    var right = b2 < B-1 ? vol[b2+1] : -1;
+    if(right >= left){ b2++; acc += vol[b2]; }
+    else { a--; acc += vol[a]; }
+  }
+  return {
+    poc: lo + (poc + 0.5)*bw,
+    vah: lo + (b2 + 1)*bw,
+    val: lo + a*bw
+  };
+}
+
+/* 未回补缺口：找最近 lookback 根内的跳空，且之后价格没回来填过 */
+function findGaps(d, lookback, maxN){
+  var out = [];
+  var from = Math.max(0, d.length - (lookback || 40));
+  for(var i=d.length-2; i>=from && out.length < (maxN || 2); i--){
+    var a = d[i], b = d[i+1];
+    var gapLo = null, gapHi = null;
+    if(b.l > a.h*1.0005){ gapLo = a.h; gapHi = b.l; }
+    else if(b.h < a.l*0.9995){ gapLo = b.h; gapHi = a.l; }
+    if(gapLo === null) continue;
+
+    var filled = false;
+    for(var t=i+2; t<d.length; t++){
+      if(d[t].l <= gapLo || d[t].h >= gapHi){ filled = true; break; }
+    }
+    if(!filled) out.push({ lo:gapLo, hi:gapHi });
+  }
+  return out;
+}
+
+/* 展示窗口：跟着波动走。ATR 0.5% 时看 2.5%，ATR 2% 时看 7%，上限仍是 12% */
+function levelWindow(){
+  var a = atrPctOf();
+  if(!a) return 12;
+  return Math.min(12, Math.max(2.5, a * 3.5));
+}
+function buildLevels(range, opts){
+  opts = opts || {};
+  var ext = opts.extended !== false;        // 扩展位只进展示列表，不进止盈计划
+  var lim = range || (ext ? levelWindow() : 12);
   var d = scaled("1d");
   if(!d || d.length < 60) return [];
   var c = S.price || d[d.length-1].c;
@@ -1179,6 +1285,61 @@ function buildLevels(range){
   if(pl90) out.push({ price:pl90, name:"PL90", src:"pl", kind: pl90>c?"res":"sup" });
   if(pl180) out.push({ price:pl180, name:"PL180", src:"pl", kind: pl180>c?"res":"sup" });
 
+  // 前日高/低/收：日内回踩与突破最常参照的一组
+  if(ext){
+    var prev = d[d.length-2];
+    if(prev){
+      out.push({ price:prev.h, name:"前日高", src:"pd", kind: prev.h>c?"res":"sup" });
+      out.push({ price:prev.l, name:"前日低", src:"pd", kind: prev.l>c?"res":"sup" });
+      out.push({ price:prev.c, name:"前日收", src:"pd", kind: prev.c>c?"res":"sup" });
+    }
+    // 前周高/低：波段级别
+    var pw = prevWeekHL(d);
+    if(pw && isFinite(pw.hi) && pw.hi > 0 && isFinite(pw.lo)){
+      out.push({ price:pw.hi, name:"前周高", src:"pw", kind: pw.hi>c?"res":"sup" });
+      out.push({ price:pw.lo, name:"前周低", src:"pw", kind: pw.lo>c?"res":"sup" });
+    }
+    // 整数关口：黄金对 $50 / $100 敏感，上下各取 3 个，重合时由聚类自然加权
+    var roundBase = Math.floor(c/50)*50;
+    for(var q=-3;q<=3;q++){
+      var rv = roundBase + q*50;
+      if(rv <= 0) continue;
+      out.push({ price:rv, name:"整数 $"+rv, src:"round", kind: rv>c?"res":"sup" });
+    }
+    // 周线枢轴：波段级别的第一道支撑/阻力
+    if(pw && pw.c){
+      var wp = (pw.hi + pw.lo + pw.c)/3;
+      var wr1 = 2*wp - pw.lo, ws1 = 2*wp - pw.hi;
+      out.push({ price:wr1, name:"周枢 R1", src:"pivot", kind: wr1>c?"res":"sup" });
+      out.push({ price:ws1, name:"周枢 S1", src:"pivot", kind: ws1>c?"res":"sup" });
+    }
+    // 斐波扩展：突破后的目标位，只朝趋势方向给，避免逆势乱指
+    if(rng > 0){
+      var upTrend = last.c >= d[Math.max(0, d.length-20)].c;
+      out.push({ price: upTrend ? hi + rng*0.272 : lo - rng*0.272,
+                 name:"扩展 127.2%", src:"fib", kind: upTrend?"res":"sup" });
+      out.push({ price: upTrend ? hi + rng*0.618 : lo - rng*0.618,
+                 name:"扩展 161.8%", src:"fib", kind: upTrend?"res":"sup" });
+    }
+    // 短线均线：比 MA20 更贴现价
+    [[5,"MA5"],[10,"MA10"]].forEach(function(x){
+      var v = sma(d, x[0], i);
+      if(v) out.push({ price:v, name:x[1], src:"ma", kind: v>c?"res":"sup" });
+    });
+    // 成交量密集区
+    var vp = volumeProfile(d);
+    if(vp){
+      out.push({ price:vp.poc, name:"POC 筹码峰", src:"vol", kind: vp.poc>c?"res":"sup" });
+      out.push({ price:vp.vah, name:"VAH 密集上沿", src:"vol", kind: vp.vah>c?"res":"sup" });
+      out.push({ price:vp.val, name:"VAL 密集下沿", src:"vol", kind: vp.val>c?"res":"sup" });
+    }
+    // 未回补缺口：上下沿都是天然的支撑阻力
+    findGaps(d, 40, 2).forEach(function(g){
+      out.push({ price:g.lo, name:"缺口下沿", src:"gap", kind: g.lo>c?"res":"sup" });
+      out.push({ price:g.hi, name:"缺口上沿", src:"gap", kind: g.hi>c?"res":"sup" });
+    });
+  }
+
   // 聚类：价差 < 0.35% 合并
   out.sort(function(a,b){ return a.price-b.price; });
   var merged = [];
@@ -1189,20 +1350,32 @@ function buildLevels(range){
     }
     if(near){
       near.names.push(l.name);
+      near.srcs.push(l.src);
+      near.raw.push(l.price);
+      near.items.push({ n:l.name, s:l.src, p:l.price });
       near.count++;
       near.price = (near.price*near.count + l.price)/(near.count+1);
       if(near.count>=3) near.strong = true;
     } else {
-      merged.push({ price:l.price, names:[l.name], count:1, kind:l.kind, strong:false });
+      merged.push({ price:l.price, names:[l.name], srcs:[l.src], raw:[l.price],
+                    items:[{ n:l.name, s:l.src, p:l.price }], count:1, kind:l.kind, strong:false });
     }
   });
+  // 同一簇里最多显示 3 个名称：按"日内实用性"排，前日/前周优先于枢轴与斐波，
+  // 否则「前日高 / 枢轴 R1 / 枢轴 R2」会把真正的前周高挤掉
+  var NAME_PRI = { pd:1, pw:2, pivot:3, gap:4, swing:5, round:6, vol:7, ma:8, fib:9, pl:10 };
   merged.forEach(function(m){
-    m.label = m.names.slice(0,3).join(" / ");
+    var idx = m.names.map(function(_, i){ return i; }).sort(function(a,b){
+      return (NAME_PRI[m.srcs[a]] || 9) - (NAME_PRI[m.srcs[b]] || 9);
+    });
+    m.label = idx.slice(0,3).map(function(i){ return m.names[i]; }).join(" / ");
     m.dist = (m.price/c - 1)*100;
   });
-  return merged.filter(function(m){
+  var res = merged.filter(function(m){
     return Math.abs(m.dist) < lim;
   }).sort(function(a,b){ return b.price - a.price; });
+  res.win = lim;                 // 渲染层要知道这次用的是多宽的窗口
+  return res;
 }
 
 /* ===== 基准与档位 ===== */
@@ -1344,7 +1517,7 @@ function computeTakes(){
   });
 
   // 技术位：日线放宽到 +45%，延伸目标常在 12% 之外
-  buildLevels(45).forEach(function(l){
+  buildLevels(45, { extended:false }).forEach(function(l){
     if(l.price <= price*1.002) return;
     raw.push({ name:l.names[0], usd:l.price, src:"tech", note:l.label, arms:l.count });
   });
@@ -2557,16 +2730,21 @@ function renderStruct(){
 }
 
 function renderKL(){
-  var ls = S.levels;
-  var p = S.price;
-  if(!ls || !ls.length || p===null){ $("klist").innerHTML='<div class="muted">关键位计算中…</div>'; return; }
+  var p = S.price, all = S.levels;
+  if(!p || !all || !all.length){ $("klist").innerHTML='<div class="muted">关键位计算中…</div>'; return; }
+
+  var win = S.levelOpen ? 12 : (S.levelWin || 12);
+  var arr = all.filter(function(l){ return Math.abs(l.dist) < win; });
+  var f = S.levelFilter || "all";
+  if(f === "sup") arr = arr.filter(function(l){ return l.price < p; });
+  else if(f === "res") arr = arr.filter(function(l){ return l.price > p; });
+  else if(f === "strong") arr = arr.filter(function(l){ return !!l.strong; });
+
+  var nowRow = '<div class="kl now"><span class="p num">'+num(p,2)+'</span>' +
+               '<span class="n">← 现价</span><span class="d">0.00%</span></div>';
   var html="", inserted=false;
-  ls.forEach(function(l){
-    if(!inserted && l.price < p){
-      html += '<div class="kl now"><span class="p num">'+num(p,2)+'</span>' +
-        '<span class="n">← 现价</span><span class="d">0.00%</span></div>';
-      inserted = true;
-    }
+  arr.forEach(function(l){
+    if(!inserted && l.price < p){ html += nowRow; inserted = true; }
     html += '<div class="kl '+(l.price>p?"res":"sup")+'">' +
       '<span class="p num">'+num(l.price,1)+'</span>' +
       '<span class="n">'+escapeHtml(l.label)+(l.count>1?' ×'+l.count:'')+'</span>' +
@@ -2574,11 +2752,16 @@ function renderKL(){
       '<span class="d num">'+(l.dist>0?"+":"")+l.dist.toFixed(1)+'%</span>' +
     '</div>';
   });
-  if(!inserted){
-    html = '<div class="kl now"><span class="p num">'+num(p,2)+'</span><span class="n">← 现价</span><span class="d">0.00%</span></div>' + html;
-  }
+  if(!inserted) html = nowRow + html;
+  if(!arr.length) html += '<div class="muted" style="padding:10px 2px">这个筛选下没有位，换个条件看看。</div>';
+
   $("klist").innerHTML = sanitizeHtml(html);
-  $("klMeta").textContent = ls.length + " 个 · 12% 内";
+  Array.prototype.forEach.call(document.querySelectorAll("#klChips button"), function(b){
+    b.className = (b.getAttribute("data-f") === f) ? "on" : "";
+  });
+  var rng = $("klRange");
+  if(rng) rng.textContent = S.levelOpen ? "收起" : "看全部";
+  $("klMeta").textContent = arr.length + " 个 · ±" + (Math.round(win*10)/10) + "% 内";
 }
 
 function gearUI(g){
@@ -2971,7 +3154,8 @@ function refreshAll(){
 /* ===== 计算主流程 ===== */
 function compute(){
   S.struct = computeStruct();
-  S.levels = buildLevels();
+  S.levels = buildLevels(12);          // 一次算全量，渲染层按窗口裁
+  S.levelWin = levelWindow();
   S.gears = computeGears();
   S.takes = computeTakes();
   trackChanges();
@@ -3306,6 +3490,18 @@ function syncParamInputs(){
 function bindUI(){
   bindTabbar();
 
+  Array.prototype.forEach.call(document.querySelectorAll("#klChips button"), function(b){
+    b.onclick = function(){
+      S.levelFilter = b.getAttribute("data-f");
+      renderKL();
+    };
+  });
+  var rngBtn = $("klRange");
+  if(rngBtn) rngBtn.onclick = function(){
+    S.levelOpen = !S.levelOpen;
+    renderKL();
+  };
+
   $("mask").onclick = closeSheet;
   $("sheetClose").onclick = closeSheet;
   $("btnSave").onclick = function(){ if(S.sheetMode === "sell") saveSell(); else saveBuy(); };
@@ -3484,6 +3680,12 @@ if(/[?&]xt=1/.test(location.search)){
     refreshPrice:refreshPrice,
     playSnd:playSnd,
     holdStats:holdStats,
+    buildLevels:buildLevels,
+    scaled:scaled,
+    levelWindow:levelWindow,
+    volumeProfile:volumeProfile,
+    findGaps:findGaps,
+    atrPctOf:atrPctOf,
     state:function(){ return S; },
     setPrice:function(p){ S.price = p; renderHero(); }
   };
