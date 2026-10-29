@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.8 · 趋势通道 / 自定义位 / 到价提醒 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.9 · 报价桥接 / 读秒 / 顶栏对齐 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -33,9 +33,15 @@ body{
 .brand>div{min-width:0}
 .brand h1{font-size:15px;font-weight:600;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .sub{font-size:10.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 1 auto;min-width:0;max-width:48%}
-.conn{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--tx2);padding:5px 9px;border-radius:20px;background:var(--card2);border:1px solid var(--line);white-space:nowrap;max-width:100%;min-width:0}
+/* 顶栏右侧统一成两行：第一行报价 + 读秒，第二行云端载入时间。
+   三块同一高度、同一右边界，避免价格夹在两条状态之间显得错位 */
+.stat{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 1 auto;min-width:0;max-width:56%}
+.srow{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;max-width:100%}
+.conn{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;box-sizing:border-box;font-size:11.5px;color:var(--tx2);border-radius:20px;background:var(--card2);border:1px solid var(--line);white-space:nowrap;max-width:100%;min-width:0}
 .conn #connTxt,.syncbar #syncTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.conn .clabel{color:var(--tx3)}
+/* 320px 级窄屏：读秒只留数字，给报价让位 */
+@media(max-width:359px){ .conn .clabel{display:none} }
 @media(max-width:479px){
   /* 手机宽度下副标题让位：只留版本号，品牌行 + 现价 + 状态才放得下 */
   .brand .sdesc{display:none}
@@ -176,8 +182,9 @@ body.kb .tabbar{transform:translateY(110%)}
 
 /* 顶栏常驻小价格：只在非总览页出现 */
 .tpx{
-  margin-left:auto;font-size:13px;font-weight:600;color:var(--tx);
-  padding:5px 9px;border-radius:9px;background:var(--card2);
+  display:inline-flex;align-items:center;height:24px;box-sizing:border-box;flex:0 0 auto;
+  font-size:13px;font-weight:600;color:var(--tx);
+  padding:0 9px;border-radius:8px;background:var(--card2);
   border:1px solid var(--line);cursor:pointer;white-space:nowrap;
   font-variant-numeric:tabular-nums;transition:color .25s ease,background .18s ease
 }
@@ -489,13 +496,17 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.8 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.9 · 10/29</span></div>
       </div>
     </div>
-    <div class="tpx num" id="tpx" role="button" tabindex="0" aria-label="回到总览">--</div>
     <div class="stat">
-      <div class="conn" id="conn"><span class="dot" id="connDot"></span><span id="connTxt">初始化</span></div>
-      <div class="syncbar" id="syncBar" title="点击进入同步设置"><span class="sdot"></span><span id="syncTxt">本地</span></div>
+      <div class="srow">
+        <div class="tpx num" id="tpx" role="button" tabindex="0" aria-label="回到总览">--</div>
+        <div class="conn" id="conn"><span class="dot" id="connDot"></span><span class="clabel" id="connLb"></span><span id="connTxt">--</span></div>
+      </div>
+      <div class="srow">
+        <div class="syncbar" id="syncBar" title="点击进入同步设置"><span class="sdot"></span><span id="syncTxt">本地</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -797,6 +808,7 @@ body.tab-ov .tpx{display:none}
 "use strict";
 /* === CONST === */
 var API_PRICE = "https://api.gold-api.com/price/XAU";
+var API_TICK  = "https://data-api.binance.vision/api/v3/ticker/price?symbol=PAXGUSDT";
 var API_KLINE = "https://data-api.binance.vision/api/v3/klines?symbol=PAXGUSDT&interval=";
 var API_FX = "https://open.er-api.com/v6/latest/USD";
 var OZ = 31.1035;
@@ -828,7 +840,7 @@ var FOMC_DATES = ["2026-10-28","2026-12-09","2027-01-27","2027-03-17","2027-04-2
 
 /* === STATE === */
 var S = {
-  price:null, prev:null, open:null, high:null, low:null, lastOk:0, fail:0, fx:null, fxAt:0,
+  price:null, prev:null, prevClose:null, paxg:null, anchor:null, open:null, high:null, low:null, lastOk:0, fail:0, fx:null, fxAt:0,
   alertSide:{}, armed:{},
   kl:{}, scale:1, ready:false,
   struct:null, verdict:null, levels:[], gears:[], takes:[],
@@ -2469,7 +2481,17 @@ function setSync(state, msg){
     bar.className = "syncbar" + (on && cls ? " " + cls : "");
     bar.title = on ? (label + (msg ? " · " + msg : "")) : "未接入云端，点击接入 GitHub";
   }
-  if(tx) tx.textContent = on ? (msg || label) : "未接入";
+  if(tx){
+    /* 这一行只留「状态 + 时间」，长文案塞进 title，避免在 320px 上被截成半截 */
+    var m2 = String(msg || "").replace(/^已载入(云端)?\s*/, "");
+    var txt2;
+    if(!on) txt2 = "未接入";
+    else if(state === "ok") txt2 = "已同步" + (m2 ? " " + m2 : "");
+    else if(state === "busy") txt2 = "同步中";
+    else if(state === "err") txt2 = "同步失败";
+    else txt2 = m2 || "待同步";
+    tx.textContent = txt2;
+  }
   if(tag){
     tag.className = "ghtag" + (on && cls ? " " + cls : "");
     tag.textContent = on ? label : "未接入";
@@ -2720,15 +2742,37 @@ function bindTabbar(){
 
 
 /* ===== 渲染 ===== */
+/* 读秒：每秒按「最后一次成功取价」算一次，秒数连续递增，不再 5 秒一跳。
+   单次取数失败不改状态（下一个 15 秒周期会重试），只有连续失败且年龄真的变大才降级 */
+var connShown = "";
+function connInfo(){
+  var age = S.lastOk ? (Date.now() - S.lastOk) / 1000 : null;
+  if(age === null) return S.fail >= 3 ? { cls:"dot down", lb:"", txt:"连接失败" } : { cls:"dot", lb:"", txt:"连接中" };
+  var sec = Math.max(0, Math.round(age));
+  var txt = sec < 120 ? sec + "s" : Math.round(sec / 60) + "m";
+  if(age < 45) return { cls:"dot live", lb:"实时", txt:txt };
+  if(age < 600) return { cls:"dot stale", lb:"滞后", txt:txt };
+  return { cls:"dot down", lb:"", txt:"中断" };
+}
 function setConn(){
-  var el=$("connDot"), tx=$("connTxt");
-  var age = S.lastOk ? (Date.now()-S.lastOk)/1000 : 9999;
-  var cls="dot", txt="连接中";
-  if(!S.lastOk){ if(S.fail>=3){ cls+=" down"; txt="数据中断"; } }
-  else if(S.fail===0 && age<45){ cls+=" live"; txt="实时 "+Math.round(age)+"s"; }
-  else if(age<600){ cls+=" stale"; txt="滞后 "+Math.round(age/60)+"m"; }
-  else { cls+=" down"; txt="数据中断"; }
-  el.className=cls; tx.textContent=txt;
+  var el=$("connDot"), tx=$("connTxt"), lb=$("connLb");
+  if(!el || !tx) return;
+  var c = connInfo();
+  if(connShown !== c.lb + "|" + c.txt){
+    tx.textContent = c.txt;
+    if(lb) lb.textContent = c.lb;
+    connShown = c.lb + "|" + c.txt;
+  }
+  if(el.className !== c.cls) el.className = c.cls;
+}
+
+/* 昨收：日线最后一根若还在走（未收），取它前一根的收盘；否则取最后一根。
+   涨跌幅、顶栏涨跌色都以它为基准 —— 之前误用「上一次轮询价」，等于显示 15 秒涨跌 */
+function prevDayClose(){
+  var d = scaled("1d");
+  if(!d || d.length < 2) return null;
+  var last = d[d.length-1], day = 24*3600*1000;
+  return (last.t + day > Date.now()) ? d[d.length-2].c : last.c;
 }
 
 function todayStats(){
@@ -2753,7 +2797,7 @@ function renderHero(){
 
   var d = $("pDelta");
   var st0 = todayStats();
-  var ref = S.prev || st0.open;
+  var ref = S.prevClose || st0.open;
   if(p===null || !ref){ d.textContent="--"; d.className="hdelta flat num"; }
   else {
     var diff = p - ref, pc = diff/ref*100;
@@ -2774,7 +2818,7 @@ function renderHero(){
   var tp = $("tpx");
   if(tp){
     tp.textContent = p===null ? "--" : num(p,2);
-    var ref2 = S.prev || st.open;
+    var ref2 = S.prevClose || st.open;
     tp.className = "tpx num" + (p!==null && ref2 ? (p>ref2?" up":p<ref2?" dn":"") : "");
   }
 }
@@ -3699,6 +3743,7 @@ function compute(){
   S.levelWin = levelWindow();
   S.gears = computeGears();
   S.takes = computeTakes();
+  S.prevClose = prevDayClose();
   trackChanges();
 }
 
@@ -3805,22 +3850,57 @@ function fetchJson(url, ms){
 function refreshPrice(){
   // 汇率只是折算用，慢也不能挡住价格显示；到了再补算一次
   fetchFx().then(function(){ if(S.price !== null){ compute(); refreshAll(); } }, function(){});
+  // 与现货价并行取一次逐笔，让锚点（现货 - PAXG）尽量来自同一时刻
+  var tickP = fetchJson(API_TICK, 6000).then(function(d){
+    var t = Number(d && d.price);
+    return (t && !isNaN(t)) ? t : null;
+  }).catch(function(){ return null; });
 
   fetchJson(API_PRICE, 9000).then(function(d){
     var p = Number(d && d.price);
     if(!p || isNaN(p)) throw new Error("bad");
-    if(S.price !== null) S.prev = S.price;
-    S.price = p;
-    S.fail = 0; S.lastOk = Date.now();
-    applyScale();
-    compute();
-    checkAlerts(S.prev, p);
-    refreshAll();
+    return tickP.then(function(t){
+      if(S.price !== null) S.prev = S.price;
+      S.price = p;
+      if(t) S.paxg = t;
+      S.anchor = { spot:p, paxg:S.paxg || null };
+      S.fail = 0; S.lastOk = Date.now();
+      applyScale();
+      compute();
+      checkAlerts(S.prev, p);
+      refreshAll();
+    });
   }).catch(function(e){
     if(window.console && console.warn) console.warn("刷新失败", e);
     S.fail++;
     setConn();
   });
+}
+
+/* 现价桥接：现货源每 30 秒才出一个新价，两次之间报价是「台阶」。
+   这里用 PAXG（现货金代币，逐笔成交）在锚点上做位移：
+   显示价 = 锚点现货价 + (PAXG 现价 - 锚点 PAXG)。
+   位移超过锚点价 0.5% 视为异常跳变，不跟，等下一个锚点。 */
+function refreshTick(){
+  if(document.hidden) return;
+  fetchJson(API_TICK, 6000).then(function(d){
+    var t = Number(d && d.price);
+    if(!t || isNaN(t)) return;
+    S.paxg = t;
+    var a = S.anchor;
+    if(!a || !a.spot) return;
+    if(!a.paxg){ a.paxg = t; return; }              // 首次拿到逐笔：只补锚点，不跳价
+    var drift = t - a.paxg;
+    if(Math.abs(drift) > a.spot * 0.005) return;    // 代币瞬间溢价/插针，不跟
+    var p = Math.round((a.spot + drift) * 100) / 100;
+    if(S.price !== null && Math.abs(p - S.price) < 0.01) return;
+    var prev = S.price;
+    S.prev = prev;
+    S.price = p;
+    checkAlerts(prev, p);
+    renderHero();
+    setConn();
+  }).catch(function(){});
 }
 
 /* 价格变动：涨红跌绿闪一下，幅度很小，不打断阅读 */
@@ -4283,8 +4363,9 @@ function boot(){
       if(countCfg(S.cfg) === 0) offerLegacy();
     });
   }
-  setInterval(refreshPrice, TICK_MS);
-  setInterval(function(){ renderHero(); setConn(); }, 5000);
+  setInterval(setConn, 1000);                  // 读秒：每秒一次，秒数连续递增
+  setInterval(refreshPrice, TICK_MS);          // 现货锚点：15 秒一次
+  setInterval(refreshTick, 5000);              // 逐笔桥接：5 秒一次，报价不再卡 30 秒
   setInterval(refreshData, 5*60*1000);
 }
 
@@ -4296,6 +4377,9 @@ if(/[?&]xt=1/.test(location.search)){
     refreshAll:refreshAll,
     compute:compute,
     refreshPrice:refreshPrice,
+    refreshTick:refreshTick,
+    prevDayClose:prevDayClose,
+    connInfo:connInfo,
     playSnd:playSnd,
     holdStats:holdStats,
     buildLevels:buildLevels,
