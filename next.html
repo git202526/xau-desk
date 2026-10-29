@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.10 · 行情标签 / 今开昨收 / 周期标签不换行 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.11 · 档位已买入可撤销 / 持仓重算 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -96,6 +96,9 @@ body{
 .sech h2{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap}
 .sech .cnt{font-size:11px;color:var(--tx3);font-weight:400;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sech .act{font-size:12px;color:var(--gold);background:none;border:none;padding:9px 6px;min-height:40px;cursor:pointer;flex:0 0 auto;white-space:nowrap}
+/* 标题右侧两个动作并排：320px 下按钮间距收紧，仍不折行 */
+.sact{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.sact .act{padding:9px 4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .muted{color:var(--tx3);font-size:12.5px;line-height:1.6}
 .note{font-size:11px;color:var(--tx3);line-height:1.65;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
@@ -292,6 +295,10 @@ body.tab-ov .tpx{display:none}
 .pill.p-near{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.09)}
 .pill.p-done{color:#8FB8FF;border-color:rgba(76,141,255,.35);background:rgba(76,141,255,.09)}
 .pill.g{color:var(--gold);border-color:rgba(212,162,76,.3)}
+/* 「已买入」可点撤销：热区靠伪元素撑到 40px 上下，视觉上仍是一枚小标签 */
+.pill.undo{position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;-webkit-tap-highlight-color:transparent}
+.pill.undo::after{content:"";position:absolute;inset:-11px -8px;border-radius:12px}
+.pill.undo:active{background:rgba(76,141,255,.22)}
 .dist{font-size:11px;color:var(--tx3);margin-left:auto}
 
 .tk{padding:10px 0;border-top:1px solid rgba(255,255,255,.05)}
@@ -507,7 +514,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.10 · 10/29</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.11 · 10/29</span></div>
       </div>
     </div>
     <div class="stat">
@@ -626,14 +633,19 @@ body.tab-ov .tpx{display:none}
   <section class="panel" id="panel-plan">
     <div class="sech">
       <h2>建仓阶梯 <span class="cnt" id="ladderMeta"></span></h2>
-      <button class="act" id="btnRebuild">按基准重算</button>
+      <div class="sact">
+        <button class="act" id="btnRecalc">重算档位</button>
+        <button class="act" id="btnRebuild">按基准</button>
+      </div>
     </div>
     <div class="ammo" style="margin-bottom:10px">
       <div class="t"><span>弹药进度</span><span class="num" id="ammoTxt">0 / 100 克</span></div>
       <div class="track"><div class="fill" id="ammoFill" style="width:0%"></div></div>
     </div>
     <div id="ladder"></div>
-    <div class="note">触发价 = 基准 × (1 − 回撤%)，全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。</div>
+    <div class="note">触发价 = 基准 × (1 − 回撤%)，全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
+      <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
+      <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。</div>
 
   </section>
 
@@ -860,7 +872,7 @@ var S = {
   levelWin:12, levelOpen:false, levelFilter:"all",
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
-  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[] },
+  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{} },
   editing:null, tab:"struct"
 };
 
@@ -1575,6 +1587,21 @@ function computeHEff(){
   if(degrade){ use = Math.max(h20, c); win = "D20"; }
   return { h:use, win:win, h60:h60, h20:h20, h60Date:h60Date, degraded:degrade };
 }
+/* 该档「历史上买过多少克」：从买入记录按 gear 聚合，减仓不碰买入记录，
+   所以卖出去以后标记仍在；手动取消会写一条时间墓碑，只认墓碑之后的买入，
+   这样取消过的档不会被旧记录反推回来。 */
+function gearBought(name){
+  var cut = Number((S.cfg.gearCleared||{})[name]) || 0;
+  var g = 0;
+  (S.cfg.buys||[]).forEach(function(b){
+    if(!b || b.gear !== name) return;
+    var idt = Number(String(b.id||"").replace(/^[a-z]/i,"")) || 0;
+    if(cut && (!idt || idt < cut)) return;
+    g += Number(b.gram) || 0;
+  });
+  return g;
+}
+
 function computeGears(){
   var he = S.H_BASE || (computeHEff()||{}).h;
   if(!he) return [];
@@ -1585,9 +1612,18 @@ function computeGears(){
   // 权重总和固定（非预警档），用于把"目标总仓位"分解成每档份额
   var wAll = GEARS.reduce(function(a,g){ return a + (g.warn?0:g.w); }, 0) || 1;
 
+  // 已买入判定：标记表 + 买入记录双保险（老数据只写了标记表，少数路径只落了记录）
+  var doneSet = {}, doneG = {};
+  (S.cfg.gearsDone||[]).forEach(function(n){ if(n) doneSet[n] = 1; });
+  GEARS.forEach(function(g){
+    var dg = g.warn ? 0 : gearBought(g.name);
+    doneG[g.name] = dg;
+    if(dg > 0) doneSet[g.name] = 1;
+  });
+
   // 未完成的档位按权重重分"待建额度"，已完成的档不再占额度
   var open = GEARS.filter(function(g){
-    return !g.warn && (S.cfg.gearsDone||[]).indexOf(g.name) < 0;
+    return !g.warn && !doneSet[g.name];
   });
   var wSum = open.reduce(function(a,g){ return a + g.w; }, 0);
   var alloc = {}, used = 0;
@@ -1599,11 +1635,12 @@ function computeGears(){
   });
 
   return GEARS.map(function(g){
-    var done = (S.cfg.gearsDone||[]).indexOf(g.name) >= 0;
+    var done = !!doneSet[g.name];
     return {
       name:g.name, pct:g.pct, w:g.w, warn:!!g.warn,
       plan: g.warn ? 0 : Math.round(total * g.w / wAll * 10)/10,
       gram: g.warn ? 0 : (done ? 0 : (alloc[g.name]||0)),
+      doneG: doneG[g.name] || 0,
       price: he * (1 + g.pct/100),
       done: done, total: total, held: held,
       remain: remain, over: held > total + 0.05
@@ -2118,6 +2155,7 @@ function normCfg(){
   S.cfg.takePlan = S.cfg.takePlan || {};
   S.cfg.marks = S.cfg.marks || [];
   S.cfg.alerts = S.cfg.alerts || [];
+  S.cfg.gearCleared = S.cfg.gearCleared || {};
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
@@ -2131,7 +2169,7 @@ function loadCfg(){
   S.cfg = {
     H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[],
     buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{},
-    marks:[], alerts:[]
+    marks:[], alerts:[], gearCleared:{}
   };
   normCfg();
 }
@@ -2305,6 +2343,7 @@ function isEmptyCfg(c){
   if(c.updatedAt !== undefined) return false;
   if((c.buys||[]).length || (c.sells||[]).length) return false;
   if((c.marks||[]).length || (c.alerts||[]).length) return false;
+  if(c.gearCleared && Object.keys(c.gearCleared).length) return false;
   if(c.H_BASE || c.TOTAL !== undefined) return false;
   return true;
 }
@@ -2353,8 +2392,27 @@ function mergeRemote(remote, preferLocal){
   (S.cfg.sells || []).forEach(take);
   var sells = list.slice().sort(byTime);
 
+  /* 档位标记的合并有个坑：并集表达不了「删除」。分两种语义处理 ——
+     · 整体重算（gearResetAt）是覆盖写：以最近重置的那一端为准，不做并集；
+     · 单档取消（gearCleared）是墓碑：在结果上剔除，除非取消之后又买过。 */
+  var resetAt = Math.max(Number(remote.gearResetAt) || 0, Number(S.cfg.gearResetAt) || 0);
+  var localReset = Number(S.cfg.gearResetAt) || 0, remoteReset = Number(remote.gearResetAt) || 0;
+
   var gears = {};
-  (remote.gearsDone || []).concat(S.cfg.gearsDone || []).forEach(function(g){ if(g) gears[g] = 1; });
+  if(resetAt){
+    var src = localReset >= remoteReset ? (S.cfg.gearsDone || []) : (remote.gearsDone || []);
+    src.forEach(function(g){ if(g) gears[g] = 1; });
+  } else {
+    (remote.gearsDone || []).concat(S.cfg.gearsDone || []).forEach(function(g){ if(g) gears[g] = 1; });
+  }
+
+  var cleared = {};
+  [remote.gearCleared || {}, S.cfg.gearCleared || {}].forEach(function(o){
+    Object.keys(o).forEach(function(k){
+      var v = Number(o[k]) || 0;
+      if(v > (cleared[k] || 0)) cleared[k] = v;
+    });
+  });
 
   var marks = unionById(remote.marks, S.cfg.marks, del, "up");
   var alerts = unionById(remote.alerts, S.cfg.alerts, del, "firedAt");
@@ -2362,7 +2420,21 @@ function mergeRemote(remote, preferLocal){
   out = preferLocal ? Object.assign({}, remote, S.cfg) : Object.assign({}, S.cfg, remote);
   out.buys = buys;
   out.sells = sells;
-  out.gearsDone = Object.keys(gears);
+  /* 取消过的档位不能靠旧标记复活：远端 gearsDone 取并集后，再过一遍墓碑，
+     只有「墓碑之后又有买入」的档才留下 */
+  function boughtAfter(name, cut){
+    return buys.some(function(b){
+      if(!b || b.gear !== name) return false;
+      var idt = Number(String(b.id||"").replace(/^[a-z]/i,"")) || 0;
+      return idt && idt >= cut;
+    });
+  }
+  out.gearsDone = Object.keys(gears).filter(function(n){
+    if(!(cleared[n] > resetAt)) return true;
+    return boughtAfter(n, cleared[n]);
+  });
+  out.gearCleared = cleared;
+  out.gearResetAt = resetAt;
   out.marks = marks;
   out.alerts = alerts;
   out.takePlan = Object.assign({}, remote.takePlan || {}, S.cfg.takePlan || {});
@@ -3428,7 +3500,7 @@ function renderLadder(){
     if(g.warn){ grams = "只预警"; planTxt = ""; }
     else {
       planTxt = "计划 " + num(g.plan,1).replace(/\.0$/,"") + "g";
-      if(g.done) grams = "已买";
+      if(g.done) grams = g.doneG > 0 ? ("已买 " + num(g.doneG,1).replace(/\.0$/,"") + "g") : "已买";
       else if(g.over) grams = "已超目标";
       else if(g.gram > 0) grams = "待买 " + num(g.gram,1) + "g";
       else grams = "额度已满";
@@ -3439,7 +3511,8 @@ function renderLadder(){
         '<div class="r1"><span class="price num">'+num(g.price,2)+'</span>' +
         '<span class="nm">'+escapeHtml(g.name)+'</span>' +
         (planTxt ? '<span class="plan">'+planTxt+'</span>' : '') + '</div>' +
-        '<div class="r2"><span class="pill '+ui.pill+'">'+ui.label+'</span>' +
+        '<div class="r2"><span class="pill '+ui.pill+(g.done?" undo":"")+'"' +
+          (g.done ? ' data-ungear="'+escapeHtml(g.name)+'"' : '') + '>'+ui.label+'</span>' +
         '<span class="pill">'+g.pct+'%</span>' +
         '<span class="pill g">'+grams+'</span>' +
         (gap!==null?'<span class="dist num">'+(gap>=0?"+":"")+gap.toFixed(1)+'%</span>':'') +
@@ -3461,7 +3534,11 @@ function renderLadder(){
     (he ? ("基准 " + num(S.H_BASE||he.h,0) + " · " + (S.H_BASE?"手动":"自动 "+he.win)) : "") + tail;
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-gear]"), function(node){
-    node.onclick = function(){ openSheet(node.getAttribute("data-gear")); };
+    node.onclick = function(e){
+      var u = e && e.target && e.target.closest ? e.target.closest("[data-ungear]") : null;
+      if(u){ undoGear(u.getAttribute("data-ungear")); return; }
+      openSheet(node.getAttribute("data-gear"));
+    };
   });
 }
 
@@ -4196,6 +4273,53 @@ function onAction(act){
   if(act.indexOf("buy:")===0){ openSheet(act.slice(4)); }
 }
 
+/* 撤销单档「已买入」：只影响标记与推荐克重，不碰买卖记录、不改持仓。
+   取消后价格再回到这一档，会重新按计划给出待买克重。 */
+function undoGear(name){
+  var g = (S.gears||[]).filter(function(x){ return x.name===name; })[0];
+  if(!g || !g.done) return;
+  var msg = "取消「" + name + "」的已买入标记？\n\n" +
+    "· 该档回到待买，推荐克重按计划重算（计划 " + num(g.plan,1) + "g）\n" +
+    "· 价格再回到 " + num(g.price,2) + " 时会重新提示买入\n" +
+    "· 买卖记录与持仓不变";
+  if(!window.confirm(msg)) return;
+  S.cfg.gearCleared = S.cfg.gearCleared || {};
+  S.cfg.gearCleared[name] = Date.now();
+  S.cfg.gearsDone = (S.cfg.gearsDone||[]).filter(function(n){ return n!==name; });
+  if(S.cfg.gearHit) delete S.cfg.gearHit[name];
+  saveCfg(); compute(); refreshAll();
+  toast("已取消，" + name + "回到待买");
+}
+
+/* 按当前持仓重排已买入标记：从最低档往上填，填满一档算一档。
+   减仓后想把档位「退回去重新按档买」，点它一次即可。 */
+function recalcGears(){
+  var held = holdStats().grams || 0;
+  var total = Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100;
+  if(!window.confirm("按当前持仓 " + num(held,1) + " 克重排已买入标记？\n\n" +
+      "· 从第1档往上填，填满一档算一档\n" +
+      "· 之前手动取消的记录会被清掉（都按持仓重算）\n" +
+      "· 买卖记录与持仓不变")) return;
+  var now = Date.now(), left = held, done = [];
+  (S.gears||[]).forEach(function(g){
+    if(g.warn) return;
+    if(left <= 0.05) return;
+    var take = Math.min(g.plan || 0, left);
+    if(take > 0.05){ done.push(g.name); left -= take; }
+  });
+  // 全档写一遍墓碑：重排结果只认 gearsDone，不让旧买入记录把标记反推回来
+  var cl = {};
+  GEARS.forEach(function(g){ cl[g.name] = now; });
+  S.cfg.gearCleared = cl;
+  S.cfg.gearResetAt = now;      // 覆盖写标记：合并时以最近一次重算为准，不取并集
+  S.cfg.gearsDone = done;
+  S.cfg.gearHit = {};
+  saveCfg(); compute(); refreshAll();
+  toast(held > total + 0.05
+    ? ("已按持仓重排（" + num(held,1) + " 克，超出目标 " + num(total,0) + " 克）")
+    : ("已按持仓重排，" + done.length + " 档视为已买"));
+}
+
 function rebuildGears(){
   var he = computeHEff();
   if(!S.H_BASE && he) S.H_BASE = he.h;
@@ -4248,6 +4372,7 @@ function bindUI(){
   $("btnDelBuy").onclick = delBuy;
   $("btnAddBuy").onclick = function(){ openSheet(null); };
   $("btnRebuild").onclick = rebuildGears;
+  $("btnRecalc").onclick = recalcGears;
   $("btnHold").onclick = function(){ openSheet(null); };
 
   /* 我的位置 */
@@ -4353,7 +4478,7 @@ function bindUI(){
     var killed = [];
     (S.cfg.buys||[]).concat(S.cfg.sells||[]).forEach(function(x){ if(x && x.id) killed.push(x.id); });
     S.cfg.del = (S.cfg.del || []).concat(killed).slice(-400);
-    S.cfg.gearsDone = []; S.cfg.gearHit = {}; S.cfg.feed = []; S.cfg.buys = []; S.cfg.sells = [];
+    S.cfg.gearsDone = []; S.cfg.gearHit = {}; S.cfg.gearCleared = {}; S.cfg.feed = []; S.cfg.buys = []; S.cfg.sells = [];
     saveCfg(); compute(); refreshAll(); toast("已清空，正在写入云端");
   };
 
@@ -4464,6 +4589,10 @@ if(/[?&]xt=1/.test(location.search)){
     openMark:openMark,
     saveMark:saveMark,
     saveCfg:saveCfg,
+    gearBought:gearBought,
+    isEmptyCfg:isEmptyCfg,
+    undoGear:undoGear,
+    recalcGears:recalcGears,
     tick:function(p){
       var prev = S.price;
       if(prev !== null) S.prev = prev;
