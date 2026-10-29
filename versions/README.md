@@ -4,6 +4,7 @@
 
 | 版本 | 文件 | 在线地址 | 存储方式 |
 |---|---|---|---|
+| v6.11 | `v6.11.html` | https://git202526.github.io/xau-desk/versions/v6.11.html | GitHub 私有仓库为唯一数据源 |
 | v6.10 | `v6.10.html` | https://git202526.github.io/xau-desk/versions/v6.10.html | GitHub 私有仓库为唯一数据源 |
 | v6.9 | `v6.9.html` | https://git202526.github.io/xau-desk/versions/v6.9.html | GitHub 私有仓库为唯一数据源 |
 | v6.8 | `v6.8.html` | https://git202526.github.io/xau-desk/versions/v6.8.html | GitHub 私有仓库为唯一数据源 |
