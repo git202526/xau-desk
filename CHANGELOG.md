@@ -54,10 +54,18 @@ GitHub Actions（每 6 小时）→ tools/fetch_calendar.py → calendar.json（
 预期/前值、取不到时回落、3 天黄条、7 天回落、未映射保留英文、320px 不溢出、已公布标灰。
 **全套 211 passed / 0 failed**（303 秒）。
 
-### 6）限制
+### 6）限制与一个没做到位的地方
 
-Actions 的 `schedule` 不保证准点（高峰延迟十几分钟，极端情况跳过某次），所以页面侧的
-过期判定是必须项。`nfs.faireconomy.media` 没有 SLA，挂了就走回落，不会白屏。
+**定时任务没自动启用。** GitHub 要求 token 带 `workflow` scope 才能通过 API 创建
+`.github/workflows/` 下的文件，当前接入码只有 `repo` 权限，推送时直接 404。
+workflow 的内容放在了 `tools/calendar-workflow.yml`，在 GitHub 网页端新建
+`.github/workflows/calendar.yml` 粘贴进去即可启用（网页端不受这个限制）。
+
+没启用期间：`calendar.json` 已作为静态快照上线，页面能读到实时日历；每次改版会手动
+刷新一次；超过 3 天提示「N 天未更新」，超过 7 天自动回落到 FOMC + 非农。
+
+另外两点：Actions 的 `schedule` 不保证准点（高峰延迟十几分钟，极端情况跳过某次），
+所以页面侧的过期判定是必须项；`nfs.faireconomy.media` 没有 SLA，挂了就走回落，不会白屏。
 
 ---
 
