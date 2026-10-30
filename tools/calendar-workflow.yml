@@ -1,17 +1,11 @@
 # 事件日历的定时抓取任务。
 #
-# 这个文件要放在 .github/workflows/calendar.yml 才会生效。
-# 为什么没直接推过去：GitHub 要求 token 带 workflow scope 才能通过 API 创建
-# workflow 文件，当前接入码只有 repo 权限（会返回 404）。
+# 已启用（2026-10-30）：.github/workflows/calendar.yml 已在仓库中，
+# 每 6 小时自动抓取一次，也可在 Actions 页手动 workflow_dispatch。
+# 本文件是同一份工作流的备份/说明，改动时两边同步。
 #
-# 启用方式（二选一）：
-#   1) 打开 https://github.com/git202526/xau-desk/new/main/.github/workflows
-#      文件名填 calendar.yml，把本文件内容整段粘进去，提交即可；
-#   2) 换一个带 workflow scope 的 token 后执行：
-#      cp tools/calendar-workflow.yml .github/workflows/calendar.yml && git push
-#
-# 没启用之前也不影响使用：calendar.json 会在每次改版时手动刷新一次，
-# 页面按 updatedAt 判断新鲜度，超过 3 天提示、超过 7 天自动回落到 FOMC + 非农。
+# 历史：原 token 只有 repo 权限，而 GitHub 对 workflow 文件额外要求 workflow scope
+# （否则 API 创建返回 404），2026-10-30 补上 workflow scope 后正式推送启用。
 
 name: refresh-calendar
 

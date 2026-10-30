@@ -326,7 +326,10 @@ def test_mark_partial_keeps_pending_in_place(env):
     p.evaluate("() => window.__xt.setPlanOnly(true)")
     p.evaluate("() => window.__xt.markGear(3, 10)")
     st = p.evaluate("() => window.__xt.gearState(3)")
-    assert st == {"plan": 48.0, "bought": 10.0, "pending": 38.0, "over": 0.0}
+    # P6 起 gearState 额外带 gross / soldG / realized / turns / isSwing（见 P6 §7.1），
+    # 原四数语义不变，这里只校验它们
+    assert {k: st[k] for k in ("plan", "bought", "pending", "over")} == \
+        {"plan": 48.0, "bought": 10.0, "pending": 38.0, "over": 0.0}
     s = p.evaluate("() => window.__xt.planSummary()")
     assert s["bought"] == 10 and s["pending"] == 190 and s["overBudget"] == 0
     assert s["done"] is False

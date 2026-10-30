@@ -165,7 +165,9 @@ def test_unmark_restores_and_toasts(env):
 
 # ---------------------------------------------------------------- 5 累计口径
 
-def test_second_mark_is_cumulative(env):
+def test_second_buy_accumulates(env):
+    """P6 起面板是【增量】语义：已买 10g 后再填 30g → 40g（不是 30g）。
+    默认值也从「累计已买」改成「待补」= 48 − 10 = 38（P6 §5.2）。"""
     e = env()
     p = e.page
     enable_plan(p)
@@ -174,16 +176,16 @@ def test_second_mark_is_cumulative(env):
     p.fill("#markGram", "10")
     p.click("#markSave")
     p.wait_for_timeout(320)
-    # 已标记的档再点行（不点撤销）→ 面板带出当前值，可改
+    # 已标记的档再点行（不点撤销）→ 面板带出待补克重，可改
     p.click('#ladder [data-gear="第3档"] .price')
     p.wait_for_timeout(260)
-    assert p.input_value("#markGram") == "10"
+    assert p.input_value("#markGram") == "38"
     p.fill("#markGram", "30")
     p.click("#markSave")
     p.wait_for_timeout(320)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "已买 30 / 待补 18g", r3
-    assert p.evaluate("() => window.__xt.gearState(3).bought") == 30
+    assert r3["g"] == "已买 40 / 待补 8g", r3
+    assert p.evaluate("() => window.__xt.gearState(3).bought") == 40
 
 
 # ---------------------------------------------------------------- 6 不进账本
