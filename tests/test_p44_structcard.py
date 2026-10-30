@@ -99,7 +99,8 @@ def test_sc1_card_exists(make_env):
     open_plan(p)
     c = card(p)
     assert c is not None, "均价卡必须存在"
-    assert "六档均价" in c["text"], c["text"]
+    # P9：文案由「六档均价」改为「{档数} 档均价」，10 档下要显示「10 档均价」
+    assert "档均价" in c["text"], c["text"]
     assert c["svg"] == 1, "设了目标就画一条区间带" + str(c)
     assert "高点" in c["text"] and "4800" in c["text"], "卡片要标出所用的高点"
     assert "手动高点" in c["text"], c["text"]
@@ -291,4 +292,5 @@ def test_sc11_auto_base_also_works(make_env):
     c = card(p)
     assert c is not None
     assert "自动" in c["text"], c["text"]
-    assert "六档均价" in c["text"], c["text"]
+    # P9：文案由「六档均价」改为「{档数} 档均价」，10 档下要显示「10 档均价」
+    assert "档均价" in c["text"], c["text"]

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.21 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉（跌破档位的待补额度实时让给现价附近，可逆）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.22 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -330,11 +330,11 @@ body.tab-ov .tpx{display:none}
 .chkline em{display:block;font-style:normal;font-size:10.5px;color:var(--tx3);margin-top:2px}
 /* v6.18 档位分布六格 + 计划模式标记
    用 #setWGrid 提权：.fld input 在下面，同权重会盖掉这里的 padding，320px 下数字被裁 */
-.wgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px}
 #setWGrid input{width:100%;min-width:0;text-align:center;padding:9px 2px;font-size:16px;background:#0C1522;border:1px solid var(--line);border-radius:9px;color:var(--tx);font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;-moz-appearance:textfield}
 #setWGrid input::-webkit-outer-spin-button,#setWGrid input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #setWGrid input:focus{border-color:rgba(212,162,76,.55);box-shadow:0 0 0 3px rgba(212,162,76,.1)}
-.wlab{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:4px;text-align:center;font-size:10px;color:var(--tx3)}
+.wlab{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px;margin-top:4px;text-align:center;font-size:10px;color:var(--tx3)}
 .wrow{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:7px}
 .wrow .wn{font-size:11.5px;color:var(--tx3);min-width:0}
 .wn{display:block;margin-top:7px;font-size:11.5px;color:var(--tx3);line-height:1.5}
@@ -354,6 +354,12 @@ body.tab-ov .tpx{display:none}
 .drip .dt{flex:1;min-width:0;font-size:11px;line-height:1.35;color:var(--tx2)}
 .drip .dt b{color:var(--gold);font-weight:600}
 .drip .mkbtn{flex:0 0 auto;border-color:rgba(212,162,76,.45);color:var(--gold);white-space:nowrap}
+/* P9：档位多于 9 个时折叠成「当前档 ±4」，避免 320px 下滚三屏 */
+.fold{display:flex;align-items:center;justify-content:center;margin:7px 0;padding:9px 10px;width:100%;
+  border:1px dashed var(--line);border-radius:10px;background:none;color:var(--tx3);
+  font-size:11.5px;font-family:inherit;cursor:pointer;letter-spacing:.2px}
+.fold:active{background:rgba(255,255,255,.05)}
+.fold b{color:var(--tx2);font-weight:600}
 
 /* P8 配额重分配：行内的下沉标记 */
 .shift{font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid transparent;white-space:nowrap;cursor:pointer}
@@ -363,7 +369,7 @@ body.tab-ov .tpx{display:none}
 .mktabs button{flex:1;min-height:38px;padding:0;border:1px solid var(--line);border-radius:9px;background:#0C1522;color:var(--tx2);font-size:13px;font-family:inherit;cursor:pointer}
 .mktabs button.on{border-color:rgba(212,162,76,.55);background:rgba(212,162,76,.12);color:var(--gold);font-weight:600}
 .mktabs button[hidden]{display:none}
-#setSwingGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+#setSwingGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px}
 #setSwingGrid .swg,.swg{height:44px;padding:0;border:1px solid var(--line);border-radius:9px;background:#0C1522;color:var(--tx3);font-size:14px;font-family:inherit;cursor:pointer}
 #setSwingGrid .swg.on,.swg.on{border-color:rgba(212,162,76,.55);background:rgba(212,162,76,.14);color:var(--gold);font-weight:600}
 #setSwingGrid .swg:disabled,.swg:disabled{opacity:.45;cursor:not-allowed}
@@ -598,7 +604,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.21 · 10/30</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.22 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -729,7 +735,7 @@ body.tab-ov .tpx{display:none}
     </div>
     <div id="ladder"></div>
     <div id="avgCard"></div>
-    <div class="note">触发价 = 0.87 × 高点 − (档号 − 1) × 档距，档距 = α × ATR（或由目标均价反解），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
+    <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
       <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
       <br>高点只有一个：在设置里留空就自动（取 D60 高点），填了就锁死；第 1 档永远锚在 0.87 × 高点，目标只拉档距。</div>
@@ -781,30 +787,48 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>目标均价 $/oz</label><input type="number" id="setAvgT" step="1" inputmode="decimal" placeholder="留空 = 按波动率"></div>
         <div class="fld"><label>容差 ±（美元）</label><input type="number" id="setAvgB" step="1" min="1" inputmode="decimal" placeholder="20"></div>
       </div>
+      <div class="fld" style="margin-top:12px">
+        <label>档距方式</label>
+        <div class="wgrid" id="setSpanMode" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="wn" id="setSpanModeLive">—</div>
+      </div>
       <div class="row2" style="margin-top:10px">
         <div class="fld"><label>间隔系数 α</label><input type="number" id="setAlpha" step="0.05" min="0.6" max="3.5" inputmode="decimal" placeholder="1.00"></div>
         <div class="fld"><label>当前档距</label><input type="text" id="setSpanLive" readonly style="color:var(--tx3)" placeholder="—"></div>
       </div>
+      <div class="row2" style="margin-top:10px">
+        <div class="fld"><label>起始跌幅 %</label><input type="number" id="setStartDrop" step="1" min="5" max="40" inputmode="decimal" placeholder="13"></div>
+        <div class="fld"><label>终止跌幅 %</label><input type="number" id="setEndDrop" step="1" min="8" max="60" inputmode="decimal" placeholder="25"></div>
+      </div>
+      <div class="fld" style="margin-top:12px">
+        <label>目标均价锚定档位</label>
+        <div class="wgrid" id="setAnchor"></div>
+        <div class="wn" id="setAnchorLive">—</div>
+      </div>
+      <div class="fld" style="margin-top:12px">
+        <label>档位数量</label>
+        <div class="wgrid" id="setGearCount" style="grid-template-columns:repeat(5,1fr)"></div>
+        <div class="wn" id="setGearCountLive">—</div>
+      </div>
       <div class="fld" style="margin-top:12px">
         <label>档位分布（%）</label>
-        <div class="wgrid" id="setWGrid">
-          <input type="number" data-w="0" min="0" max="99" step="1" inputmode="numeric" aria-label="第1档权重">
-          <input type="number" data-w="1" min="0" max="99" step="1" inputmode="numeric" aria-label="第2档权重">
-          <input type="number" data-w="2" min="0" max="99" step="1" inputmode="numeric" aria-label="第3档权重">
-          <input type="number" data-w="3" min="0" max="99" step="1" inputmode="numeric" aria-label="第4档权重">
-          <input type="number" data-w="4" min="0" max="99" step="1" inputmode="numeric" aria-label="第5档权重">
-          <input type="number" data-w="5" min="0" max="99" step="1" inputmode="numeric" aria-label="第6档权重">
-        </div>
-        <div class="wlab"><span>1档</span><span>2档</span><span>3档</span><span>4档</span><span>5档</span><span>6档</span></div>
+        <div class="wgrid" id="setWGrid"></div>
+        <div class="wlab" id="setWLab"></div>
         <div class="wn" id="setWLive">—</div>
         <div class="wrow"><button class="btn-ghost" id="btnWReset" style="width:auto;margin:0;padding:6px 12px;font-size:11.5px">恢复默认</button></div>
       </div>
       <div class="fld" style="margin-top:14px">
         <label>循环档（可反复买卖）</label>
         <div class="wgrid" id="setSwingGrid"></div>
-        <div class="wlab"><span>1档</span><span>2档</span><span>3档</span><span>4档</span><span>5档</span><span>6档</span></div>
+        <div class="wlab" id="setSwingLab"></div>
         <div class="wn" id="setSwingLive">—</div>
         <div class="wrow"><button class="btn-ghost" id="btnSwingReset" style="width:auto;margin:0;padding:6px 12px;font-size:11.5px">恢复默认</button></div>
+      </div>
+      <div class="fld" style="margin-top:14px">
+        <label>到价预警档位</label>
+        <div class="wgrid" id="setAlertGrid"></div>
+        <div class="wlab" id="setAlertLab"></div>
+        <div class="wn" id="setAlertLive">—</div>
       </div>
       <div class="fld" style="margin-top:14px">
         <label>深档兜底（等太久就按现价买一半）</label>
@@ -837,7 +861,7 @@ body.tab-ov .tpx{display:none}
         <input type="checkbox" id="setPlanOnly">
         <span>计划模式<em>建仓计划只作提醒：可手动标记每档已买多少，不写买卖记录、不读账本持仓</em></span>
       </label>
-      <div class="note" style="margin-top:10px">第 1 档 = 0.87×高点，之后每档减去「α×ATR」。填了目标均价就用它反解档距，改 α 则切回按波动率排 —— <strong>最后编辑的那个说了算</strong>。克重与持仓按人民币克价记录，这里只用美元/盎司定档位。</div>
+      <div class="note" style="margin-top:10px">第 1 档 = 高点 ×（1 − 起始跌幅），默认 13%。档距三选一：<strong>波动率</strong>（α×ATR）、<strong>目标均价</strong>（反解档距，可指定落在第几档）、<strong>区间</strong>（起始~终止跌幅均分 n 档）。档位数量 6–10 可切，权重按档数自动套模板后可改。克重与持仓按人民币克价记录，这里只用美元/盎司定档位。</div>
       <button class="btn-primary" id="btnSaveSet">保存参数</button>
     </div>
 
@@ -1024,16 +1048,17 @@ var PERIODS = [
 ];
 /* 建仓档位：w 是权重而非固定克重，克重 = 待建额度 × w / Σw
    权重形状保留"跌越深、下得越重"的原意，改目标总克重时自动等比缩放 */
-var GEARS = [
-  {pct:-10, w:0,  name:"预警①", warn:true},
-  {pct:-12, w:0,  name:"预警②", warn:true},
-  {pct:-13, w:8,  name:"第1档"},
-  {pct:-14, w:12, name:"第2档"},
-  {pct:-15, w:10, name:"第3档"},
-  {pct:-16, w:40, name:"第4档"},
-  {pct:-17, w:15, name:"第5档"},
-  {pct:-18, w:15, name:"第6档"}
-];
+/* 档位骨架：2 条预警 + n 个建仓档。pct 只给预警行显示用，
+   正常档的百分比一律由实际档位价算出（见 computeGears）。 */
+function gearsDef(){
+  var out = [
+    {pct:-10, w:0, name:"预警①", warn:true},
+    {pct:-12, w:0, name:"预警②", warn:true}
+  ];
+  var n = gearCount();
+  for(var i = 1; i <= n; i++) out.push({pct:0, w:0, name:"第" + i + "档"});
+  return out;
+}
 var PROFIT_TIERS = [15, 20, 25, 30];
 var FIB_TIERS = [38.2, 50, 61.8, 78.6, 100, 127.2, 161.8];
 var FIB_EXT = [127.2, 161.8, 200];
@@ -1049,7 +1074,7 @@ var S = {
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
   cal:{ ok:false, events:[], updatedAt:0, week:"" },
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
-  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], alpha:1, spanMode:"target", planOnly:false, gearMarks:{} },
+  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0, alpha:1, spanMode:"target", planOnly:false, gearMarks:{} },
   editing:null, tab:"struct"
 };
 
@@ -1785,10 +1810,55 @@ function gearBought(name){
      计划层 planOf()      plan_i = w_i/Σw × totalGrams()，与已买标记无关
      执行层 gearMarks{} / buys[]   只回答「已买多少 / 待补多少」，不动上两层
    档距 d 由目标反解（一步除法）或由 α×ATR 直接给出，见 §4.5–4.6。 */
-var DEFAULT_W = [8, 12, 24, 36, 12, 8];
+/* 档位可配（P9）：6–10 档，默认 6。切换档数时权重按模板补齐、不推倒用户已调的值 */
+var GCFG_MIN = 6, GCFG_MAX = 10, GCFG_DEF = 6;
+var W_TEMPLATE = {
+  6:  [8, 12, 24, 36, 12, 8],
+  7:  [6, 9, 14, 20, 21, 17, 13],
+  8:  [5, 7, 11, 16, 20, 18, 14, 9],
+  9:  [4, 6, 10, 14, 17, 18, 15, 10, 6],
+  10: [4, 5, 8, 11, 14, 16, 17, 13, 8, 4]
+};
+var DEFAULT_W = W_TEMPLATE[6].slice();      // 兼容 P5–P8 的引用与测试
 /* 循环档默认只含 1/2 档（P6 §2）：深档买了不卖，否则削弱拉低均价的作用 */
 var DEFAULT_SWING = [1, 2];
-var GEAR_SEQ = ["第1档", "第2档", "第3档", "第4档", "第5档", "第6档"];
+
+/* 当前档数：夹到 [6, 10]，非法回 6（缺省即 6，保证老存档逐值等价） */
+function gearCount(){
+  var n = Math.round(Number(S.cfg && S.cfg.gearCount));
+  if(!isFinite(n) || n < GCFG_MIN) n = GCFG_DEF;
+  if(n > GCFG_MAX) n = GCFG_MAX;
+  return n;
+}
+/* 档名序列，替代 P5 起的 GEAR_SEQ 常量 */
+function gearSeq(){
+  var n = gearCount(), out = [];
+  for(var i = 1; i <= n; i++) out.push("第" + i + "档");
+  return out;
+}
+function gearTemplate(n){ return (W_TEMPLATE[n || gearCount()] || W_TEMPLATE[6]).slice(); }
+
+/* 起始跌幅：第 1 档 = H × (1 − startDrop/100)。默认 13 与旧版 0.87H 逐值等价 */
+function startDropOf(){
+  var v = Number(S.cfg && S.cfg.startDrop);
+  if(!isFinite(v) || v < START_DROP_MIN || v > START_DROP_MAX) v = START_DROP_DEF;
+  return v;
+}
+/* 终止跌幅：区间模式的深端。必须严格低于起始跌幅，否则区间退化为 0 */
+function endDropOf(){
+  var v = Number(S.cfg && S.cfg.endDrop);
+  if(!isFinite(v) || v < END_DROP_MIN || v > END_DROP_MAX) v = END_DROP_DEF;
+  var a = startDropOf();
+  if(v <= a) v = Math.min(END_DROP_MAX, a + 1);
+  return v;
+}
+function p1Of(H){ return Number(H) * (1 - startDropOf() / 100); }
+/* 均价锚定：k 有效（2..n）就用 k−1 当重心，否则回退到权重重心（= P5 起的旧行为） */
+function anchorCenter(w){
+  var k = Math.round(Number(S.cfg && S.cfg.avgAnchor));
+  if(isFinite(k) && k >= 2 && k <= gearCount()) return k - 1;
+  return wCenter(w);
+}
 var ALPHA_MIN = 0.6, ALPHA_MAX = 3.5, ALPHA_DEF = 1.0;
 /* P7 深档兜底：等待天数 0 = 关闭；比例是「吃掉待补的多少」；溢价是「现价高于档位价多少以内才肯买」 */
 var DRIP_DAYS_DEF = 30, DRIP_DAYS_MIN = 7, DRIP_DAYS_MAX = 180;
@@ -1796,20 +1866,25 @@ var DRIP_PCT_DEF = 0.5, DRIP_PREM_DEF = 3;
 var DAY_MS = 86400000;
 /* P8 配额重分配：跌破 1% 算失效（与「已跌破」标签同口径），涨回 0.3% 才算恢复（滞回） */
 var DEAD_GAP = 0.01, REVIVE_GAP = 0.003;
+/* P9-2 价格层：起始跌幅（第 1 档距高点多远）、终止跌幅（第 n 档），区间模式下均分 */
+var START_DROP_DEF = 13, START_DROP_MIN = 5, START_DROP_MAX = 40;
+var END_DROP_DEF = 25, END_DROP_MIN = 8, END_DROP_MAX = 60;
+var ANCHOR_DEF = 0;                     /* 0 = 自动（权重重心），k = 均价精确落在第 k 档 */
 var REALLOC_MAXDROP_DEF = 3;
 
 function totalGrams(){ return Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100; }
 
 /* 归一化克重百分比：只接受 6 个非负数且总和 >0，否则静默回默认（§4.4） */
 function normW(arr){
-  if(!Array.isArray(arr) || arr.length !== 6) return DEFAULT_W.slice();
+  var n = gearCount(), tpl = gearTemplate(n);
+  if(!Array.isArray(arr) || arr.length !== n) return tpl;
   var out = [], sum = 0;
-  for(var i = 0; i < 6; i++){
+  for(var i = 0; i < n; i++){
     var v = Number(arr[i]);
-    if(!isFinite(v) || v < 0) return DEFAULT_W.slice();
+    if(!isFinite(v) || v < 0) return tpl;
     out.push(v); sum += v;
   }
-  if(!(sum > 0)) return DEFAULT_W.slice();
+  if(!(sum > 0)) return tpl;
   return out;
 }
 function curW(){ return normW(S.cfg && S.cfg.wPct); }
@@ -1836,8 +1911,72 @@ function normSwing(arr){
   if(!out.length && arr.length > 0) return DEFAULT_SWING.slice();
   return out;
 }
+/* 到价预警档位（P9-3）：未设置 = 全部档位；空数组 = 全部关闭（合法意图，不回落）；
+   全垃圾值 = 回全部。只管「到价提示」，不影响 P7 的时间兜底计时。 */
+function normAlertGears(arr){
+  var n = gearCount(), all = [];
+  for(var i = 1; i <= n; i++) all.push(i);
+  if(!Array.isArray(arr)) return all;
+  var out = [];
+  arr.forEach(function(x){
+    var v = Math.round(Number(x));
+    if(isFinite(v) && v >= 1 && v <= n && out.indexOf(v) < 0) out.push(v);
+  });
+  out.sort(function(a, b){ return a - b; });
+  if(!out.length && arr.length > 0) return all;
+  return out;
+}
+function alertGearsOf(){ return normAlertGears(S.cfg && S.cfg.alertGears); }
+function alertOn(i){ return alertGearsOf().indexOf(Math.round(Number(i))) >= 0; }
+
+/* 设置入口：写 cfg.alertGears 并重算 */
+function setAlertGears(arr){
+  S.cfg = S.cfg || {};
+  S.cfg.alertGears = normAlertGears(arr);
+  saveCfg(); compute(); refreshAll();
+  return S.cfg.alertGears.slice();
+}
+
 function swingOf(){ return normSwing(S.cfg && S.cfg.swingGears); }
 function isSwingGear(i){ return swingOf().indexOf(Number(i)) >= 0; }
+
+/* 设置入口：切换档位数量（6–10）。权重按模板适配（扩档补尾、缩档并入末档），
+   已买标记与循环档设置一律保留 —— 切回来还在。 */
+function setGearCount(n){
+  n = Math.round(Number(n));
+  if(!isFinite(n) || n < GCFG_MIN || n > GCFG_MAX){
+    toast("档位数量只能在 " + GCFG_MIN + "-" + GCFG_MAX + " 之间"); return gearCount();
+  }
+  S.cfg = S.cfg || {};
+  if(gearCount() === n) return n;
+  S.cfg.gearCount = n;
+  S.ladderExpand = false;                /* 换档数后回到折叠态，避免上一次的展开残留 */
+  S.cfg.wPct = gearTemplate(n);          /* 模板按档数自动匹配，之后可改 */
+  saveCfg(); compute(); refreshAll();
+  toast("已切换为 " + n + " 档");
+  return n;
+}
+
+/* 设置入口：档距方式与三个相关参数。任一项传 undefined 表示不动 */
+function setSpan(mode, sd, ed, anchor){
+  S.cfg = S.cfg || {};
+  if(mode === "alpha" || mode === "target" || mode === "range") S.cfg.spanMode = mode;
+  if(sd !== undefined && sd !== null && sd !== ""){
+    var a = Number(sd);
+    S.cfg.startDrop = (isFinite(a) && a >= START_DROP_MIN && a <= START_DROP_MAX) ? a : START_DROP_DEF;
+  }
+  if(ed !== undefined && ed !== null && ed !== ""){
+    var b = Number(ed);
+    S.cfg.endDrop = (isFinite(b) && b >= END_DROP_MIN && b <= END_DROP_MAX) ? b : END_DROP_DEF;
+  }
+  if(S.cfg.endDrop <= S.cfg.startDrop) S.cfg.endDrop = Math.min(END_DROP_MAX, S.cfg.startDrop + 1);
+  if(anchor !== undefined && anchor !== null && anchor !== ""){
+    var k = Math.round(Number(anchor));
+    S.cfg.avgAnchor = (isFinite(k) && k >= 2 && k <= gearCount()) ? k : ANCHOR_DEF;
+  }
+  saveCfg(); compute(); refreshAll();
+  return { mode:S.cfg.spanMode, startDrop:S.cfg.startDrop, endDrop:S.cfg.endDrop, avgAnchor:S.cfg.avgAnchor };
+}
 
 /* 设置入口：写 cfg.swingGears 并重算。返回规范化后的值，便于调用方回读 */
 function setSwingGears(arr){
@@ -1866,7 +2005,7 @@ function cleanGearMarks(o){
   if(!o || typeof o !== "object" || Array.isArray(o)) return out;
   Object.keys(o).forEach(function(k){
     var i = Number(k), v = o[k];
-    if(!(i >= 1 && i <= 6) || !isFinite(i) || Math.floor(i) !== i) return;
+    if(!(i >= 1 && i <= gearCount()) || !isFinite(i) || Math.floor(i) !== i) return;
     var g = Number(v && v.g !== undefined ? v.g : v);
     if(!(g > 0) || !isFinite(g)) return;          // g<=0 一律剔除（含「g=0 却 sold>0」的异常）
     var sold = Number(v && v.sold) || 0;
@@ -1894,7 +2033,7 @@ function cleanDripAt(o){
   var ceil = Date.now() + 60000;                 // 容忍 1 分钟时钟漂移
   Object.keys(o).forEach(function(k){
     var i = Number(k), t = Number(o[k]);
-    if(!(i >= 1 && i <= 6) || !isFinite(i) || Math.floor(i) !== i) return;
+    if(!(i >= 1 && i <= gearCount()) || !isFinite(i) || Math.floor(i) !== i) return;
     if(!isFinite(t) || !(t > 0) || t > ceil) return;
     out[String(i)] = Math.round(t);
   });
@@ -1936,7 +2075,7 @@ function gearTurns(sold, plan){
 function wCenter(w){
   w = w || curW();
   var s = 0, n = 0;
-  for(var i = 0; i < 6; i++){ var x = Number(w[i]) || 0; s += x; n += x * i; }
+  for(var i = 0; i < gearCount(); i++){ var x = Number(w[i]) || 0; s += x; n += x * i; }
   if(!(s > 0)) return null;
   var c = n / s;
   return c > 1e-9 ? c : null;
@@ -1960,24 +2099,35 @@ function gearPrices(H, d){
   H = Number(H); d = Number(d);
   if(!(H > 0)) return [];
   if(!(d >= 0)) d = 0;
-  var p1 = 0.87 * H, out = [];
-  for(var i = 0; i < 6; i++) out.push(p1 - i * d);
+  var p1 = p1Of(H), out = [], n = gearCount();
+  for(var i = 0; i < n; i++) out.push(p1 - i * d);
   return out;
 }
 
 /* 目标 → 档距：d = (0.87H − T)/ī，纯函数（§4.2） */
 function spanForTarget(H, T, w){
   H = Number(H); T = Number(T);
-  var c = wCenter(w);
+  var c = anchorCenter(w);
   if(!(H > 0) || !(T > 0)) return { d:null, alpha:null, feasible:false, hint:"no-target", base:null, src:"target" };
   if(c === null)            return { d:null, alpha:null, feasible:false, hint:"flat", base:null, src:"target" };
   var atr = atrUsd();
   var base = (atr > 0) ? atr : 0.01 * H;
-  var d = (0.87 * H - T) / c;
+  var d = (p1Of(H) - T) / c;
   var alpha = d / base;
   if(!(d > 0))              return { d:0, alpha:0, feasible:false, hint:"above-p1", base:base, src:"target" };
   if(alpha > ALPHA_MAX)     return { d:d, alpha:alpha, feasible:false, hint:"cap", base:base, src:"target" };
   return { d:d, alpha:alpha, feasible:true, hint:(alpha < ALPHA_MIN ? "narrow" : ""), base:base, src:"target" };
+}
+
+/* 区间模式（P9-2）：起止跌幅之间等分 n 档。10 档首选 —— α 模式堆到 10 档会跑到 -27% */
+function spanRange(H){
+  H = Number(H);
+  var n = gearCount();
+  var a = startDropOf(), b = endDropOf();
+  var d = Math.abs(b - a) * H / 100 / Math.max(1, n - 1);
+  var atr = atrUsd();
+  var base = (atr > 0) ? atr : 0.01 * Math.max(0, H);
+  return { d: d, alpha: d / Math.max(1e-9, base), src: "range", base: base, feasible: true, hint: "" };
 }
 
 /* α → 档距；ATR 拿不到退回 1%×H（§4.5） */
@@ -2023,7 +2173,9 @@ function gearBase(){
   out.targetEff = (T_eff === null) ? null : T_eff;
 
   var span;
-  if(cfg.spanMode === "alpha" || !(T_eff > 0)){
+  if(cfg.spanMode === "range"){
+    span = spanRange(he);
+  } else if(cfg.spanMode === "alpha" || !(T_eff > 0)){
     span = spanUsd(he);
   } else {
     span = spanForTarget(he, T_eff, w);
@@ -2046,7 +2198,7 @@ function gearBase(){
   out.hint = span.hint || "";
 
   if(T_eff !== null && T_eff <= 0) out.hint = "done";
-  else if(T_eff !== null && T_eff > 0.87 * he) out.hint = "above-p1";
+  else if(T_eff !== null && T_eff > p1Of(he)) out.hint = "above-p1";
   else if(!out.hint && span.hint) out.hint = span.hint;
   return out;
 }
@@ -2055,8 +2207,9 @@ function gearBase(){
 /* 原始计划：权重归一化 × 总克重。用户配置的真实映射，任何调整都不许改它。 */
 function planBase(){
   var w = curW(), s = 0, B = totalGrams(), out = [];
-  for(var i = 0; i < 6; i++) s += w[i];
-  for(var j = 0; j < 6; j++) out.push(s > 0 ? B * w[j] / s : 0);
+  var n = gearCount();
+  for(var i = 0; i < n; i++) s += w[i];
+  for(var j = 0; j < n; j++) out.push(s > 0 ? B * w[j] / s : 0);
   return out;
 }
 
@@ -2090,7 +2243,7 @@ function reallocPlan(base){
   if(!(px > 0)) return base;
 
   var sum = 0;
-  for(var s0 = 0; s0 < 6; s0++) sum += base[s0];
+  for(var s0 = 0; s0 < gearCount(); s0++) sum += base[s0];
   if(!(sum > 0)) return base;
 
   var gm = gearBase();
@@ -2099,7 +2252,7 @@ function reallocPlan(base){
 
   var st = S.reallocDead || (S.reallocDead = {});
   var dead = [];
-  for(var i = 0; i < 6; i++){
+  for(var i = 0; i < gearCount(); i++){
     var p = Number(pr[i]);
     if(!(p > 0)) continue;
     var was = !!st[i];
@@ -2115,7 +2268,7 @@ function reallocPlan(base){
 
   var eff = base.slice();
   var roles = [[], []];
-  for(var r0 = 0; r0 < 6; r0++) roles[isSwingGear(r0 + 1) ? 1 : 0].push(r0);
+  for(var r0 = 0; r0 < gearCount(); r0++) roles[isSwingGear(r0 + 1) ? 1 : 0].push(r0);
 
   roles.forEach(function(idxs){
     if(idxs.length < 2) return;                    // 单档角色没有互挪空间
@@ -2159,7 +2312,7 @@ function reallocPlan(base){
 function reallocInfo(){
   var base = planBase(), eff = planOf();
   var inn = [], out = [], pool = 0;
-  for(var i = 0; i < 6; i++){
+  for(var i = 0; i < gearCount(); i++){
     var d = Math.round((eff[i] - base[i]) * 10) / 10;
     if(d <= -0.05){ out.push({ i: i + 1, g: -d }); pool += -d; }
     else if(d >= 0.05) inn.push({ i: i + 1, g: d });
@@ -2209,7 +2362,7 @@ function boughtOf(i, planArr){
     if(!m) return 0;
     return Math.max(0, (Number(m.g) || 0) - (Number(m.sold) || 0));
   }
-  var nm = GEAR_SEQ[i - 1];
+  var nm = gearSeq()[i - 1];
   if(!nm) return 0;
   var g = gearBought(nm);
   if(g <= 0 && (cfg.gearsDone || []).indexOf(nm) >= 0){
@@ -2241,7 +2394,7 @@ function gearState(i){
 
 function planAvgOf(prices, w){
   var s = 0, a = 0;
-  for(var i = 0; i < 6; i++){
+  for(var i = 0; i < gearCount(); i++){
     var wi = Number(w[i]) || 0;
     s += wi; a += wi * (Number(prices[i]) || 0);
   }
@@ -2256,7 +2409,7 @@ function planSummary(){
   var pr = gearPrices(base.he, base.d || 0);
   var bought = 0, pending = 0, over = 0, amt = 0;
   var grossBought = 0, soldTotal = 0, realizedTotal = 0;
-  for(var i = 1; i <= 6; i++){
+  for(var i = 1; i <= gearCount(); i++){
     var p = plan[i - 1], b = boughtOf(i, plan);
     bought += b;
     if(b > p) over += b - p; else pending += p - b;
@@ -2333,7 +2486,7 @@ function reachInfo(){
 
 function markBuy(i, deltaG, px){
   i = Number(i); deltaG = Number(deltaG);
-  if(!(i >= 1 && i <= 6) || !(deltaG > 0)) return false;
+  if(!(i >= 1 && i <= gearCount()) || !(deltaG > 0)) return false;
   S.cfg.gearMarks = S.cfg.gearMarks || {};
   var k = String(i), m = S.cfg.gearMarks[k] || {};
   var fallback = gearPriceOf(i);
@@ -2358,7 +2511,7 @@ function markBuy(i, deltaG, px){
 /* 卖出：只对循环档开放（swingGears 之外一律拒绝，不只是 UI 置灰） */
 function markSell(i, deltaG, px){
   i = Number(i); deltaG = Number(deltaG);
-  if(!(i >= 1 && i <= 6)) return false;
+  if(!(i >= 1 && i <= gearCount())) return false;
   if(!(S.cfg && S.cfg.planOnly)) return false;
   if(!isSwingGear(i)){ toast("建仓档不卖出"); return false; }
   if(!(deltaG > 0)) return false;
@@ -2386,7 +2539,7 @@ function markSell(i, deltaG, px){
    内部折算成增量走 markBuy，这样 cost 是按比例增减而不是被整体覆盖。 */
 function markGear(i, g){
   i = Number(i); g = Number(g);
-  if(!(i >= 1 && i <= 6)) return false;
+  if(!(i >= 1 && i <= gearCount())) return false;
   S.cfg.gearMarks = S.cfg.gearMarks || {};
   var k = String(i), m = S.cfg.gearMarks[k] || null;
   var cur = m ? (Number(m.g) || 0) : 0;
@@ -2441,7 +2594,7 @@ function unmarkGear(i){
 /* 下一个待买的建仓档号：档号最小、非循环档、待补 > 0.05。没有则 null */
 function dripNext(){
   var plan = planOf();
-  for(var i = 1; i <= 6; i++){
+  for(var i = 1; i <= gearCount(); i++){
     if(isSwingGear(i)) continue;
     var pl = plan[i - 1] || 0;
     if(!(pl > 0)) continue;
@@ -2478,7 +2631,7 @@ function dripInfo(i){
     i: i, armed: false, days: 0, premium: null,
     pending: 0, gram: 0, amt: 0, canPrompt: false, why: ""
   };
-  if(!(i >= 1 && i <= 6)){ out.why = "bad-gear"; return out; }
+  if(!(i >= 1 && i <= gearCount())){ out.why = "bad-gear"; return out; }
 
   var pr = gearPriceOf(i);
   var pl = planOf()[i - 1] || 0;
@@ -2549,8 +2702,8 @@ function planAvg(He, names){
   var base = gearBase();
   var pr = gearPrices(He, (base && base.d) || 0);
   var plan = planOf(), s = 0, a = 0;
-  for(var i = 0; i < 6; i++){
-    if(names && names.indexOf(GEAR_SEQ[i]) < 0) continue;
+  for(var i = 0; i < gearCount(); i++){
+    if(names && names.indexOf(gearSeq()[i]) < 0) continue;
     s += plan[i]; a += plan[i] * pr[i];
   }
   return s > 0 ? a / s : null;
@@ -2572,7 +2725,7 @@ function computeGears(){
   var remain = Math.max(0, total - held);
 
   var k = 0, rows = [];
-  GEARS.forEach(function(g){
+  gearsDef().forEach(function(g){
     if(g.warn){
       rows.push({
         name:g.name, pct:g.pct, w:0, warn:true, idx:0,
@@ -3238,6 +3391,18 @@ function normCfg(){
   S.cfg.gearCleared = S.cfg.gearCleared || {};
   /* 单引擎（v6.18）：gearMode 废弃，读到直接忽略，不做迁移 —— 两种模式本来就是同一套算法。
      老数据里的 avgHigh 直接丢弃（高点只剩 H_BASE 一个，v6.17 已合并）。 */
+  /* 档位数量（P9）：先夹到 6–10，再由 normW 按档数适配权重 */
+  var gc = Math.round(Number(S.cfg.gearCount));
+  S.cfg.gearCount = (!isFinite(gc) || gc < GCFG_MIN) ? GCFG_DEF : (gc > GCFG_MAX ? GCFG_MAX : gc);
+  var sd = Number(S.cfg.startDrop);
+  S.cfg.startDrop = (isFinite(sd) && sd >= START_DROP_MIN && sd <= START_DROP_MAX) ? sd : START_DROP_DEF;
+  var ed = Number(S.cfg.endDrop);
+  S.cfg.endDrop = (isFinite(ed) && ed >= END_DROP_MIN && ed <= END_DROP_MAX) ? ed : END_DROP_DEF;
+  if(S.cfg.endDrop <= S.cfg.startDrop) S.cfg.endDrop = Math.min(END_DROP_MAX, S.cfg.startDrop + 1);
+  if(S.cfg.alertGears !== undefined) S.cfg.alertGears = normAlertGears(S.cfg.alertGears);
+  var an = Math.round(Number(S.cfg.avgAnchor));
+  /* 0 / 非数 / 越界 一律归 0（自动），不写死到某个档 —— 换档数时自动仍然有效 */
+  S.cfg.avgAnchor = (isFinite(an) && an >= 2 && an <= GCFG_MAX) ? an : ANCHOR_DEF;
   S.cfg.avgTarget = Number(S.cfg.avgTarget) > 0 ? Number(S.cfg.avgTarget) : null;
   if(!(Number(S.cfg.avgBand) > 0)) S.cfg.avgBand = 20;
   S.cfg.H_BASE = Number(S.cfg.H_BASE) > 0 ? Number(S.cfg.H_BASE) : null;
@@ -3249,7 +3414,8 @@ function normCfg(){
   S.cfg.wPct = normW(S.cfg.wPct);
   var al = Number(S.cfg.alpha);
   S.cfg.alpha = (al >= ALPHA_MIN && al <= ALPHA_MAX) ? al : ALPHA_DEF;
-  S.cfg.spanMode = (S.cfg.spanMode === "alpha") ? "alpha" : "target";
+  /* P9-2：三种档距方式都要原样保留，只有非法值才回落 */
+  S.cfg.spanMode = (S.cfg.spanMode === "alpha" || S.cfg.spanMode === "range") ? S.cfg.spanMode : "target";
   S.cfg.planOnly = !!S.cfg.planOnly;
   S.cfg.gearMarks = cleanGearMarks(S.cfg.gearMarks);
   /* 循环档（P6）：空数组合法（= 关闭循环档），全垃圾值回默认，不会悄悄关掉功能 */
@@ -3289,7 +3455,8 @@ function loadCfg(){
     buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{},
     marks:[], alerts:[], gearCleared:{},
     avgTarget:null, avgBand:20,
-    wPct:[8,12,24,36,12,8], alpha:1, spanMode:"target", planOnly:false, gearMarks:{},
+    wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0,
+    alpha:1, spanMode:"target", planOnly:false, gearMarks:{},
     swingGears:DEFAULT_SWING.slice()
   };
   normCfg();
@@ -4611,12 +4778,49 @@ function gearUI(g){
   return { cls:"", label:"未到", pill:"" };
 }
 
+/* 档位表窗口（P9-4）：超过 9 个档时只显示「当前档 ±4」，其余折叠。
+   6 档不折叠（9 ≥ 6），所以老行为逐值不变。 */
+var LADDER_SPAN = 4;
+function ladderWindow(){
+  var gs = (S.gears || []).filter(function(g){ return !g.warn; });
+  var n = gs.length;
+  var out = { from:1, to:n, n:n, folded:false, hidden:0, cur:1, expanded:false };
+  if(!n) return out;
+  var p = Number(S.price);
+  var broke = 0;                       /* 已跌破的档数 */
+  if(p > 0){
+    for(var i = 0; i < gs.length; i++){
+      if(p <= Number(gs[i].price)) broke++;
+      else break;
+    }
+  }
+  /* 当前档 = 下一个待买档 = 已跌破档数 + 1（跌破全部时停在末档） */
+  out.cur = Math.max(1, Math.min(n, broke + 1));
+  if(n <= LADDER_SPAN * 2 + 1) return out;        /* 9 个以内全显示 */
+  if(S.ladderExpand){ out.expanded = true; return out; }
+  out.from = Math.max(1, out.cur - LADDER_SPAN);
+  out.to = Math.min(n, out.cur + LADDER_SPAN);
+  out.folded = (out.from > 1 || out.to < n);
+  out.hidden = (out.from - 1) + (n - out.to);
+  return out;
+}
+function foldBar(where, a, b){
+  var txt = (a === b) ? ("第 " + a + " 档") : ("第 " + a + "–" + b + " 档");
+  var label = (where === "top") ? ("上方 " + txt + " 已折叠") : (txt + " 已折叠");
+  return '<button type="button" class="fold" data-fold="1">⋯ <b>' + txt + '</b> 已折叠 · 点开</button>';
+}
+
 function renderLadder(){
   var gs = S.gears, p = S.price;
   if(!gs.length){ $("ladder").innerHTML='<div class="muted">档位计算中…</div>'; return; }
   var planOnly = !!(S.cfg && S.cfg.planOnly);
   var html = "";
+  var win = ladderWindow();
   gs.forEach(function(g){
+    if(!g.warn && win.folded){
+      if(g.idx < win.from || g.idx > win.to) return;
+      if(g.idx === win.from && win.from > 1) html += foldBar("top", 1, win.from - 1);
+    }
     var ui = gearUI(g);
     var gap = p === null ? null : (g.price / p - 1) * 100;
     var grams = "", planTxt = "", tail = "", circ = "", swingTag = "", shiftTag = "";
@@ -4697,7 +4901,11 @@ function renderLadder(){
         (gap !== null ? '<span class="dist num">' + (gap >= 0 ? "+" : "") + gap.toFixed(1) + '%</span>' : '') +
         circ + swingTag + shiftTag + tail +
         '</div>' + drip + '</div></div>';
+    if(!g.warn && win.folded && g.idx === win.to && win.to < win.n)
+      html += foldBar("bottom", win.to + 1, win.n);
   });
+  if(win.expanded && win.n > LADDER_SPAN * 2 + 1)
+    html += '<button type="button" class="fold" data-fold="off">收起，只看当前档 ±' + LADDER_SPAN + '</button>';
   $("ladder").innerHTML = sanitizeHtml(html);
 
   var sub = planOnly ? planSummary() : null;
@@ -4733,11 +4941,19 @@ function renderLadder(){
   $("ladderMeta").innerHTML = escapeHtml(head + tailTxt) +
     (planOnly ? '<span class="planTag">计划模式</span>' : "");
 
+  Array.prototype.forEach.call(document.querySelectorAll("[data-fold]"), function(node){
+    node.onclick = function(e){
+      if(e && e.stopPropagation) e.stopPropagation();
+      S.ladderExpand = (node.getAttribute("data-fold") !== "off");
+      renderLadder();
+    };
+  });
+
   Array.prototype.forEach.call(document.querySelectorAll("[data-gear]"), function(node){
     node.onclick = function(e){
       var dg = e && e.target && e.target.closest ? e.target.closest("[data-dripgo]") : null;
       if(dg){
-        var gi = GEAR_SEQ.indexOf(dg.getAttribute("data-dripgo")) + 1;
+        var gi = gearSeq().indexOf(dg.getAttribute("data-dripgo")) + 1;
         var inf = dripInfo(gi);
         if(doDrip(gi)) toast("已按现价买入 " + gnum(inf.gram) + " g，剩余继续等");
         return;
@@ -4771,7 +4987,7 @@ function setGearMode(){ return false; }
 
 /* 按名字撤销标记（面板与行内按钮共用） */
 function unmarkGearByName(name){
-  var i = GEAR_SEQ.indexOf(name);
+  var i = gearSeq().indexOf(name);
   if(i >= 0) unmarkGear(i + 1);
 }
 
@@ -4860,7 +5076,7 @@ function closeMarkSheet(){
 /* 按当前 Tab 分发到 markBuy / markSell；两者都是【增量】 */
 function saveMarkGear(){
   var name = S.markName;
-  var i = GEAR_SEQ.indexOf(name);
+  var i = gearSeq().indexOf(name);
   if(i < 0){ closeMarkSheet(); return; }
   var v = Number($("markGram").value);
   var px = Number($("markPx").value);
@@ -4953,7 +5169,7 @@ function renderAvgCardStruct(box, m){
   }
   if(T){
     if(m.hint === "cap") tips.push("该均价在档距上限内做不到，档距已按 α=" + num(ALPHA_MAX, 1) + " 封顶");
-    else if(m.hint === "above-p1") tips.push("目标高于第 1 档价，档距已收窄到 0，六档同价");
+    else if(m.hint === "above-p1") tips.push("目标高于第 1 档价，档距已收窄到 0，" + gearCount() + " 档同价");
     else if(m.hint === "done") tips.push("已持仓成本优于目标，剩余额度建议留作回调加仓");
     else if(m.hint === "flat") tips.push("当前分布全在第 1 档，档距无法调节均价，请加重 3–6 档");
   } else {
@@ -4962,7 +5178,7 @@ function renderAvgCardStruct(box, m){
 
   box.innerHTML = '<div class="avgc">' +
     '<div class="hd"><span>高点 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
-      '<span class="' + vcls + '">六档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
+      '<span class="' + vcls + '">' + gearCount() + ' 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
     bar +
     '<div class="ft">' +
       '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span>' +
@@ -5030,6 +5246,10 @@ var setAvgHigh = setHigh;
    高点只剩一个输入（#setHigh），不再按模式置灰——两种模式共用它。 */
 function renderSetGear(){
   var m = S.gearMeta || {};
+  renderGearCountGrid();
+  renderWGrid();
+  renderSpanUI();
+  renderAlertGrid();
   var hi = $("setHigh");
   if(hi && document.activeElement !== hi) hi.value = S.cfg.H_BASE ? String(S.cfg.H_BASE) : "";
   var live = $("setHighLive");
@@ -5050,13 +5270,6 @@ function renderSetGear(){
     sl.value = m.d ? (num(m.d, 0) + " 美元/档" + est) : "—";
   }
 
-  var grid = $("setWGrid");
-  if(grid){
-    var w = curW();
-    Array.prototype.forEach.call(grid.querySelectorAll("[data-w]"), function(inp, k){
-      if(document.activeElement !== inp) inp.value = String(w[k]);
-    });
-  }
   var wl = $("setWLive");
   if(wl){
     var pl = planOf();
@@ -5069,6 +5282,208 @@ function renderSetGear(){
   renderReallocSet();
 }
 
+/* 设置页档距方式：α / 目标 / 区间 三个胶囊 */
+function renderSpanUI(){
+  var box = $("setSpanMode");
+  var mode = (S.cfg && S.cfg.spanMode) || "target";
+  if(!(mode === "alpha" || mode === "range")) mode = "target";
+  if(box){
+    if(box.children.length !== 3){
+      box.innerHTML = "";
+      [["alpha", "波动率"], ["target", "目标均价"], ["range", "区间"]].forEach(function(it){
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "swg";
+        b.setAttribute("data-span", it[0]);
+        b.textContent = it[1];
+        b.onclick = function(){ setSpan(this.getAttribute("data-span")); };
+        box.appendChild(b);
+      });
+    }
+    Array.prototype.forEach.call(box.querySelectorAll("[data-span]"), function(b){
+      var on = b.getAttribute("data-span") === mode;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  var sl = $("setSpanModeLive");
+  if(sl){
+    sl.textContent = mode === "range"
+      ? ("区间 " + startDropOf() + "% ~ " + endDropOf() + "% 均分 " + gearCount() + " 档")
+      : (mode === "alpha" ? "按波动率 α×ATR 排列" : "按目标均价反解档距");
+    sl.className = "wn";
+  }
+
+  var sd = $("setStartDrop"), ed2 = $("setEndDrop");
+  if(sd && document.activeElement !== sd) sd.value = String(startDropOf());
+  if(ed2 && document.activeElement !== ed2) ed2.value = String(endDropOf());
+
+  var ab = $("setAnchor");
+  var n = gearCount();
+  var cur = Math.round(Number(S.cfg && S.cfg.avgAnchor)) || 0;
+  if(ab && ab.children.length !== n){          /* 0（自动）+ 2..n */
+    ab.innerHTML = "";
+    var auto = document.createElement("button");
+    auto.type = "button";
+    auto.className = "swg";
+    auto.setAttribute("data-anchor", "0");
+    auto.textContent = "自动";
+    auto.onclick = function(){ setSpan(undefined, undefined, undefined, 0); };
+    ab.appendChild(auto);
+    for(var i = 2; i <= n; i++){
+      var b2 = document.createElement("button");
+      b2.type = "button";
+      b2.className = "swg";
+      b2.setAttribute("data-anchor", String(i));
+      b2.textContent = String(i);
+      b2.onclick = function(){ setSpan(undefined, undefined, undefined, this.getAttribute("data-anchor")); };
+      ab.appendChild(b2);
+    }
+  }
+  if(ab){
+    Array.prototype.forEach.call(ab.querySelectorAll("[data-anchor]"), function(b){
+      var on = Number(b.getAttribute("data-anchor")) === cur;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  var al = $("setAnchorLive");
+  if(al){
+    al.textContent = cur >= 2
+      ? ("均价目标精确落在第 " + cur + " 档" + (mode === "target" ? "" : "（仅「目标均价」方式生效）"))
+      : "自动：按权重重心落点";
+    al.className = "wn";
+  }
+}
+
+/* 设置页预警档位：点一下开/关该档的到价提示。全关是合法状态，不自动回全开 */
+function renderAlertGrid(){
+  var box = $("setAlertGrid");
+  if(!box) return;
+  var n = gearCount(), on = alertGearsOf();
+  applyCols(box, $("setAlertLab"), n);
+  if(box.children.length !== n){
+    box.innerHTML = "";
+    for(var i = 1; i <= n; i++){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "swg";
+      b.setAttribute("data-al", String(i));
+      b.textContent = String(i);
+      b.onclick = function(){ toggleAlert(this.getAttribute("data-al")); };
+      box.appendChild(b);
+    }
+    var lab = $("setAlertLab");
+    if(lab){
+      var h = "";
+      for(var j = 1; j <= n; j++) h += "<span>" + j + "档</span>";
+      lab.innerHTML = h;
+      applyCols(box, lab, n);
+    }
+  }
+  Array.prototype.forEach.call(box.querySelectorAll("[data-al]"), function(b){
+    var yes = on.indexOf(Number(b.getAttribute("data-al"))) >= 0;
+    b.classList.toggle("on", yes);
+    b.setAttribute("aria-pressed", yes ? "true" : "false");
+  });
+  var live = $("setAlertLive");
+  if(live){
+    live.textContent = !on.length
+      ? "已关闭全部到价提示（深档兜底不受影响）"
+      : ("已开 " + on.length + " / " + n + " 档：" + on.join("、"));
+    live.className = "wn";
+  }
+}
+
+/* 切换单档预警 */
+function toggleAlert(i){
+  i = Number(i);
+  var on = alertGearsOf().slice();
+  var k = on.indexOf(i);
+  if(k >= 0) on.splice(k, 1); else on.push(i);
+  setAlertGears(on);
+}
+
+/* 设置页档位数量：6–10 五个胶囊，点即切 */
+function renderGearCountGrid(){
+  var box = $("setGearCount");
+  if(!box) return;
+  var n = gearCount(), total = GCFG_MAX - GCFG_MIN + 1;
+  if(box.children.length !== total){
+    box.innerHTML = "";
+    for(var i = GCFG_MIN; i <= GCFG_MAX; i++){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "swg";
+      b.setAttribute("data-gc", String(i));
+      b.textContent = String(i);
+      b.onclick = function(){ setGearCount(Number(this.getAttribute("data-gc"))); };
+      box.appendChild(b);
+    }
+  }
+  Array.prototype.forEach.call(box.querySelectorAll("[data-gc]"), function(b){
+    var on = Number(b.getAttribute("data-gc")) === n;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  var live = $("setGearCountLive");
+  if(live){
+    live.textContent = n + " 档 · 平均每档 " + (100 / n).toFixed(1) + "%";
+    live.className = "wn";
+  }
+}
+
+/* 网格列数：6 档一行放得下就用 6 列，更多档也保持 6 列换行，保证输入与标签对齐 */
+function gridCols(n){ return Math.min(n, 6); }
+function applyCols(box, lab, n){
+  var tpl = "repeat(" + gridCols(n) + ",1fr)";
+  if(box) box.style.gridTemplateColumns = tpl;
+  if(lab) lab.style.gridTemplateColumns = tpl;
+}
+
+/* 设置页权重网格：格子数跟着档数走，10 档时自动换行 */
+function renderWGrid(){
+  var box = $("setWGrid");
+  if(!box) return;
+  var n = gearCount(), w = curW();
+  applyCols(box, $("setWLab"), n);
+  if(box.children.length !== n){
+    box.innerHTML = "";
+    for(var i = 0; i < n; i++){
+      var inp = document.createElement("input");
+      inp.type = "number";
+      inp.min = "0"; inp.max = "99"; inp.step = "1";
+      inp.setAttribute("inputmode", "numeric");
+      inp.setAttribute("data-w", String(i));
+      inp.setAttribute("aria-label", "第" + (i + 1) + "档权重");
+      inp.onchange = onWeightChange;
+      box.appendChild(inp);
+    }
+    var lab = $("setWLab");
+    if(lab){
+      var h = "";
+      for(var j = 1; j <= n; j++) h += "<span>" + j + "档</span>";
+      lab.innerHTML = h;
+      applyCols(box, lab, n);
+    }
+  }
+  Array.prototype.forEach.call(box.querySelectorAll("[data-w]"), function(inp, k){
+    if(document.activeElement !== inp) inp.value = String(w[k]);
+  });
+}
+
+/* 权重改动：读全部格子 → 规范化 → 落盘（改完即存，不必再点保存） */
+function onWeightChange(){
+  var grid = $("setWGrid");
+  if(!grid) return;
+  var ws = [];
+  Array.prototype.forEach.call(grid.querySelectorAll("[data-w]"), function(x){
+    ws.push(Number(x.value) || 0);
+  });
+  S.cfg.wPct = normW(ws);
+  saveCfg(); compute(); refreshAll();
+}
+
 /* 设置页循环档六格：点一下切换，切换即写，不设保存按钮。
    只读状态渲染，改数据一律走 toggleSwing → setSwingGears；不在这里回头调用自己。 */
 function renderSwingGrid(){
@@ -5077,9 +5492,11 @@ function renderSwingGrid(){
   var sw = swingOf();
   var po = !!(S.cfg && S.cfg.planOnly);
 
-  if(box.children.length !== 6){
+  var n = gearCount();
+  applyCols(box, $("setSwingLab"), n);
+  if(box.children.length !== n){
     box.innerHTML = "";
-    for(var i = 1; i <= 6; i++){
+    for(var i = 1; i <= n; i++){
       var b = document.createElement("button");
       b.type = "button";
       b.className = "swg";
@@ -5087,6 +5504,13 @@ function renderSwingGrid(){
       b.textContent = String(i);
       b.onclick = function(){ toggleSwing(Number(this.getAttribute("data-sw"))); };
       box.appendChild(b);
+    }
+    var slab = $("setSwingLab");
+    if(slab){
+      var sh = "";
+      for(var q = 1; q <= n; q++) sh += "<span>" + q + "档</span>";
+      slab.innerHTML = sh;
+      applyCols(box, slab, n);
     }
   }
   Array.prototype.forEach.call(box.querySelectorAll("[data-sw]"), function(b){
@@ -5143,7 +5567,7 @@ function renderDripSet(){
   if(!(Number(cfg.dripDays) > 0)){ live.textContent = "已关闭（等待天数填 0）"; return; }
   if(!cfg.planOnly){ live.textContent = "账本模式下不生效"; return; }
   var nx = dripNext();
-  if(nx === null){ live.textContent = "六档已买满，无需兜底"; return; }
+  if(nx === null){ live.textContent = gearCount() + " 档已买满，无需兜底"; return; }
   var info = dripInfo(nx);
   var head = "第 " + nx + " 档已等 " + Math.floor(info.days) + " 天";
   if(info.canPrompt) head = "第 " + nx + " 档已到期，可买 " + gnum(info.gram) + " g";
@@ -5408,7 +5832,7 @@ function todoItems(){
   var allBroken = p!==null && lowest && p < lowest.price*0.99 && bought===0;
 
   if(allBroken){
-    items.push({ kind:"fatal", t:"六档全部跌破，本轮未建仓",
+    items.push({ kind:"fatal", t:gearCount() + " 档全部跌破，本轮未建仓",
       d:"现价 "+num(p,1)+" 已低于第6档 "+num(lowest.price,1)+"，高点 "+(S.cfg.H_BASE?num(S.cfg.H_BASE,0):"自动")+" 已脱锚",
       btn:"重设高点", act:"setbase" });
   }
@@ -5620,6 +6044,7 @@ function trackChanges(){
     S.cfg.gearHit = S.cfg.gearHit || {};
     (S.gears||[]).forEach(function(g){
       if(g.done || g.warn) return;
+      if(!alertOn(g.idx)) return;              /* P9-3：只对勾选的档位提示 */
       if(p <= g.price && !S.cfg.gearHit[g.name]){
         S.cfg.gearHit[g.name] = 1;
         pushFeed("gear", g.name + " 到价 " + num(g.price,2), "回撤 " + g.pct + "% · 该档 " + g.gram + " 克");
@@ -5981,7 +6406,7 @@ function recalcGears(){
   });
   // 全档写一遍墓碑：重排结果只认 gearsDone，不让旧买入记录把标记反推回来
   var cl = {};
-  GEARS.forEach(function(g){ cl[g.name] = now; });
+  gearsDef().forEach(function(g){ cl[g.name] = now; });
   S.cfg.gearCleared = cl;
   S.cfg.gearResetAt = now;      // 覆盖写标记：合并时以最近一次重算为准，不取并集
   S.cfg.gearsDone = done;
@@ -6126,7 +6551,7 @@ function bindUI(){
         ws.push(Number(inp.value) || 0);
       });
     }
-    if(ws.length === 6 && ws.some(function(x){ return x > 0; })) S.cfg.wPct = normW(ws);
+    if(ws.length === gearCount() && ws.some(function(x){ return x > 0; })) S.cfg.wPct = normW(ws);
 
     S.cfg.H_BASE = b ? Number(b) : null;
     S.H_BASE = S.cfg.H_BASE;
@@ -6160,19 +6585,17 @@ function bindUI(){
 
   if($("btnHighAuto")) $("btnHighAuto").onclick = function(){ setHigh(null); };
 
-  /* 六格：改完即存，不必再点保存 */
-  if($("setWGrid")){
-    Array.prototype.forEach.call($("setWGrid").querySelectorAll("[data-w]"), function(inp){
-      inp.onchange = function(){
-        var ws = [];
-        Array.prototype.forEach.call($("setWGrid").querySelectorAll("[data-w]"), function(x){
-          ws.push(Number(x.value) || 0);
-        });
-        S.cfg.wPct = normW(ws);
-        saveCfg(); compute(); refreshAll();
-      };
+  /* 起止跌幅：改完即存，与档距方式联动重算 */
+  [["setStartDrop", "startDrop"], ["setEndDrop", "endDrop"]].forEach(function(it){
+    var el = $(it[0]);
+    if(!el) return;
+    el.addEventListener("change", function(){
+      var r = it[1] === "startDrop"
+        ? setSpan(undefined, el.value, undefined, undefined)
+        : setSpan(undefined, undefined, el.value, undefined);
+      toast("起始 " + r.startDrop + "% · 终止 " + r.endDrop + "%");
     });
-  }
+  });
   if($("btnWReset")) $("btnWReset").onclick = function(){ resetW(); };
   if($("btnSwingReset")) $("btnSwingReset").onclick = function(){
     setSwingGears(DEFAULT_SWING);
@@ -6384,6 +6807,22 @@ if(/[?&]xt=1/.test(location.search)){
     setGearMode:setGearMode,
     /* === v6.18 单引擎 === */
     DEFAULT_W:DEFAULT_W,
+    W_TEMPLATE:W_TEMPLATE,
+    gearCount:gearCount,
+    gearSeq:gearSeq,
+    gearTemplate:gearTemplate,
+    setGearCount:setGearCount,
+    startDropOf:startDropOf,
+    endDropOf:endDropOf,
+    p1Of:p1Of,
+    anchorCenter:anchorCenter,
+    ladderWindow:ladderWindow,
+    normAlertGears:normAlertGears,
+    alertGearsOf:alertGearsOf,
+    alertOn:alertOn,
+    setAlertGears:setAlertGears,
+    spanRange:spanRange,
+    setSpan:setSpan,
     ALPHA_MAX:ALPHA_MAX,
     normW:normW,
     curW:curW,
