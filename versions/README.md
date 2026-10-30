@@ -4,6 +4,7 @@
 
 | 版本 | 文件 | 在线地址 | 存储方式 |
 |---|---|---|---|
+| v6.18 | `v6.18.html` | https://git202526.github.io/xau-desk/versions/v6.18.html | GitHub 私有仓库为唯一数据源 |
 | v6.17 | `v6.17.html` | https://git202526.github.io/xau-desk/versions/v6.17.html | GitHub 私有仓库为唯一数据源 |
 | v6.16 | `v6.16.html` | https://git202526.github.io/xau-desk/versions/v6.16.html | GitHub 私有仓库为唯一数据源 |
 | v6.13 | `v6.13.html` | https://git202526.github.io/xau-desk/versions/v6.13.html | GitHub 私有仓库为唯一数据源 |
@@ -23,6 +24,8 @@
 > v6.14 / v6.15 没有单独存档：三期（自定义高点 → 结构推导卡 → 盈亏配色）在同一文件上连续改完，
 > 每期跑完测试但没有各自快照。回退基准是 v6.13 或 v6.17；中间态按 CHANGELOG 手工摘除。
 > v6.17 起高点合并为 `H_BASE` 一个字段，回退到 v6.16 及更早版本前请先导出 JSON。
+> v6.18 起档位改单引擎（`p_i = 0.87H − (i−1)d`）并删除 `cfg.gearMode`，回退到 v6.17 及更早版本
+> 前同样请先导出 JSON —— 旧版不认 `wPct / alpha / spanMode / planOnly / gearMarks` 这五个字段。
 
 > v5.3 没有单独存档（当时是在同一文件上直接改的，被 v6.0 覆盖）。它和 v6.0 的功能差异只有存储层：v5.3 是「本地为主、云端备份」，v6.0 反过来。功能算法两边一致。
 >

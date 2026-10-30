@@ -24,8 +24,10 @@ CFG_EMPTY = {
     "cutRatio": 70, "keepGram": None, "stopMode": True, "takePlan": {},
 }
 
+# alpha 把档距标定回「≈1% × 高点」：合成 K 线的 ATR14 只有 0.49%，
+# 1.0 会让六档挤在 20 美元内，与真实行情（ATR 1.2%）的档位形状差太远。
 CFG_NORMAL = dict(CFG_EMPTY, **{
-    "H_BASE": 4800,
+    "H_BASE": 4800, "alpha": 2.44,
     "keepGram": 20,
     "buys": [
         {"id": "b1", "name": "首笔建仓", "gram": 20, "priceCny": 905.0,
@@ -73,7 +75,13 @@ def browser():
 
 
 def _bars(interval, n=240):
-    """确定性 K 线：缓慢上行 + 正弦波动，保证结构/关键位有内容。"""
+    """确定性 K 线：缓慢上行 + 正弦波动，保证结构/关键位有内容。
+
+    振幅刻意做窄（单根 h-l ≈ 21 美元，ATR14 ≈ 0.49%）：关键位与通道计算依赖
+    这样一个稳定、可复现的窄幅序列。v6.18 起档距 = α×ATR，所以凡是要按
+    「1% × 高点」排档位的用例，都通过 CFG_NORMAL 里的 alpha 把档距标定回来
+    （0.49% × 2.44 ≈ 1.2%），避免六档全挤在现价附近。
+    """
     step = {"1h": 3600e3, "4h": 4 * 3600e3, "1d": 24 * 3600e3}.get(interval, 3600e3)
     now = 1761696000000  # 2026-10-29 00:00 UTC 附近，固定值保证可复现
     out = []
@@ -129,12 +137,15 @@ def make_env(browser):
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
-              hash_="", bars=None):
-        ctx = browser.new_context(
+              hash_="", bars=None, calendar=None, tz=None):
+        opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
             reduced_motion="reduce" if reduced_motion else "no-preference",
         )
+        if tz:
+            opts["timezone_id"] = tz
+        ctx = browser.new_context(**opts)
         gh = GhState(cfg if gh_on else None)
         page = ctx.new_page()
 
@@ -183,6 +194,16 @@ def make_env(browser):
                                                "private": True}))
 
         page.route("**/api.github.com/**", github)
+        # 事件日历：默认按「取不到」处理，保持 v6.13 之前的行为（只有内置 FOMC + 非农）；
+        # 需要测实时日历的用例显式传 calendar=dict
+        def _cal(route):
+            if isinstance(calendar, dict):
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps(calendar, ensure_ascii=False))
+            else:
+                route.fulfill(status=404, content_type="application/json", body="{}")
+
+        page.route("**/calendar.json*", _cal)
         page.route("**/fonts.googleapis.com/**", lambda r: r.abort())
         page.route("**/fonts.gstatic.com/**", lambda r: r.abort())
 

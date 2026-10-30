@@ -1,33 +1,53 @@
-"""v6.17 建仓高点统一（原 v6.14「均价模式自定义高点」的升级版）。
+"""v6.18 单引擎 · 高点与目标的关系（原 v6.17「建仓高点统一」重写）。
 
-口径：全站只剩一个高点 cfg.H_BASE（$/oz，= 第 1 档价），两种模式共用。
-  H_BASE 留空 → 自动：结构模式取 D60 自动基准；目标均价模式由目标反解 avgBase(T)
-  H_BASE 填了 → 锁死：两种模式都按它排，均价由档位推出来（1–4 档 = H × 0.848286）
-  rev 始终保留反解值，用来对照「高点顶到多少」
+全站只剩一个高点 cfg.H_BASE（$/oz），它**永远等于第 1 档价 × 1/0.87**：
+  · 填了 → 第 1 档 = 0.87 × H，锁死
+  · 留空 → 取自动高点（D60）
+目标不再改高点，只改档距 d；两者互不覆盖（§4.6「最后编辑者优先」）。
 """
 import json
+import math
 
 import pytest
 
-from conftest import BASE, CFG_EMPTY
+from conftest import CFG_EMPTY, PRICE
 
 H_STRUCT = 4800.0
 T = 3950.0
 BAND = 20.0
 TOTAL = 200
-REV = 4656.45          # avgBase(3950)
-K14 = 0.848286         # 1–4 档加权均价系数
+P1 = 0.87 * H_STRUCT          # 4176
+D_3950 = (P1 - T) / 2.56      # 88.28125
 
-# 均价模式 + 高点留空 → 反解
-CFG_AVG = dict(CFG_EMPTY, **{
-    "TOTAL": TOTAL,
-    "gearMode": "avg", "avgTarget": T, "avgBand": BAND,
-})
+
+def bars_calm(n=240, px=PRICE, amp=24.0):
+    """ATR14 ≈ 48 美元。合成序列默认振幅只有 21 美元，档距容易撞 α 上限。"""
+    now = 1761696000000
+    step = 24 * 3600 * 1000
+    raw = [px * 0.93 + i * (px * 0.07 / (n - 1)) + math.sin(i / 9.0) * 11 for i in range(n)]
+    adj = raw[-1] - px
+    out = []
+    for i in range(n):
+        c = raw[i] - adj
+        t = int(now - (n - 1 - i) * step)
+        out.append([t, "%.2f" % (c - 4), "%.2f" % (c + amp), "%.2f" % (c - amp),
+                    "%.2f" % c, "12.5", t + step - 1, "0", 0, "0", "0", "0"])
+    return out
+
+
+BARS = bars_calm()
+
+# 目标 + 手动高点
+CFG_T = dict(CFG_EMPTY, **{"H_BASE": H_STRUCT, "TOTAL": TOTAL,
+                           "avgTarget": T, "avgBand": BAND})
+# 目标 + 高点留空（自动）
+CFG_AUTO = dict(CFG_EMPTY, **{"TOTAL": TOTAL, "avgTarget": T, "avgBand": BAND})
+# 只有高点
+CFG_H = dict(CFG_EMPTY, **{"H_BASE": H_STRUCT, "TOTAL": TOTAL})
 
 
 def cfg_high(high, **kw):
-    """均价模式 + 手动高点。"""
-    c = dict(CFG_AVG, H_BASE=high)
+    c = dict(CFG_T, H_BASE=high)
     c.update(kw)
     return c
 
@@ -61,6 +81,10 @@ def meta(page):
     return page.evaluate("() => window.__xt.gearMeta()")
 
 
+def base(page):
+    return page.evaluate("() => window.__xt.gearBase()")
+
+
 def txt(page, sel):
     return page.evaluate("(s) => (document.querySelector(s) || {}).textContent || ''", sel)
 
@@ -78,270 +102,225 @@ def avgcard(page):
     }""")
 
 
-# ---------- 基准来源 ----------
-
+# ---------------------------------------------------------------- 高点来源
 
 def test_ah1_manual_high_wins(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["mode"] == "avg", m
-    assert m["highManual"] is True, m
-    assert abs(m["he"] - 4800) < 0.01, m
-    assert abs(m["rev"] - REV) < 0.05, m
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_plan(p)
+    b = base(p)
+    assert b["highManual"] is True
+    assert b["he"] == H_STRUCT
+    assert row(rows(p), "第1档")["price"] == pytest.approx(P1, abs=0.01)
+    assert b["auto"]["h"] != H_STRUCT, "自动值不该被当成手动值"
 
 
 def test_ah2_ladder_follows_manual_high(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    rs = rows(page)
-    # 4800 × (1-13%) = 4176；× (1-16%) = 4032
-    assert abs(row(rs, "第1档")["price"] - 4176) < 0.05, rs
-    assert abs(row(rs, "第4档")["price"] - 4032) < 0.05, rs
-    # 与结构基准 4800 时完全一致：锁高点就是把锚换回 H
-    assert abs(row(rs, "第6档")["price"] - 3936) < 0.05, rs
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_plan(p)
+    p.evaluate("() => window.__xt.setHigh(5000)")
+    p.wait_for_timeout(300)
+    r = rows(p)
+    assert row(r, "第1档")["price"] == pytest.approx(4350, abs=0.01)
+    # 档距跟着目标反解，随高点抬高而变大
+    assert base(p)["d"] == pytest.approx((4350 - T) / 2.56, abs=0.02)
+    assert row(r, "第4档")["price"] == pytest.approx(4350 - 3 * base(p)["d"], abs=0.05)
 
 
-def test_ah3_blank_high_keeps_reverse_solving(make_env):
-    """留空必须还是反解，不能因为加了字段就改了默认行为。"""
-    env = make_env(CFG_AVG)
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["highManual"] is False, m
-    assert abs(m["he"] - REV) < 0.05, m
-    assert abs(row(rows(page), "第4档")["price"] - 3911.42) < 0.05, rows(page)
+def test_ah3_blank_high_uses_auto(make_env):
+    """留空 → 自动高点（D60），不是反解旧高点。"""
+    env = make_env(CFG_AUTO, bars=BARS)
+    p = env.page
+    b = base(p)
+    assert b["highManual"] is False
+    assert b["he"] == pytest.approx(b["auto"]["h"], abs=0.01)
+    assert b["he"] == pytest.approx(PRICE, abs=1.0)
+    assert row(rows(p), "第1档")["price"] == pytest.approx(0.87 * b["he"], abs=0.02)
 
 
 def test_ah4_implied_avg_from_high(make_env):
-    """锁高点后，1–4 档均价由档位推出来：4800 × 0.848286 = 4071.8。"""
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert abs(m["avg14"] - 4800 * K14) < 0.5, m
-    assert abs(m["avg14"] - 4071.8) < 0.5, m
+    """高点锁死 + α 定档距 → 均价由档位推出来：4176 − 72×2.56。"""
+    env = make_env(CFG_H, bars=BARS)
+    p = env.page
+    p.evaluate("() => window.__xt.setAlpha(1.5)")
+    p.wait_for_timeout(300)
+    m = meta(p)
+    assert base(p)["d"] == pytest.approx(1.5 * 48, abs=0.15)
+    assert m["avgAll"] == pytest.approx(4176 - 1.5 * 48 * 2.56, abs=1.0)
+    assert m["target"] is None
 
 
 def test_ah5_off_target_is_flagged(make_env):
-    """高点 4800 明显高于反解 4656，均价必然偏高：整体均价判不命中。"""
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["mix"] is not None, m
-    assert m["mix"]["avg"] > T + BAND, m["mix"]
-    assert m["hit"] is False, m
-    card = avgcard(page)
-    assert card is not None
-    assert card["dot"] == "#E0913F", card
-    assert "偏高" in card["text"], card["text"]
+    """档距按 α=0.8 排 → 均价明显高于目标，判不命中。"""
+    env = make_env(CFG_H, bars=BARS)
+    p = env.page
+    p.evaluate("() => window.__xt.setAlpha(0.8)")
+    p.evaluate("() => window.__xt.setTargetT(3950)")
+    p.evaluate("() => window.__xt.setAlpha(0.8)")     # 最后编辑的是 α
+    p.wait_for_timeout(320)
+    m = meta(p)
+    assert m["avgAll"] > T + 30
+    assert m["hit"] is False
+    assert m["spanSrc"] == "atr"
 
 
 def test_ah6_high_equal_reverse_hits(make_env):
-    """高点正好等于反解值 → 与留空时等价，命中。"""
-    env = make_env(cfg_high(round(REV, 2)))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["highManual"] is True, m
-    assert m["hit"] is True, m
-    card = avgcard(page)
-    assert card["dot"] == "#3FBF7F", card
-    assert "命中" in card["text"], card["text"]
-
-
-# ---------- 卡片与来源条 ----------
+    """把 α 调到正好命中：d = 88.28 → α = 1.84。"""
+    env = make_env(CFG_H, bars=BARS)
+    p = env.page
+    p.evaluate("() => window.__xt.setAlpha(1.84)")
+    p.evaluate("() => window.__xt.setTargetT(3950)")
+    p.evaluate("() => window.__xt.setAlpha(1.84)")
+    p.wait_for_timeout(320)
+    m = meta(p)
+    assert m["avgAll"] == pytest.approx(T, abs=1.5)
+    assert m["hit"] is True
 
 
 def test_ah7_source_hint_shows_high(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    hint = txt(page, "#gearSrcBox .gshint")
-    assert "手动" in hint, hint
-    assert "4800" in hint, hint
-    assert "反解需" in hint, hint
-    ladder_meta = txt(page, "#ladderMeta")
-    assert "手动" in ladder_meta, ladder_meta
-    assert "4800" in ladder_meta, ladder_meta
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_plan(p)
+    t = txt(p, "#gearSrcBox")
+    assert "4,800" in t or "4800" in t, t
+    assert "手动" in t, t
+    assert "档距" in t, t
+    assert "88" in t, t          # d = 88.28
 
 
-def test_ah8_card_shows_gap_and_reset(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    card = avgcard(page)
-    assert "高点" in card["text"] and "手动" in card["text"], card["text"]
-    assert "反解" in card["text"], card["text"]
-    assert page.eval_on_selector_all("#avgCard [data-avg-sync]", "els => els.length") == 1
+def test_ah8_card_shows_gap_to_price(make_env):
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_plan(p)
+    card = avgcard(p)
+    assert "距现价" in card["text"], card["text"]
+    assert "+" in card["text"]
 
 
-def test_ah9_reset_button_restores_reverse(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_plan(page)
-    page.click("#avgCard [data-avg-sync]")
-    page.wait_for_timeout(1500)          # saveCfg 有 800ms 防抖
-    assert meta(page)["highManual"] is False, meta(page)
-    assert meta(page)["he"] < 4700, meta(page)
-    assert env.gh.cfg.get("H_BASE") is None, env.gh.cfg.get("H_BASE")
-    # 第 4 档回到反解价
-    assert abs(row(rows(page), "第4档")["price"] - 3911.42) < 0.05, rows(page)
-
-
-# ---------- 设置页 ----------
+def test_ah9_clear_high_follows_auto(make_env):
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    p.evaluate("() => window.__xt.setHigh(null)")
+    p.wait_for_timeout(300)
+    b = base(p)
+    assert b["highManual"] is False
+    assert b["he"] == pytest.approx(PRICE, abs=1.0)
 
 
 def test_ah10_save_high_from_settings(make_env):
-    env = make_env(CFG_AVG)
-    page = env.page
-    open_set(page)
-    # 「当前生效」回显：反解值 + 来源
-    live = page.eval_on_selector("#setHighLive", "e => e.value")
-    assert live.startswith("4656"), live
-    assert "反解" in live, live
-    page.fill("#setHigh", "5000")
-    page.click("#btnSaveSet")
-    page.wait_for_timeout(1500)
-    assert env.gh.cfg.get("H_BASE") == 5000, env.gh.cfg.get("H_BASE")
-    open_plan(page)
-    assert abs(meta(page)["he"] - 5000) < 0.01, meta(page)
-    assert abs(row(rows(page), "第4档")["price"] - 4200) < 0.05, rows(page)
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_set(p)
+    p.fill("#setHigh", "4900")
+    p.click("#btnSaveSet")
+    p.wait_for_timeout(340)
+    assert p.evaluate("() => window.__xt.state().cfg.H_BASE") == 4900
+    assert base(p)["he"] == 4900
 
 
 def test_ah11_reject_out_of_range(make_env):
-    env = make_env(CFG_AVG)
-    page = env.page
-    open_set(page)
-    page.fill("#setHigh", "200")
-    page.click("#btnSaveSet")
-    page.wait_for_timeout(400)
-    hint = txt(page, "#toast")
-    assert "高点" in hint, hint
-    assert env.gh.cfg.get("H_BASE") in (None, 0), env.gh.cfg.get("H_BASE")
-    assert page.evaluate("() => window.__xt.state().cfg.H_BASE") is None
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_set(p)
+    p.fill("#setHigh", "900")
+    p.click("#btnSaveSet")
+    p.wait_for_timeout(320)
+    assert p.evaluate("() => window.__xt.state().cfg.H_BASE") == H_STRUCT
+    assert p.evaluate("() => document.getElementById('toast').textContent").strip() != ""
 
 
 def test_ah12_reset_button_in_settings(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    open_set(page)
-    assert page.eval_on_selector("#setHigh", "e => e.value") == "4800"
-    page.click("#btnHighAuto")
-    page.wait_for_timeout(1500)
-    assert env.gh.cfg.get("H_BASE") is None
-    assert page.eval_on_selector("#setHigh", "e => e.value") == ""
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_set(p)
+    p.click("#btnHighAuto")
+    p.wait_for_timeout(320)
+    assert p.evaluate("() => window.__xt.state().cfg.H_BASE") is None
+    assert p.evaluate("() => window.__xt.gearBase().highManual") is False
 
 
-def test_ah13_one_high_shared_by_both_modes(make_env):
-    """核心需求：不分成两个高点。结构模式下填的值，切到均价模式原样沿用，档位价不动。"""
-    env = make_env(cfg_high(4800, gearMode="struct"))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["mode"] == "struct", m
-    assert abs(m["he"] - 4800) < 0.01, m
-    assert abs(row(rows(page), "第4档")["price"] - 4032) < 0.05, rows(page)
+def test_ah13_one_high_shared_by_both_spans(make_env):
+    """核心：高点只有一份。改 α 不动高点，改目标也不动高点。"""
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    open_plan(p)
+    h0 = base(p)["he"]
+    pr1 = row(rows(p), "第1档")["price"]
 
-    page.click('#gearSrcBox [data-gmode="avg"]')
-    page.wait_for_timeout(1500)
-    m2 = meta(page)
-    assert m2["mode"] == "avg", m2
-    assert abs(m2["he"] - 4800) < 0.01, m2               # 高点没被悄悄改成反解值
-    assert m2["highManual"] is True, m2
-    assert abs(row(rows(page), "第4档")["price"] - 4032) < 0.05, rows(page)
-    assert env.gh.cfg.get("H_BASE") == 4800, env.gh.cfg.get("H_BASE")
+    p.evaluate("() => window.__xt.setAlpha(2.0)")
+    p.wait_for_timeout(280)
+    assert base(p)["he"] == h0
+    assert row(rows(p), "第1档")["price"] == pytest.approx(pr1, abs=0.01)
+    assert base(p)["spanSrc"] == "atr"
 
-    page.click('#gearSrcBox [data-gmode="struct"]')
-    page.wait_for_timeout(1500)
-    m3 = meta(page)
-    assert m3["mode"] == "struct", m3
-    assert abs(m3["he"] - 4800) < 0.01, m3
-
-
-# ---------- 边界 ----------
+    p.evaluate("() => window.__xt.setTargetT(3900)")
+    p.wait_for_timeout(280)
+    assert base(p)["he"] == h0
+    assert row(rows(p), "第1档")["price"] == pytest.approx(pr1, abs=0.01)
+    assert base(p)["spanSrc"] == "target"
 
 
 def test_ah14_high_without_target_still_ladders(make_env):
-    """只有高点、没目标：仍按高点排档位，卡片给出提示而不是空转。"""
-    env = make_env(dict(CFG_EMPTY, **{
-        "TOTAL": TOTAL, "H_BASE": H_STRUCT,
-        "gearMode": "avg", "avgTarget": None,
-    }))
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["mode"] == "avg", m
-    assert m["target"] is None, m
-    assert abs(m["he"] - 4800) < 0.01, m
-    card = avgcard(page)
-    assert card is not None, "没目标也要有卡片"
-    assert "没有目标均价" in card["text"] or "还没填目标均价" in card["text"], card["text"]
-    assert page.eval_on_selector_all("#avgCard [data-go]", "els => els.length") == 1
+    """只有高点、没目标：仍按高点排档位，档距按 α。"""
+    env = make_env(CFG_H, bars=BARS)
+    p = env.page
+    open_plan(p)
+    r = rows(p)
+    assert len(r) == 8
+    assert row(r, "第1档")["price"] == pytest.approx(P1, abs=0.01)
+    b = base(p)
+    assert b["target"] is None and b["spanSrc"] in ("atr", "fallback")
+    card = avgcard(p)
+    assert "还没设目标均价" in card["text"], card["text"]
 
 
-def test_ah15_no_overflow_320(make_env):
-    env = make_env(cfg_high(4800), width=320, height=844)
-    page = env.page
-    open_plan(page)
-    info = page.evaluate("""() => {
-        const h = document.querySelector('#gearSrcBox .gshint');
-        const c = document.getElementById('avgCard');
-        return {
-            sw: document.documentElement.scrollWidth, iw: innerWidth,
-            hintOver: h ? h.scrollWidth - h.clientWidth : 0,
-            cardOver: c ? c.scrollWidth - c.clientWidth : 0,
-        };
-    }""")
-    assert info["sw"] <= info["iw"], info
-    assert info["hintOver"] <= 1, info
-    assert info["cardOver"] <= 1, info
+@pytest.mark.parametrize("width", [320, 390])
+def test_ah15_no_overflow_320(make_env, width):
+    env = make_env(CFG_T, width=width, bars=BARS)
+    p = env.page
+    open_set(p)
+    box = p.evaluate("""() => ({
+        scroll: document.documentElement.scrollWidth,
+        win: window.innerWidth,
+        grid: (() => { const g = document.getElementById('setWGrid');
+                       const c = g.closest('.card').getBoundingClientRect();
+                       return [...g.querySelectorAll('input')].some(i => {
+                           const r = i.getBoundingClientRect();
+                           return r.right > c.right + 0.5 || r.left < c.left - 0.5; }); })(),
+    })""")
+    assert box["scroll"] <= box["win"] + 1, box
+    assert box["grid"] is False, box
 
 
 def test_ah16_persist_across_reload(make_env):
-    env = make_env(cfg_high(4800))
-    page = env.page
-    page.evaluate("(v) => window.__xt.setHigh(v)", 4900)
-    page.wait_for_timeout(1500)
-    assert env.gh.cfg.get("H_BASE") == 4900, env.gh.cfg.get("H_BASE")
-    page.goto(BASE + "/index.html?xt=1")
-    page.wait_for_function("() => window.__xt && window.__xt.ready", timeout=8000)
-    page.wait_for_timeout(1200)
-    assert page.evaluate("() => window.__xt.state().cfg.H_BASE") == 4900
+    env = make_env(CFG_T, bars=BARS)
+    p = env.page
+    p.evaluate("() => window.__xt.setHigh(4950)")
+    p.wait_for_timeout(1300)
+    p.reload(wait_until="domcontentloaded")
+    p.wait_for_function("() => window.__xt && window.__xt.ready", timeout=8000)
+    p.wait_for_function("() => window.__xt.gearBase().he == 4950", timeout=6000)
+    assert p.evaluate("() => window.__xt.state().cfg.H_BASE") == 4950
 
 
 def test_ah17_legacy_avghigh_migrates(make_env):
-    """老数据只有 avgHigh（v6.16 及以前）：升级后高点迁到 H_BASE，行为不变，旧字段清零。"""
-    cfg = dict(CFG_EMPTY, **{
-        "TOTAL": TOTAL, "gearMode": "avg", "avgTarget": T, "avgBand": BAND,
-        "avgHigh": 4850,
-    })
-    env = make_env(cfg)
-    page = env.page
-    open_plan(page)
-    m = meta(page)
-    assert m["highManual"] is True, m
-    assert abs(m["he"] - 4850) < 0.01, m
-    assert page.evaluate("() => window.__xt.state().cfg.avgHigh") is None
-    assert page.evaluate("() => window.__xt.state().cfg.H_BASE") == 4850
-    assert abs(row(rows(page), "第4档")["price"] - 4074) < 0.05, rows(page)   # 4850 × 0.84
+    """老数据只有 avgHigh（v6.16 及以前）：升级后迁到 H_BASE，旧字段清零。"""
+    c = dict(CFG_EMPTY, TOTAL=TOTAL, avgHigh=4800, avgTarget=T)
+    env = make_env(c, bars=BARS)
+    p = env.page
+    assert p.evaluate("() => window.__xt.state().cfg.H_BASE") == 4800
+    assert p.evaluate("() => window.__xt.state().cfg.avgHigh") is None
+    assert base(p)["he"] == 4800
 
 
-def test_ah18_auto_high_differs_by_mode(make_env):
-    """同一个「留空」状态，两种模式各自动取值：结构取 D60，均价取反解。"""
-    env = make_env(dict(CFG_EMPTY, **{
-        "TOTAL": TOTAL, "gearMode": "struct", "avgTarget": T, "avgBand": BAND,
-    }))
-    page = env.page
-    open_plan(page)
-    struct_he = meta(page)["he"]
-    page.click('#gearSrcBox [data-gmode="avg"]')
-    page.wait_for_timeout(1500)
-    m = meta(page)
-    assert m["mode"] == "avg", m
-    assert m["highManual"] is False, m
-    assert abs(m["he"] - REV) < 0.05, m
-    assert abs(m["he"] - struct_he) > 1, (m["he"], struct_he)
+def test_ah18_auto_high_has_single_value(make_env):
+    """留空时只有一种自动值：不会因为有无目标而算出两个高点。"""
+    env = make_env(CFG_AUTO, bars=BARS)
+    p = env.page
+    h_with = base(p)["he"]
+    p.evaluate("() => window.__xt.setTargetT(3950)")
+    p.wait_for_timeout(280)
+    assert base(p)["he"] == pytest.approx(h_with, abs=0.01)
+    assert base(p)["he"] == pytest.approx(PRICE, abs=1.0)
+    assert base(p)["auto"]["win"] in ("D60", "D20")

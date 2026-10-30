@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P4 预览 · 均价导向档位 + 事件日历</title>
+<style>
+  :root{
+    --bg:#070C16; --card:#111A29; --card2:#16202F; --line:#20304A;
+    --tx:#E8EEF8; --tx2:#A8B6CC; --tx3:#74839B;
+    --gold:#D4A24C; --gold2:#E8C079; --blue:#4C8DFF;
+    --up:#E5484D; --dn:#2FA36B; --amber:#E8A33D;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{
+    margin:0;background:radial-gradient(1200px 600px at 50% -10%,#0E1A2C,#05090F 70%);
+    color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    padding:34px 22px 60px;
+  }
+  .head{max-width:900px;margin:0 auto 26px}
+  .head h1{font-size:19px;font-weight:650;margin:0 0 6px;letter-spacing:-.2px}
+  .head h1 i{font-style:normal;color:var(--gold)}
+  .head p{margin:0;font-size:12.5px;line-height:1.7;color:var(--tx3)}
+  .head .tags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .head .tag{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);color:var(--tx2);background:var(--card2)}
+
+  .phones{max-width:900px;margin:0 auto;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:10px}
+  .cap{font-size:11.5px;color:var(--tx3);text-align:center;letter-spacing:.2px}
+  .cap b{color:var(--gold2);font-weight:600}
+
+  .phone{
+    width:360px;height:872px;border-radius:30px;overflow:hidden;position:relative;
+    background:var(--bg);border:1px solid #24334D;
+    box-shadow:0 26px 60px -20px rgba(0,0,0,.85),0 0 0 6px #0B1220;
+  }
+  .screen{height:100%;overflow:hidden;display:flex;flex-direction:column}
+
+  /* 顶栏 */
+  .top{display:flex;align-items:center;gap:9px;padding:12px 14px 10px;border-bottom:1px solid rgba(32,48,74,.65);flex:0 0 auto}
+  .logo{width:30px;height:30px;border-radius:9px;border:1px solid rgba(212,162,76,.45);
+        display:flex;align-items:center;justify-content:center;color:var(--gold);flex:0 0 auto}
+  .brand{min-width:0;flex:1 1 auto}
+  .brand .n{font-size:13.5px;font-weight:650;letter-spacing:-.2px;white-space:nowrap}
+  .brand .v{font-size:10px;color:var(--tx3);margin-top:1px;white-space:nowrap}
+  .tprice{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto}
+  .pillp{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:20px;
+         font-size:12px;font-weight:600;background:var(--card2);border:1px solid var(--line);
+         color:var(--up);font-variant-numeric:tabular-nums}
+  .conn{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:20px;
+        font-size:10px;color:var(--tx2);background:var(--card2);border:1px solid var(--line)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--dn);box-shadow:0 0 0 3px rgba(47,163,107,.16)}
+
+  .body{flex:1 1 auto;overflow:hidden;padding:12px 12px 0}
+
+  /* 通用 */
+  .sech{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .sech h2{font-size:12.5px;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sech h2 span{color:var(--tx3);font-weight:400;font-size:10.5px}
+  .sact{display:flex;gap:2px;flex:0 0 auto}
+  .sact .a{font-size:11.5px;color:var(--gold);padding:5px 4px;white-space:nowrap}
+
+  /* 来源条 */
+  .src{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+       border-radius:11px;padding:8px 9px;margin-bottom:9px}
+  .src .lb{font-size:11px;color:var(--tx3);flex:0 0 auto;white-space:nowrap}
+  .seg{display:flex;gap:3px;background:#0C1424;border-radius:8px;padding:3px;margin-left:auto}
+  .seg i{font-style:normal;font-size:11px;padding:5px 10px;border-radius:6px;color:var(--tx3);white-space:nowrap}
+  .seg i.on{background:rgba(212,162,76,.16);color:var(--gold2);font-weight:600;
+            box-shadow:inset 0 0 0 1px rgba(212,162,76,.32)}
+
+  /* 均价校验卡 */
+  .avgbox{background:linear-gradient(180deg,rgba(212,162,76,.07),rgba(212,162,76,.015));
+          border:1px solid rgba(212,162,76,.26);border-radius:12px;padding:11px 12px;margin-bottom:10px}
+  .avgrow{display:flex;align-items:baseline;gap:6px;font-size:11px;color:var(--tx3)}
+  .avgrow .k{color:var(--tx2)}
+  .avgrow .big{font-size:16px;font-weight:660;color:var(--tx);letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+  .avgrow .band{font-size:11px;color:var(--tx3)}
+  .avgrow .hit{margin-left:auto;font-size:10.5px;color:var(--dn);display:inline-flex;align-items:center;gap:4px}
+  .avgrow .hit s{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--dn);text-decoration:none}
+  .avgsvg{display:block;width:100%;height:auto;margin:9px 0 7px}
+  .avgfoot{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--tx3)}
+  .avgfoot b{color:var(--tx2);font-weight:600;font-variant-numeric:tabular-nums}
+  .avgfoot .low{color:var(--amber)}
+
+  /* 弹药 */
+  .ammo{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:10px}
+  .ammo .t{display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx3);margin-bottom:7px}
+  .ammo .t b{color:var(--tx2);font-weight:600;font-variant-numeric:tabular-nums}
+  .track{height:5px;border-radius:4px;background:#0B1422;overflow:hidden}
+  .fill{height:100%;background:linear-gradient(90deg,#8A6A2E,var(--gold));border-radius:4px}
+
+  /* 档位 */
+  .lv{position:relative;display:flex;gap:9px;margin-bottom:7px}
+  .lv .rail{width:9px;display:flex;flex-direction:column;align-items:center;padding-top:9px;flex:0 0 auto}
+  .lv .rail i{width:6px;height:6px;border-radius:50%;background:#3B4A63;box-shadow:0 0 0 3px rgba(59,74,99,.22)}
+  .lv .rail s{flex:1;width:1px;background:rgba(32,48,74,.9);text-decoration:none}
+  .lv.hit .rail i{background:var(--up);box-shadow:0 0 0 3px rgba(229,72,77,.2)}
+  .lv.done .rail i{background:var(--blue);box-shadow:0 0 0 3px rgba(76,141,255,.2)}
+  .lv.near .rail i{background:var(--amber);box-shadow:0 0 0 3px rgba(232,163,61,.2)}
+  .lv .bd{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 11px}
+  .lv.warn .bd{background:rgba(229,72,77,.045);border-color:rgba(229,72,77,.2)}
+  .lv.hit .bd{border-color:rgba(229,72,77,.45);background:rgba(229,72,77,.075)}
+  .lv.done .bd{border-color:rgba(76,141,255,.3)}
+  .lv.near .bd{border-color:rgba(232,163,61,.4)}
+  .r1{display:flex;align-items:baseline;gap:7px;min-width:0}
+  .r1 .p{font-size:15.5px;font-weight:660;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+  .r1 .nm{font-size:11px;color:var(--tx2);white-space:nowrap}
+  .r1 .plan{margin-left:auto;font-size:10px;color:var(--tx3);white-space:nowrap}
+  .r2{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+  .pill{font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);color:var(--tx3);white-space:nowrap}
+  .pill.hit{color:#F08A8E;border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.1)}
+  .pill.near{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.09)}
+  .pill.done{color:#8FB8FF;border-color:rgba(76,141,255,.35);background:rgba(76,141,255,.09);
+             text-decoration:underline dotted;text-underline-offset:2px}
+  .pill.g{color:var(--gold);border-color:rgba(212,162,76,.3)}
+  .dist{margin-left:auto;font-size:10.5px;color:var(--tx3);font-variant-numeric:tabular-nums}
+
+  /* 事件页 */
+  .evday{display:flex;align-items:center;gap:7px;margin:0 0 8px;font-size:11px;color:var(--tx3)}
+  .evday b{color:var(--tx);font-size:11.5px;font-weight:600}
+  .evday .ln{flex:1;height:1px;background:rgba(32,48,74,.9)}
+  .ev{display:flex;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:11px;
+      padding:10px 11px;margin-bottom:7px}
+  .ev.hi{border-color:rgba(229,72,77,.34);background:linear-gradient(180deg,rgba(229,72,77,.07),rgba(229,72,77,.012))}
+  .ev .tm{flex:0 0 auto;width:38px;font-size:11.5px;font-weight:600;color:var(--tx2);font-variant-numeric:tabular-nums;padding-top:1px}
+  .ev.hi .tm{color:#F2A6A8}
+  .ev .ct{flex:1;min-width:0}
+  .ev .nm{font-size:12px;line-height:1.35;font-weight:600;letter-spacing:-.1px}
+  .ev .ccy{font-size:9.5px;color:var(--tx3);margin-left:5px;font-weight:400}
+  .ev .meta{display:flex;gap:10px;margin-top:4px;font-size:10px;color:var(--tx3);flex-wrap:wrap}
+  .ev .meta b{color:var(--tx2);font-weight:600;font-variant-numeric:tabular-nums}
+  .stars{position:absolute;right:12px;bottom:10px;display:flex;gap:2px;font-style:normal}
+  .stars s{width:5px;height:5px;border-radius:1.5px;background:#2A3850;text-decoration:none}
+  .stars s.on{background:var(--up)}
+  .ev{position:relative}
+  .ev.done{opacity:.6}
+  .ev.done .nm{font-weight:500}
+  .ev .pub{font-size:9.5px;color:var(--tx3);border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap}
+  .srcnote{margin:8px 0 0;font-size:10px;line-height:1.6;color:var(--tx3);
+           background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:9px;padding:8px 10px}
+  .srcnote b{color:var(--tx2);font-weight:600}
+
+  /* 底栏 */
+  .tabs{margin-top:auto;display:flex;border-top:1px solid var(--line);background:rgba(10,16,28,.96);flex:0 0 auto}
+  .tabs div{flex:1;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;
+            font-size:9px;color:var(--tx3)}
+  .tabs div.on{color:var(--gold)}
+  .tabs svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+  @media (max-width:800px){
+    body{padding:20px 12px 40px}
+    .phones{gap:18px}
+    .phone{width:min(360px,92vw);height:780px}
+  }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>P4 预览 · <i>均价导向档位</i> + <i>事件日历补全</i></h1>
+  <p>左屏：目标均价 3,950 ±20 反解出的档位（等效基准 4,656.6，第 4 档主力 80g，打完均价 3,950.1）。<br>
+     右屏：补全后今天 20:30 的 GDP 与核心 PCE 两条 4 星，带预期与前值。</p>
+  <div class="tags">
+    <span class="tag">数字按计划书 §1.4 实算</span>
+    <span class="tag">静态预览，未改正式代码</span>
+    <span class="tag">390px 视口</span>
+  </div>
+</div>
+
+<div class="phones">
+
+  <!-- ============ 左：建仓（均价模式） ============ -->
+  <div class="col">
+    <div class="phone"><div class="screen">
+      <div class="top">
+        <div class="logo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 17l5-6 4 3 6-8"/><path d="M4 20h16"/>
+          </svg>
+        </div>
+        <div class="brand"><div class="n">XAU Desk</div><div class="v">v6.12 · 预览</div></div>
+        <div class="tprice">
+          <span class="pillp">3,955.20</span>
+          <span class="conn"><s class="dot"></s>实时 3s</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="sech">
+          <h2>建仓阶梯 <span>基准 4,656 · 均价模式 · 待建 160.0 克</span></h2>
+          <div class="sact"><span class="a">重算档位</span><span class="a">按基准</span></div>
+        </div>
+
+        <!-- 来源条 -->
+        <div class="src">
+          <span class="lb">档位来源</span>
+          <span class="seg"><i>结构基准</i><i class="on">目标均价</i></span>
+        </div>
+
+        <!-- 均价校验 -->
+        <div class="avgbox">
+          <div class="avgrow">
+            <span class="k">目标</span>
+            <span class="big">3,950</span>
+            <span class="band">±20</span>
+            <span class="hit"><s></s>命中</span>
+          </div>
+          <svg class="avgsvg" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="0" y="14" width="300" height="6" rx="3" fill="#16202F"/>
+            <rect x="131" y="14" width="75" height="6" rx="3" fill="rgba(212,162,76,.34)"/>
+            <line x1="131" y1="9" x2="131" y2="25" stroke="rgba(212,162,76,.45)" stroke-width="1"/>
+            <line x1="206" y1="9" x2="206" y2="25" stroke="rgba(212,162,76,.45)" stroke-width="1"/>
+            <!-- 全 6 档均价 3917.6 -->
+            <line x1="108" y1="12" x2="108" y2="22" stroke="#4C8DFF" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- 1-4 档均价 3950.1 -->
+            <circle cx="169" cy="17" r="5.5" fill="#0A101C"/>
+            <circle cx="169" cy="17" r="4.2" fill="#2FA36B"/>
+            <text x="169" y="32" text-anchor="middle" font-size="8" fill="#5C6B85">3,950.1</text>
+            <text x="108" y="32" text-anchor="middle" font-size="8" fill="#5C6B85">3,917.6</text>
+          </svg>
+          <div class="avgfoot">
+            <span>1–4 档打完 <b>3,950.1</b></span>
+            <span style="margin-left:auto">全 6 档 <b>3,917.6</b> <span class="low">低 32.4</span></span>
+          </div>
+        </div>
+
+        <div class="ammo">
+          <div class="t"><span>弹药进度</span><span><b>40 / 200</b> 克</span></div>
+          <div class="track"><div class="fill" style="width:20%"></div></div>
+        </div>
+
+        <!-- 档位 -->
+        <div class="lv warn"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">4,190.93</span><span class="nm">预警①</span></div>
+          <div class="r2"><span class="pill hit">已跌破</span><span class="pill">-10%</span><span class="pill g">只预警</span><span class="dist">+6.0%</span></div>
+        </div></div>
+
+        <div class="lv warn"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">4,097.80</span><span class="nm">预警②</span></div>
+          <div class="r2"><span class="pill hit">已跌破</span><span class="pill">-12%</span><span class="pill g">只预警</span><span class="dist">+3.6%</span></div>
+        </div></div>
+
+        <div class="lv done"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">4,051.23</span><span class="nm">第1档</span><span class="plan">计划 16g</span></div>
+          <div class="r2"><span class="pill done">已买入</span><span class="pill">-13%</span><span class="pill g">已买 16g</span><span class="dist">+2.4%</span></div>
+        </div></div>
+
+        <div class="lv done"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">4,004.67</span><span class="nm">第2档</span><span class="plan">计划 24g</span></div>
+          <div class="r2"><span class="pill done">已买入</span><span class="pill">-14%</span><span class="pill g">已买 24g</span><span class="dist">+1.3%</span></div>
+        </div></div>
+
+        <div class="lv hit"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">3,958.10</span><span class="nm">第3档</span><span class="plan">计划 20g</span></div>
+          <div class="r2"><span class="pill hit">刚到价</span><span class="pill">-15%</span><span class="pill g">待买 20.0g</span><span class="dist">+0.1%</span></div>
+        </div></div>
+
+        <div class="lv"><div class="rail"><i></i><s></s></div><div class="bd">
+          <div class="r1"><span class="p">3,911.54</span><span class="nm">第4档 主力</span><span class="plan">计划 80g</span></div>
+          <div class="r2"><span class="pill">未到</span><span class="pill">-16%</span><span class="pill g">待买 80.0g</span><span class="dist">-1.1%</span></div>
+        </div></div>
+      </div>
+
+      <div class="tabs">
+        <div><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg><span>总览</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M4 20V13M9.3 20V8M14.7 20v-5M20 20V4"/></svg><span>结构</span></div>
+        <div class="on"><svg viewBox="0 0 24 24"><path d="M4 19h4v-4H4zM10 19h4V9h-4zM16 19h4V4h-4z"/></svg><span>建仓</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h10M7 16h10"/></svg><span>持仓</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M3 14c2 0 2.5-6 4.5-6S10 18 12 18s2.5-9 4.5-9S19 14 21 14"/></svg><span>信号</span></div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/></svg><span>设置</span></div>
+      </div>
+    </div></div>
+    <div class="cap">均价模式：<b>目标 3,950 ±20</b> → 等效基准 4,656.6</div>
+  </div>
+
+  <!-- ============ 右：事件雷达 ============ -->
+  <div class="col">
+    <div class="phone"><div class="screen">
+      <div class="top">
+        <div class="logo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 17l5-6 4 3 6-8"/><path d="M4 20h16"/>
+          </svg>
+        </div>
+        <div class="brand"><div class="n">XAU Desk</div><div class="v">v6.13 · 预览</div></div>
+        <div class="tprice">
+          <span class="pillp">3,955.20</span>
+          <span class="conn"><s class="dot"></s>实时 3s</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="sech"><h2>事件雷达 <span>今天 4 条 · 2 条 4 星</span></h2></div>
+
+        <div class="evday"><b>10月29日 周四</b><span class="ln"></span><span>北京时间</span></div>
+
+        <div class="ev hi">
+          <div class="tm">20:30</div>
+          <div class="ct">
+            <div class="nm">美国第三季度实际GDP年化季率初值<span class="ccy">USD</span></div>
+            <div class="meta"><span>预期 <b>3.2%</b></span><span>前值 <b>1.5%</b></span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s></i>
+        </div>
+
+        <div class="ev hi">
+          <div class="tm">20:30</div>
+          <div class="ct">
+            <div class="nm">美国9月核心PCE物价指数月率<span class="ccy">USD</span></div>
+            <div class="meta"><span>预期 <b>0.3%</b></span><span>前值 <b>0.2%</b></span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s></i>
+        </div>
+
+        <div class="ev">
+          <div class="tm">20:30</div>
+          <div class="ct">
+            <div class="nm">美国至10月24日当周初请失业金人数<span class="ccy">USD</span></div>
+            <div class="meta"><span>预期 <b>19.8万</b></span><span>前值 <b>19.4万</b></span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s class="on"></s><s></s></i>
+        </div>
+
+        <div class="ev">
+          <div class="tm">20:30</div>
+          <div class="ct">
+            <div class="nm">美国9月个人支出月率<span class="ccy">USD</span></div>
+            <div class="meta"><span>预期 <b>0.6%</b></span><span>前值 <b>0.9%</b></span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s></s><s></s></i>
+        </div>
+
+        <div class="evday"><b>10月28日 周三</b><span class="ln"></span><span>已公布</span></div>
+
+        <div class="ev done">
+          <div class="tm">22:00</div>
+          <div class="ct">
+            <div class="nm">美国9月成屋签约销售指数月率<span class="ccy">USD</span><span class="pub">已公布</span></div>
+            <div class="meta"><span>实际 <b>1.2%</b></span><span>预期 <b>0.4%</b></span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s></s><s></s></i>
+        </div>
+
+        <div class="evday"><b>11月6日 周五</b><span class="ln"></span><span>下周</span></div>
+
+        <div class="ev">
+          <div class="tm">20:30</div>
+          <div class="ct">
+            <div class="nm">美国10月非农就业人口<span class="ccy">USD</span></div>
+            <div class="meta"><span>惯例推算</span><span>每月第一个周五</span></div>
+          </div>
+          <i class="stars"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s></i>
+        </div>
+
+        <div class="srcnote">
+          数据源 <b>ForexFactory 周历</b> · 更新于 16:05 · 由 GitHub Actions 每 6 小时刷新<br>
+          取不到时回落到内置规则（FOMC 官方日程 + 非农惯例）
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg><span>总览</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M4 20V13M9.3 20V8M14.7 20v-5M20 20V4"/></svg><span>结构</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M4 19h4v-4H4zM10 19h4V9h-4zM16 19h4V4h-4z"/></svg><span>建仓</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h10M7 16h10"/></svg><span>持仓</span></div>
+        <div class="on"><svg viewBox="0 0 24 24"><path d="M3 14c2 0 2.5-6 4.5-6S10 18 12 18s2.5-9 4.5-9S19 14 21 14"/></svg><span>信号</span></div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/></svg><span>设置</span></div>
+      </div>
+    </div></div>
+    <div class="cap">补全后：<b>今天 4 条</b>，GDP 与核心 PCE 标 4 星</div>
+  </div>
+
+</div>
+</body>
+</html>
