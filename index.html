@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.22 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.23 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -444,6 +444,11 @@ body.tab-ov .tpx{display:none}
 .avgc .off{color:#E0913F}
 .avgc .tip{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.05);font-size:11px;color:var(--tx3);line-height:1.6}
 .avgc .tip strong{color:#E0913F;font-weight:600}
+.avgc .a2{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 7px;font-size:11px;color:var(--tx3)}
+.avgc .a2 .vv{display:inline-flex;align-items:baseline;gap:6px}
+.avgc .a2 b{font-size:13px;font-weight:650;color:var(--tx);font-variant-numeric:tabular-nums}
+.avgc .a2 i{font-style:normal}
+.avgc .a2 em{display:inline-block;width:8px;height:8px;border-radius:50%;background:#D4A24C;margin-right:5px}
 
 .ammo{margin-top:12px}
 .ammo .t{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px}
@@ -604,7 +609,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.22 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.23 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -736,9 +741,10 @@ body.tab-ov .tpx{display:none}
     <div id="ladder"></div>
     <div id="avgCard"></div>
     <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
+      <br>均价卡给两个口径：<strong>锚定均价</strong> = 只买 1–锚定档位（设置页「目标均价锚定档位」，自动时取权重重心档）；<strong>选定档位试算均价</strong> = 全部档位买满。点「对齐目标」两个数一起重算。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
       <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
-      <br>高点只有一个：在设置里留空就自动（取 D60 高点），填了就锁死；第 1 档永远锚在 0.87 × 高点，目标只拉档距。</div>
+      <br>高点只有一个：在设置里留空就自动（取 D60 高点），填了就锁死；第 1 档锚在 高点 ×（1 − 起始跌幅），目标只拉档距。</div>
 
   </section>
 
@@ -2401,6 +2407,30 @@ function planAvgOf(prices, w){
   return s > 0 ? a / s : null;
 }
 
+/* 前 k 档全部成交的加权均价（「锚定均价」口径）：只把 1..k 档的克重与档位价计入。
+   与 planAvgOf 的区别是它砍掉了 k 之后的深档，所以数值会高于全档均价。
+   权重不重新归一化——「只买到第 k 档」的场景下剩余额度本来就没花出去。 */
+function avgOfFront(prices, w, k){
+  var n = Math.min(gearCount(), Math.floor(Number(k) || 0));
+  if(!(n > 0)) return null;
+  var s = 0, a = 0;
+  for(var i = 0; i < n; i++){
+    var wi = Number(w[i]) || 0;
+    s += wi; a += wi * (Number(prices[i]) || 0);
+  }
+  return s > 0 ? a / s : null;
+}
+
+/* 有效锚定档号（1 起）：显式设了 2..n 就用它；「自动」时取权重重心的最近档。
+   锚定均价就截到这里，和档距反解用的是同一个重心口径。 */
+function anchorKOf(w){
+  w = w || curW();
+  var c = anchorCenter(w);
+  if(c === null || c === undefined || !isFinite(Number(c))) return 1;  /* 全压第 1 档 */
+  var k = Math.round(Number(c)) + 1;
+  return Math.min(gearCount(), Math.max(1, k));
+}
+
 /* 计划执行汇总：卡片副标题与弹药进度用（§4.7.5）。
    bought / pending / over 一律按【净持仓】算（卖出的额度会还给 pending）；
    grossBought / soldTotal / realizedTotal 是 P6 新增的三个累计口径。 */
@@ -2769,6 +2799,11 @@ function computeGears(){
   var band = Number(cfg.avgBand) > 0 ? Number(cfg.avgBand) : 20;
   var aAll = planAvgOf(pr, plan);
 
+  /* P10 双口径均价：锚定均价只算 1..k 档（k = 锚定档位，自动时取权重重心档），
+     选定档位试算均价算全部 n 档。两者都对着同一个目标价 T 判命中。 */
+  var aK = anchorKOf(w);
+  var aAnchor = avgOfFront(pr, plan, aK);
+
   /* 整体均价 = 已持仓 + 后续按计划补满。目标口径是六档全计入（§0.5.1）。 */
   var mix = null;
   if(T && !planOnly){
@@ -2798,6 +2833,11 @@ function computeGears(){
     d: base.d, alpha: base.alpha, spanSrc: base.spanSrc,
     feasible: base.feasible, hint: base.hint,
     avgAll: aAll, avg14: aAll,
+    avgSel: aAll, anchorK: aK, avgAnchor: aAnchor,
+    diffSel: (T && aAll) ? (aAll - T) : null,
+    diffAnchor: (T && aAnchor) ? (aAnchor - T) : null,
+    hitSel: (T && aAll) ? Math.abs(aAll - T) <= band : null,
+    hitAnchor: (T && aAnchor) ? Math.abs(aAnchor - T) <= band : null,
     diffAll: (T && aAll) ? (aAll - T) : null,
     diff14: (T && aAll) ? (aAll - T) : null,
     mix: mix,
@@ -5114,15 +5154,25 @@ function renderAvgCard(){
 }
 
 /* 结构基准的推导卡：不设目标也能看落点；设了目标就给出「差多少 + 基准该调到哪」。
-   这里不换任何档位价，只把「按现在这套基准买完，均价会落在哪」摊开。 */
+   这里不换任何档位价，只把「按现在这套基准买完，均价会落在哪」摊开。
+   P10 起给两个口径：
+     · 选定档位试算均价 = 全部 n 档按计划买满（= 旧版「n 档均价」，也用于命中判定）
+     · 锚定均价        = 只买 1..k 档（k = 目标均价锚定档位，自动时取权重重心档） */
 function renderAvgCardStruct(box, m){
   var T = m.target, band = m.band || 20, a14 = m.avg14, aAll = m.avgAll;
+  var aK = m.anchorK, aAnc = m.avgAnchor;
   var diff = (T && a14) ? a14 - T : null;
   var hit = (diff === null) ? null : Math.abs(diff) <= band;
   var col = (hit === null) ? "#9AA4B2" : (hit ? "#3FBF7F" : "#E0913F");
   var vcls = (hit === null) ? "" : (hit ? "ok" : "off");
-  var verdict = "";
-  if(diff !== null) verdict = hit ? "✓ 命中" : ((diff > 0 ? "偏高 " : "偏低 ") + Math.abs(diff).toFixed(1));
+  var dAnc = (T && aAnc) ? aAnc - T : null;
+  var hitAnc = (dAnc === null) ? null : Math.abs(dAnc) <= band;
+  var ancCls = (hitAnc === null) ? "" : (hitAnc ? "ok" : "off");
+  var vf = function(d, h){
+    if(d === null) return "";
+    return h ? "✓ 命中" : ((d > 0 ? "偏高 " : "偏低 ") + Math.abs(d).toFixed(1));
+  };
+  var verdict = vf(diff, hit);
 
   var how = m.highManual ? "手动高点" : ("自动 " + ((m.auto && m.auto.win) || ""));
   var farPct = (S.price && m.he) ? (m.he / S.price - 1) * 100 : null;
@@ -5131,17 +5181,23 @@ function renderAvgCardStruct(box, m){
   var bar = "";
   if(T){
     var lo = T - band, hi = T + band;
-    var pts = [lo, hi]; if(a14) pts.push(a14);
+    var pts = [lo, hi]; if(a14) pts.push(a14); if(aAnc) pts.push(aAnc);
     var vmin = Math.min.apply(null, pts), vmax = Math.max.apply(null, pts);
     var pad = Math.max(1, (vmax - vmin) * 0.14); vmin -= pad; vmax += pad;
     var W = 300, L = 8, R = 292, Y = 18;
     var X = function(v){ return L + (Math.min(vmax, Math.max(vmin, v)) - vmin) / (vmax - vmin || 1) * (R - L); };
+    /* 锚定均价的刻度：与试算均价重合（≤2 美元）就不画，免得两条线叠在一起看不清 */
+    var ancMark = (aAnc && a14 && Math.abs(aAnc - a14) > 2)
+      ? '<line x1="' + X(aAnc).toFixed(1) + '" y1="' + (Y-7) + '" x2="' + X(aAnc).toFixed(1) + '" y2="' + (Y+6) +
+        '" stroke="#D4A24C" stroke-width="1.3" stroke-dasharray="2 2"/>'
+      : '';
     bar = '<div class="bar"><svg viewBox="0 0 ' + W + ' 34" aria-hidden="true">' +
       '<rect x="' + L + '" y="' + (Y-1) + '" width="' + (R-L) + '" height="3" rx="1.5" fill="rgba(255,255,255,.10)"/>' +
       '<rect x="' + X(lo).toFixed(1) + '" y="' + (Y-6) + '" width="' + Math.max(2, X(hi)-X(lo)).toFixed(1) +
         '" height="13" rx="3" fill="rgba(212,162,76,.20)" stroke="rgba(212,162,76,.42)" stroke-width="1"/>' +
       '<line x1="' + X(T).toFixed(1) + '" y1="' + (Y-9) + '" x2="' + X(T).toFixed(1) + '" y2="' + (Y+7) +
         '" stroke="' + col + '" stroke-width="1.4"/>' +
+      ancMark +
       (a14 ? '<circle cx="' + X(a14).toFixed(1) + '" cy="' + Y + '" r="3.8" fill="' + col + '"/>' : '') +
       '</svg></div>';
   }
@@ -5172,14 +5228,28 @@ function renderAvgCardStruct(box, m){
     else if(m.hint === "above-p1") tips.push("目标高于第 1 档价，档距已收窄到 0，" + gearCount() + " 档同价");
     else if(m.hint === "done") tips.push("已持仓成本优于目标，剩余额度建议留作回调加仓");
     else if(m.hint === "flat") tips.push("当前分布全在第 1 档，档距无法调节均价，请加重 3–6 档");
+    /* 锚定口径天然高于目标：目标价钉在第 k 档，1..k−1 档必然更贵，差额就是「前段溢价」 */
+    if(aK >= 2 && dAnc !== null && dAnc > 0 && m.spanSrc === "target")
+      tips.push("锚定均价高于目标属正常：目标价钉在第 " + aK + " 档，前 " + (aK - 1) + " 档更贵，差额 " +
+                Math.abs(dAnc).toFixed(0) + " 美元就是前段溢价");
   } else {
     tips.push("还没设目标均价，档距按波动率排列（α=1）。填一个目标就会拉伸到该均价。");
   }
 
+  /* 锚定均价行：只算 1..k 档。目标区间带上有虚线刻度对应它 */
+  var ancRow = "";
+  if(aAnc !== null && aAnc !== undefined){
+    ancRow = '<div class="a2"><span><em></em>锚定均价 · 第 1–' + (aK || gearCount()) + ' 档</span>' +
+      '<span class="vv"><b class="' + ancCls + '">' + num(aAnc, 1) + '</b>' +
+      (T ? '<i class="' + ancCls + '">' + vf(dAnc, hitAnc) + '</i>' : '') +
+      '</span></div>';
+  }
+
   box.innerHTML = '<div class="avgc">' +
     '<div class="hd"><span>高点 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
-      '<span class="' + vcls + '">' + gearCount() + ' 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
+      '<span class="' + vcls + '">选定档位试算 · ' + gearCount() + ' 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
     bar +
+    ancRow +
     '<div class="ft">' +
       '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span>' +
       '<span>档距 <b>' + (m.d ? num(m.d, 0) : "—") + '</b> · α <b>' +
@@ -5207,7 +5277,9 @@ function alignSpanToTarget(){
   S.cfg.alpha = Math.round(a * 100) / 100;
   S.cfg.spanMode = "alpha";
   saveCfg(); compute(); refreshAll();
-  toast("α 已对齐到 " + num(S.cfg.alpha, 2));
+  var mm = S.gearMeta || {};
+  toast("已对齐 α=" + num(S.cfg.alpha, 2) + " · 锚定 " + num(mm.avgAnchor, 0) +
+        " / " + gearCount() + " 档 " + num(mm.avgAll, 0));
 }
 
 /* 卡片里的两个动作：回退高点到反解、跳去设置页填目标 */
@@ -5350,8 +5422,9 @@ function renderSpanUI(){
   var al = $("setAnchorLive");
   if(al){
     al.textContent = cur >= 2
-      ? ("均价目标精确落在第 " + cur + " 档" + (mode === "target" ? "" : "（仅「目标均价」方式生效）"))
-      : "自动：按权重重心落点";
+      ? ("均价目标精确落在第 " + cur + " 档" + (mode === "target" ? "" : "（仅「目标均价」方式生效）") +
+         " · 建仓页「锚定均价」按 1–" + cur + " 档试算")
+      : "自动：按权重重心落点（建仓页「锚定均价」同口径）";
     al.className = "wn";
   }
 }
@@ -6816,6 +6889,9 @@ if(/[?&]xt=1/.test(location.search)){
     endDropOf:endDropOf,
     p1Of:p1Of,
     anchorCenter:anchorCenter,
+    /* === P10 双口径均价 === */
+    anchorKOf:anchorKOf,
+    avgOfFront:avgOfFront,
     ladderWindow:ladderWindow,
     normAlertGears:normAlertGears,
     alertGearsOf:alertGearsOf,
