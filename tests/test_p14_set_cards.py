@@ -87,13 +87,18 @@ def test_l2_pos_owns(env):
 
 
 def test_l3_shape_owns(env):
-    """形态卡装高点/目标/档距/锚定/档数。"""
+    """形态卡装高点/目标/档距/锚定。
+
+    P17 起「档位数量」移到执行卡首项 —— 改档数会整体重置权重分布，
+    必须紧挨着分布放（见 test_p17_save_state.py::test_s10）。
+    """
     p = env().page
     open_set(p)
     own = body(p)["own"]
     for i in ("setHigh", "setHighLive", "btnHighAuto", "setAvgT", "setAvgB", "setSpanMode",
-              "setAlpha", "setSpanLive", "setStartDrop", "setEndDrop", "setAnchor", "setGearCount"):
+              "setAlpha", "setSpanLive", "setStartDrop", "setEndDrop", "setAnchor"):
         assert own[i] == "cardShape", (i, own[i])
+    assert own["setGearCount"] == "cardExec", own["setGearCount"]
 
 
 def test_l4_exec_owns(env):

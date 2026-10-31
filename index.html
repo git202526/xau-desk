@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.31 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.32 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -148,6 +148,31 @@ body{
   border-top:1px solid var(--line);
   transition:transform .24s cubic-bezier(.2,.8,.3,1)
 }
+/* P17-1 未保存提示条：浮在 tabbar 之上（tabbar 56px + 安全区），键盘弹起时让位。
+   只在「有脏值」时渲染，本身是浮层、不占文档流，所以不改变设置页总高度。 */
+.dirtybar{
+  position:fixed;left:12px;right:12px;z-index:55;
+  bottom:calc(64px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:12px;
+  background:linear-gradient(180deg,#1B2436,#161F2E);
+  border:1px solid rgba(232,163,61,.45);
+  box-shadow:0 10px 26px rgba(0,0,0,.5)
+}
+.dirtybar[hidden]{display:none}
+.dirtybar .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none}
+.dirtybar .txt{font-size:12.5px;color:var(--tx2)}
+.dirtybar .txt b{color:var(--amber);font-weight:650}
+.dirtybar button{
+  margin-left:auto;min-height:36px;padding:0 14px;border-radius:9px;cursor:pointer;
+  border:1px solid rgba(232,163,61,.5);background:rgba(232,163,61,.14);
+  color:#F3BE72;font-size:12.5px;font-weight:600
+}
+.dirtybar button:active{background:rgba(232,163,61,.24)}
+body.kb .dirtybar{display:none}
+/* 脏输入框：描边转橙，和浮条同一个颜色语义 */
+.fld input.dirty,.fld select.dirty{border-color:rgba(232,163,61,.55);background:rgba(232,163,61,.06)}
+
 .tabbar button{
   position:relative;flex:1 1 0;min-width:0;min-height:44px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
@@ -651,7 +676,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.31 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.32 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -860,15 +885,16 @@ body.tab-ov .tpx{display:none}
         <div class="wgrid" id="setAnchor"></div>
         <div class="wn" id="setAnchorLive">—</div>
       </div>
-      <div class="fld" style="margin-top:12px">
-        <label>档位数量</label>
-        <div class="wgrid" id="setGearCount" style="grid-template-columns:repeat(5,1fr)"></div>
-        <div class="wn" id="setGearCountLive">—</div>
-      </div>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>分布与执行 <span class="cnt" id="sumExec">—</span></h2></div>
     <div class="card" id="cardExec">
+      <!-- 改档数会整体重置权重分布，所以它必须紧挨着分布放，同一屏内因果可见 -->
+      <div class="fld" style="margin-bottom:14px">
+        <label>档位数量</label>
+        <div class="wgrid" id="setGearCount" style="grid-template-columns:repeat(5,1fr)"></div>
+        <div class="wn" id="setGearCountLive">—</div>
+      </div>
       <div class="fld">
         <label>档位分布（%）</label>
         <div class="wgrid" id="setWGrid"></div>
@@ -1034,6 +1060,14 @@ body.tab-ov .tpx{display:none}
     <i class="badge" id="bdSet" hidden></i>
   </button>
 </nav>
+
+<!-- P17-1：未保存提示条。只在「有脏值 + 保存按钮不在视野内」时浮出，
+     点击复用 #btnSaveSet 的原有逻辑，不复制第二份。 -->
+<div class="dirtybar" id="dirtyBar" hidden>
+  <span class="dot"></span>
+  <span class="txt"><b id="dirtyNum">0</b> 项未保存</span>
+  <button type="button" id="dirtySave">点此保存</button>
+</div>
 
 <div class="sheet-mask" id="mask"></div>
 <div class="sheet" id="sheet">
@@ -4301,6 +4335,7 @@ function gotoTab(name, opts){
       });
     }
   }
+  renderDirtyBar();     /* 换页后「保存按钮在不在视野内」变了，浮条要跟着走 */
 }
 
 function initTabFromHash(){
@@ -6490,6 +6525,7 @@ function refreshAll(){
   renderEvents();
   renderFeed();
   renderStat();
+  renderDirtyBar();
   setConn();
 }
 
@@ -6998,6 +7034,87 @@ function syncParamInputs(){
   syncKeep();
 }
 
+/* ===== P17-2 未保存状态 =====
+
+   设置页只有这 5 项要点「保存参数」才写进 cfg，其余控件都是改即存。
+   输入框的值和 cfg 对不上 = 脏：描橙边 + 浮出提示条。
+
+   之前的问题不是「值会回退」，而是「假装生效」：改了总仓切走再回来，
+   输入框还显示 500，而引擎读的仍是 310 —— 用户不会想到还要再点一次保存。 */
+var SAVE_KEYS = [
+  { id:"setTotal", key:"TOTAL" },
+  { id:"setKeep",  key:"keepGram" },
+  { id:"setHigh",  key:"H_BASE" },
+  { id:"setAvgT",  key:"avgTarget" },
+  { id:"setAvgB",  key:"avgBand" }
+];
+
+function saveItemVal(it){
+  var el = $(it.id);
+  if(!el) return null;
+  var raw = String(el.value == null ? "" : el.value).trim();
+  if(raw === "") return null;              /* 空 = 没填，不算脏 */
+  var v = Number(raw);
+  return isFinite(v) ? v : null;
+}
+
+function saveCfgVal(it){
+  var v = S.cfg ? S.cfg[it.key] : null;
+  /* 底仓没设时输入框里显示的是自动值（computedKeep），拿它比，别把自动值当成用户改过 */
+  if(it.key === "keepGram"){
+    if(v === null || v === undefined || v === "" || isNaN(Number(v)))
+      return Number(computedKeep(holdStats().grams));
+    return Number(v);
+  }
+  if(it.key === "avgBand") return (v === null || v === undefined || v === "") ? 20 : Number(v);
+  if(v === null || v === undefined || v === "") return null;
+  return Number(v);
+}
+
+function isDirty(it){
+  var a = saveItemVal(it);
+  if(a === null) return false;
+  var b = saveCfgVal(it);
+  if(b === null) return true;
+  return Math.abs(a - b) > 0.001;
+}
+
+function dirtyItems(){ return SAVE_KEYS.filter(isDirty); }
+
+function renderDirtyBar(){
+  var bar = $("dirtyBar");
+  if(!bar) return;
+  var n = 0;
+  SAVE_KEYS.forEach(function(it){
+    var d = isDirty(it), el = $(it.id);
+    if(d) n++;
+    if(el) el.classList.toggle("dirty", d);
+  });
+  if(!n){ bar.hidden = true; return; }
+  var num = $("dirtyNum");
+  if(num) num.textContent = n;
+  /* 就在设置页、且保存按钮已经在视野内时不浮出：按钮本身就是入口，别压两条 */
+  var btn = $("btnSaveSet");
+  var r = btn ? btn.getBoundingClientRect() : null;
+  var btnVisible = !!(r && r.bottom > 0 && r.top < window.innerHeight);
+  bar.hidden = (S.tab === "set") && btnVisible;
+}
+
+function bindDirtyWatch(){
+  SAVE_KEYS.forEach(function(it){
+    var el = $(it.id);
+    if(!el) return;
+    el.addEventListener("input", renderDirtyBar);
+    el.addEventListener("change", renderDirtyBar);
+  });
+  var save = $("dirtySave");
+  if(save) save.onclick = function(){
+    var btn = $("btnSaveSet");
+    if(btn) btn.onclick();                 /* 复用原逻辑，不复制第二份校验 */
+  };
+  window.addEventListener("scroll", renderDirtyBar, { passive:true });
+}
+
 function bindUI(){
   bindTabbar();
 
@@ -7078,6 +7195,7 @@ function bindUI(){
   };
 
   bindSync();
+  bindDirtyWatch();
 
   var sub = function(){ updateSubtotal(); };
   var gi = document.querySelector('[name="g_gram"]');
