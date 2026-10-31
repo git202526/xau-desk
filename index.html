@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.30 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.31 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -304,6 +304,9 @@ body.tab-ov .tpx{display:none}
 .lv.s-hit .body{border-color:rgba(229,72,77,.38);background:linear-gradient(180deg,rgba(229,72,77,.07),var(--card))}
 .lv.s-near .body{border-color:rgba(232,163,61,.34)}
 .lv.s-done .body{border-color:rgba(76,141,255,.32)}
+/* P16a 三态：买超用琥珀色（风险但非「刚到价」的红），部分买入不加底色、只换 pill */
+.lv.s-over .rail i{background:var(--amber);box-shadow:0 0 0 4px rgba(232,163,61,.16)}
+.lv.s-over .body{border-color:rgba(232,163,61,.34)}
 .lv .r1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .lv .price{font-size:18px;font-weight:650;letter-spacing:-.4px}
 .lv .nm{font-size:12px;color:var(--tx2)}
@@ -313,6 +316,8 @@ body.tab-ov .tpx{display:none}
 .pill.p-hit{color:#F08A8E;border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.1)}
 .pill.p-near{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.09)}
 .pill.p-done{color:#8FB8FF;border-color:rgba(76,141,255,.35);background:rgba(76,141,255,.09)}
+.pill.p-over{color:#F3BE72;border-color:rgba(232,163,61,.40);background:rgba(232,163,61,.12)}
+.pill.p-part{color:var(--tx2);border-color:rgba(157,174,199,.34);background:rgba(157,174,199,.08)}
 /* 「估」= 这一档的成本是拿档位价估的（P5 前的标记没有真实成交价），差价只能当参考 */
 .pill.est{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.08);padding:2px 5px}
 .pill.g{color:var(--gold);border-color:rgba(212,162,76,.3)}
@@ -436,6 +441,28 @@ body.tab-ov .tpx{display:none}
 .posmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
+
+/* P16b 仓位进度条：20 段色块，左绿右红，点亮的段不透明、未点亮压到 .14。
+   颜色不能写在行内 style 上（sanitizeHtml 会剥掉 style 属性），
+   所以按 nth-child 分五阶给色，每阶 4 格 —— 视觉上是从绿到红的连续过渡。 */
+.gauge{padding:14px 16px;cursor:pointer}
+.gg-h{display:flex;align-items:baseline;justify-content:space-between}
+.gg-h span{font-size:11px;color:var(--tx3)}
+.gg-h b{font-size:26px;font-weight:660;letter-spacing:-.5px;color:var(--tx)}
+.gg-h b.ok{color:var(--dn)}
+.gg-h b.warm{color:var(--amber)}
+.gg-h b.hot{color:#EE8A57}
+.gg-h b.over{color:var(--up)}
+.gbar{display:flex;gap:2px;margin:9px 0 7px}
+.gbar i{flex:1;height:10px;border-radius:3px;opacity:.14;transition:opacity .25s}
+.gbar i.on{opacity:1}
+.gbar i:nth-child(-n+4){background:#2FA36B}
+.gbar i:nth-child(n+5):nth-child(-n+8){background:#8FA83A}
+.gbar i:nth-child(n+9):nth-child(-n+12){background:var(--amber)}
+.gbar i:nth-child(n+13):nth-child(-n+16){background:#E2703A}
+.gbar i:nth-child(n+17){background:var(--up)}
+.gg-f{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3)}
+.gg-f .warn{color:var(--up)}
 /* 弹药 */
 /* 档位来源切换条 + 均价校验卡 */
 .gsrc{display:flex;align-items:center;gap:9px;margin:0 0 10px;min-width:0}
@@ -624,7 +651,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.30 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.31 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -712,6 +739,7 @@ body.tab-ov .tpx{display:none}
         <div class="fchips" id="chChips">
           <button data-p="1d" class="on">日线</button>
           <button data-p="4h">4小时</button>
+          <button data-p="1h">1小时</button>
         </div>
       </div>
     </div>
@@ -750,12 +778,12 @@ body.tab-ov .tpx{display:none}
     </div>
     <div id="gearSrcBox"></div>
     <div class="ammo" style="margin-bottom:10px">
-      <div class="t"><span>弹药进度</span><span class="num" id="ammoTxt">0 / 100 克</span></div>
+      <div class="t"><span>档位执行</span><span class="num" id="ammoTxt">0 / 100 克</span></div>
       <div class="track"><div class="fill" id="ammoFill" style="width:0%"></div></div>
     </div>
     <div id="ladder"></div>
     <div id="avgCard"></div>
-    <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
+    <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，再到档位面板标记一次，档位执行才会累加。
       <br>均价卡给两个口径：<strong>锚定均价</strong> = 只买 1–锚定档位（设置页「目标均价锚定档位」，自动时取权重重心档）；<strong>选定档位试算均价</strong> = 全部档位买满。点「对齐目标」两个数一起重算。
       <br>档位上的「<strong>+2.2g 下沉入</strong>」是<strong>克重</strong>：已跌破的档买不到了，它的待补额度挪给现价附近的档，这一档因此多出 2.2 克；「−1.5g 下沉出」是让出去的克重。点一下看全额明细。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
@@ -765,6 +793,8 @@ body.tab-ov .tpx{display:none}
   </section>
 
   <section class="panel" id="panel-pos">
+    <!-- P16b：仓位进度（当前持仓 / 持仓上限），先看几成仓再看盈亏 -->
+    <div class="card gauge" id="posGauge"></div>
     <div class="sech"><h2>持仓汇总</h2><button class="act" id="btnHold">记一笔</button></div>
     <div class="card" id="posBox"></div>
 
@@ -4647,19 +4677,28 @@ function renderKL(){
 }
 
 /* 通道图：内联 SVG 手写，不引任何图表库。只读数据，不调用其它 render* */
+/* 通道回归窗口：按周期分别设，不能统一 90 根。
+
+   1d/4h 各 90 根（约 3 个月 / 15 天）够看中期结构；1h 只给 90 根的话只覆盖 4 天，
+   小时级的通道根本展不开。给 180 根 ≈ 7.5 个交易日，同时不糊：
+   绘图区 308px / 180 根 = 1.71px 每根，蜡烛仍能分辨（240 根就会糊成色带）。 */
+var CH_WIN = { "1d":90, "4h":90, "1h":180 };
+var CH_LABEL = { "1d":"日线", "4h":"4小时", "1h":"1小时" };
+
 function renderChart(){
   var svg = $("chSvg");
   if(!svg) return;
   var k = S.chPeriod || "1d";
-  var label = k === "4h" ? "4小时" : "日线";
+  var label = CH_LABEL[k] || "日线";
+  var win = CH_WIN[k] || 90;
   var meta = $("chMeta");
-  if(meta) meta.textContent = label + " · 90 根";
+  if(meta) meta.textContent = label + " · " + win + " 根";
   Array.prototype.forEach.call(document.querySelectorAll("#chChips button"), function(b){
     b.className = b.getAttribute("data-p") === k ? "on" : "";
   });
 
   var bars = scaled(k);
-  var ch = (bars && bars.length >= 40) ? channelOf(bars, 90, S.price) : null;
+  var ch = (bars && bars.length >= 40) ? channelOf(bars, win, S.price) : null;
   S.chan = ch;
   var line = $("chLine");
   if(!ch){
@@ -4987,18 +5026,36 @@ function addSampleMark(){
   toast("已添加，点它可编辑");
 }
 
+/* 档位标签：价格维度与持仓维度分开算，最后合成一个 cls。
+
+   价格维度（pcls / plabel）：未到 / 逼近 / 刚到价 / 已跌破，控制圆点颜色与整行透明度。
+   持仓维度（P16a）：已买超 / 已买满 / 已买，控制标签文字与 pill 配色。
+
+   两个维度同时可见：买满的档哪怕价格还在上方，标签也写「已买满」；
+   只买了 8/16g 的档哪怕已跌破，标签写「已买」，圆点仍按跌破态着色。
+   判断顺序必须是 超 → 满 → 部分：overG 与 pending 互斥，但浮点下都可能逼近 0，
+   先判超能保证「超」不会因为 pending 恰好为 0 被误判成「满」。 */
 function gearUI(g){
   var p = S.price;
-  /* 「估」只取决于成本是不是估算出来的（有标记、有净持仓、没有真实成交价），
-     跟这档买没买满无关。所以每个分支都要带出去，不能只挂在「已买入」上。 */
+  /* 「估」只取决于成本是不是估算出来的，与买没买满无关，四个分支都要带出去 */
   var est = !!g.costEst;
-  if(g.done) return { cls:"s-done", label:"已买入", pill:"p-done", est:est };
-  if(p===null) return { cls:"", label:"未到", pill:"", est:est };
-  if(p <= g.price*0.99) return { cls:"s-dead", label:g.warn?"预警已过":"已跌破", pill:"p-hit", est:est };
-  if(p <= g.price) return { cls:"s-hit", label:g.warn?"预警触发":"刚到价", pill:"p-hit", est:est };
-  var gap = (g.price/p-1)*100;
-  if(gap < 0 && gap > -1.2) return { cls:"s-near", label:"逼近", pill:"p-near", est:est };
-  return { cls:"", label:"未到", pill:"", est:est };
+
+  var pcls = "", plabel = "未到", ppill = "";
+  if(p !== null){
+    if(p <= g.price*0.99){ pcls = "s-dead"; plabel = g.warn?"预警已过":"已跌破"; ppill = "p-hit"; }
+    else if(p <= g.price){ pcls = "s-hit"; plabel = g.warn?"预警触发":"刚到价"; ppill = "p-hit"; }
+    else {
+      var gap = (g.price/p-1)*100;
+      if(gap < 0 && gap > -1.2){ pcls = "s-near"; plabel = "逼近"; ppill = "p-near"; }
+    }
+  }
+
+  if(!g.warn && g.boughtG > 0.05){
+    if(g.overG > 0.05)    return { cls:"s-over", label:"已买超", pill:"p-over",  est:est, price:pcls };
+    if(g.pending <= 0.05) return { cls:"s-done", label:"已买满", pill:"p-done", est:est, price:pcls };
+    return { cls:pcls, label:"已买", pill:"p-part", est:est, price:pcls };
+  }
+  return { cls:pcls, label:plabel, pill:ppill, est:est, price:pcls };
 }
 
 /* 档位表窗口（P9-4）：超过 9 个档时只显示「当前档 ±4」，其余折叠。
@@ -5053,10 +5110,8 @@ function renderLadder(){
     } else {
       planTxt = "计划 " + gnum(g.plan) + "g";
       if(planOnly){
-        if(g.overG > 0.05)        grams = "超买 " + gnum(g.overG) + "g";
-        else if(g.boughtG > 0.05 && g.pending > 0.05)
-                                  grams = "已买 " + gnum(g.boughtG) + " / 待补 " + gnum(g.pending) + "g";
-        else if(g.boughtG > 0.05) grams = "已买 " + gnum(g.boughtG) + "g";
+        /* P16a：标签已经区分了三态，克重栏统一写「实际 / 计划」，扫一眼就知道差多少 */
+        if(g.boughtG > 0.05)      grams = gnum(g.boughtG) + " / " + gnum(g.plan) + "g";
         else if(g.pending > 0.05) grams = "待补 " + gnum(g.pending) + "g";
         else                      grams = "未分配";
         var nm = escapeHtml(g.name);
@@ -5078,8 +5133,9 @@ function renderLadder(){
         }
         if(g.overG > 0.05) tail = '<span class="pill p-hit" style="margin-left:auto">超预算</span>' + tail;
       } else {
-        if(g.done) grams = g.doneG > 0 ? ("已买 " + gnum(g.doneG) + "g") : "已买";
-        else if(g.over) grams = "已超目标";
+        /* 账本模式的克重栏保持原样：这层的「待买」是按推荐克重算的，和白话说明一致 */
+        if(g.overG > 0.05)     grams = "已超目标 " + gnum(g.overG) + "g";
+        else if(g.boughtG > 0.05) grams = "已买 " + gnum(g.boughtG) + "g";
         else if(g.gram > 0.05) grams = "待买 " + gnum(g.gram) + "g";
         else grams = "额度已满";
       }
@@ -6039,6 +6095,37 @@ function renderReallocSet(){
     "（现价回弹后自动恢复）";
 }
 
+/* P16b 仓位进度：账本实际持仓 / 设置页的持仓上限。
+
+   只看账本，不取档位标记 —— 这张卡回答「账户里真有多少克、还能买多少」，
+   与档位表的「计划执行到第几档」是两件事，混用会在减仓后对不上。
+   全部颜色走 class（sanitizeHtml 会剥掉 style 属性）。 */
+var GAUGE_SEG = 20;
+function renderGauge(){
+  var box = $("posGauge");
+  if(!box) return;
+  var cur = holdStats().grams;
+  var lim = totalGrams();
+  var pct = lim > 0 ? cur / lim * 100 : 0;
+  var on = Math.round(pct / 100 * GAUGE_SEG);
+  if(!(on > 0)) on = 0;
+  if(on > GAUGE_SEG) on = GAUGE_SEG;
+  var bars = "", i;
+  for(i = 0; i < GAUGE_SEG; i++) bars += '<i' + (i < on ? ' class="on"' : '') + '></i>';
+  var cls = pct > 100 ? "over" : pct >= 85 ? "hot" : pct >= 60 ? "warm" : "ok";
+  var rest = lim - cur, tail;
+  if(rest > 0.05)       tail = "还能买 " + num(rest, 1) + " g";
+  else if(rest < -0.05) tail = "超上限 " + num(-rest, 1) + " g";
+  else                  tail = "刚好到上限";
+  box.innerHTML = sanitizeHtml(
+    '<div class="gg-h"><span>仓位进度</span><b class="num ' + cls + '">' + pct.toFixed(1) + '%</b></div>' +
+    '<div class="gbar">' + bars + '</div>' +
+    '<div class="gg-f"><span class="num">' + num(cur, 1) + ' g / ' + num(lim, 1) + ' g</span>' +
+    '<span class="num' + (rest < -0.05 ? ' warn' : '') + '">' + tail + '</span></div>'
+  );
+  box.onclick = function(){ gotoTab("set", { anchor:"cardPos" }); };
+}
+
 function renderPos(){
   var box = $("posBox");
   var hs = holdStats();
@@ -6396,6 +6483,7 @@ function refreshAll(){
   renderGearSrc();
   renderAvgCard();
   renderSetGear();
+  renderGauge();
   renderPos();
   renderBuys();
   renderTake();
@@ -7282,6 +7370,9 @@ if(/[?&]xt=1/.test(location.search)){
     connInfo:connInfo,
     playSnd:playSnd,
     holdStats:holdStats,
+    renderGauge:renderGauge,
+    GAUGE_SEG:GAUGE_SEG,
+    gearUI:gearUI,
     buildLevels:buildLevels,
     scaled:scaled,
     levelWindow:levelWindow,

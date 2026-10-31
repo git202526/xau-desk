@@ -62,6 +62,14 @@ def rows(page):
     }))""")
 
 
+HOLD_LABELS = ("已买", "已买满", "已买超")
+
+
+def no_hold(pills):
+    """三种持仓态一个都不出现（标签仍应是价格态）。"""
+    return not any(x in pills for x in HOLD_LABELS)
+
+
 def row(page, name):
     for r in rows(page):
         if r["name"] == name:
@@ -93,12 +101,12 @@ def test_e2_cost_mark_no_est(env):
 
 
 def test_e3_no_mark_no_est(env):
-    """没买过的档位不出现「估」——它连「已买入」都没有。"""
+    """没买过的档位不出现「估」——它连持仓态标签都没有。"""
     p = env(gearMarks={"1": {"g": 16, "at": 1700000000000}}).page
     open_plan(p)
     r = row(p, "第4档")
     assert r["est"] is False
-    assert "已买入" not in r["pills"]
+    assert no_hold(r["pills"]), r
 
 
 def test_e4_ledger_mode_no_est(env):
@@ -110,25 +118,25 @@ def test_e4_ledger_mode_no_est(env):
 
 
 def test_e5_zero_gram_no_est(env):
-    """g=0 的空壳标记不标「估」（本来也不该有已买入）。"""
+    """g=0 的空壳标记不标「估」（本来也不该有持仓态标签）。"""
     p = env(gearMarks={"1": {"g": 0, "cost": 0, "at": 1700000000000}}).page
     open_plan(p)
     r = row(p, "第1档")
     assert r["est"] is False, r
-    assert "已买入" not in r["pills"]
+    assert no_hold(r["pills"]), r
 
 
 # ---------------------------------------------------------------- 视觉与契约
 
 def test_e6_label_unchanged(env):
-    """「已买入」文字不变，估是独立的邻居胶囊（老断言 '已买入' in pills 不受影响）。"""
+    """买满的标签写「已买满」，估是紧挨着的独立胶囊。"""
     p = env(gearMarks={"1": {"g": 16, "at": 1700000000000}}).page
     open_plan(p)
     r = row(p, "第1档")
-    assert "已买入" in r["pills"], r
+    assert "已买满" in r["pills"], r
     assert r["pills"].count("估") == 1, r
-    # 估必须紧挨在已买入后面，而不是跑到 %/克重后面
-    i = r["pills"].index("已买入")
+    # 估必须紧挨在持仓态后面，而不是跑到 %/克重后面
+    i = r["pills"].index("已买满")
     assert r["pills"][i + 1] == "估", r
 
 
@@ -143,7 +151,7 @@ def test_e7_est_has_title(env):
 
 
 def test_e8_est_color(env):
-    """「估」用 amber 色，和「已买入」的蓝区分开（390 宽下也要能看见）。"""
+    """「估」用 amber 色，和「已买满」的蓝区分开（390 宽下也要能看见）。"""
     p = env(gearMarks={"1": {"g": 16, "at": 1700000000000}}, width=390).page
     open_plan(p)
     col = p.evaluate("""() => getComputedStyle(document.querySelector('#ladder .pill.est')).color""")
@@ -197,6 +205,7 @@ def test_e12_est_kept_when_not_full(env):
     open_plan(p)
     p.wait_for_timeout(250)
     r = row(p, "第1档")
-    assert "已买入" not in r["pills"], r
+    assert "已买" in r["pills"], r
+    assert "已买满" not in r["pills"], r
     assert r["est"] is True, r
     assert "估" in r["pills"], r

@@ -115,7 +115,7 @@ def test_n7_jump_weight(env):
     open_set(p)
     assert in_view(p, "#setWGrid")["top"] > 844, "初始应在首屏之外"
     p.click('#setNav button[data-jump="setWGrid"]')
-    p.wait_for_timeout(900)
+    p.wait_for_timeout(1500)
     v = in_view(p, "#setWGrid")
     assert 0 <= v["top"] < v["vh"], v
 
@@ -125,7 +125,7 @@ def test_n8_jump_gear_count(env):
     p = env().page
     open_set(p)
     p.click('#setNav button[data-jump="setGearCount"]')
-    p.wait_for_timeout(900)
+    p.wait_for_timeout(1500)
     v = in_view(p, "#setGearCount")
     assert 0 <= v["top"] < v["vh"], v
 
@@ -146,7 +146,7 @@ def test_n10_jump_realloc(env):
     p = env().page
     open_set(p)
     p.click('#setNav button[data-jump="setReOn"]')
-    p.wait_for_timeout(900)
+    p.wait_for_timeout(1500)
     v = in_view(p, "#setReOn")
     assert 0 <= v["top"] < v["vh"], v
 

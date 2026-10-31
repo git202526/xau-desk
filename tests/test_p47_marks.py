@@ -112,7 +112,7 @@ def test_mark_prefills_plan_then_shows_pending(env):
     p.click("#markSave")
     p.wait_for_timeout(300)
     r4 = row_text(p, "第4档")
-    assert r4["g"] == "已买 20 / 待补 52g", r4
+    assert r4["g"] == "20 / 72g", r4
     assert r4["dim"] is True
     assert r4["unmark"] is True
 
@@ -130,7 +130,7 @@ def test_mark_does_not_touch_neighbors(env):
     p.wait_for_timeout(300)
 
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "已买 10 / 待补 38g", r3
+    assert r3["g"] == "10 / 48g", r3
     r4 = row_text(p, "第4档")
     assert r4["plan"] == "计划 72g"
     assert r4["g"] == "待补 72g"
@@ -184,7 +184,7 @@ def test_second_buy_accumulates(env):
     p.click("#markSave")
     p.wait_for_timeout(320)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "已买 40 / 待补 8g", r3
+    assert r3["g"] == "40 / 48g", r3
     assert p.evaluate("() => window.__xt.gearState(3).bought") == 40
 
 
@@ -225,7 +225,7 @@ def test_marks_survive_reload(env):
     p.wait_for_function("() => window.__xt.planSummary().bought > 11", timeout=6000)
     assert p.evaluate("() => window.__xt.planSummary().bought") == pytest.approx(12, abs=0.01)
     open_tab(p, "plan")
-    assert row_text(p, "第3档")["g"] == "已买 12 / 待补 36g"
+    assert row_text(p, "第3档")["g"] == "12 / 48g"
 
 
 # ---------------------------------------------------------------- 8 切回账本模式
@@ -254,7 +254,7 @@ def test_switch_back_to_ledger_keeps_marks(env):
     p.click("#btnSaveSet")
     p.wait_for_timeout(320)
     open_tab(p, "plan")
-    assert row_text(p, "第4档")["g"] == "已买 20 / 待补 52g"
+    assert row_text(p, "第4档")["g"] == "20 / 72g"
 
 
 # ---------------------------------------------------------------- 9 弹药进度
@@ -285,7 +285,7 @@ def test_overbuy_is_flagged(env):
     p.click("#markSave")
     p.wait_for_timeout(300)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "超买 10g", r3
+    assert r3["g"] == "58 / 48g", r3
     assert "已超预算 10" in p.evaluate("() => document.getElementById('ladderMeta').textContent")
     assert p.evaluate("() => window.__xt.planSummary().overBudget") == pytest.approx(10, abs=0.01)
 

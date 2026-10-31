@@ -1,8 +1,8 @@
-"""v6.11 档位已买入：持久标记、单档撤销、按持仓重算。
+"""v6.11 档位已买满：持久标记、单档撤销、按持仓重算。
 
 覆盖用户提的三件事：
-1. 在某一档记过买入，即使后来减仓，这一档仍应显示「已买入」；
-2. 「已买入 / 已买」与推荐克重支持撤销标记，撤销后按计划重算；
+1. 在某一档记过买入，即使后来减仓，这一档仍应显示「已买满」；
+2. 「已买满 / 已买」与推荐克重支持撤销标记，撤销后按计划重算；
 3. 撤销后价格再落回该档，能重新给出待买克重（反弹后再接）。
 """
 import json
@@ -66,21 +66,21 @@ def test_g1_done_gear_shows_bought_gram(make_env):
     open_plan(page)
     rows = gears(page)
     first = g(rows, "第1档")
-    assert "已买入" in first["pills"], first
+    assert "已买满" in first["pills"], first
     assert "已买 16g" in first["gpill"], first
     second = g(rows, "第2档")
-    assert "已买入" in second["pills"]
+    assert "已买满" in second["pills"]
     assert "已买 24g" in second["gpill"]
     # 两档都带撤销入口
     assert first["undo"] and second["undo"]
 
 
 def test_g2_sell_keeps_done_mark(make_env):
-    """减仓 24 克后，第2档仍应是已买入——这是用户报的核心问题。"""
+    """减仓 24 克后，第2档仍应是已买满——这是用户报的核心问题。"""
     env = make_env(CFG)
     page = env.page
     open_plan(page)
-    assert "已买入" in g(gears(page), "第2档")["pills"]
+    assert "已买满" in g(gears(page), "第2档")["pills"]
 
     page.evaluate("""() => {
       const S = window.__xt.state();
@@ -93,7 +93,7 @@ def test_g2_sell_keeps_done_mark(make_env):
 
     rows = gears(page)
     second = g(rows, "第2档")
-    assert "已买入" in second["pills"], second
+    assert "已买满" in second["pills"], second
     assert "已买 24g" in second["gpill"]
     assert page.evaluate("() => window.__xt.holdStats().grams") == 16
 
@@ -105,13 +105,13 @@ def test_g3_undo_clears_mark_and_reallocs(make_env):
     accept_dialogs(page)
 
     before = g(gears(page), "第2档")
-    assert "已买入" in before["pills"]
+    assert "已买满" in before["pills"]
 
     page.click('#ladder [data-ungear="第2档"]')
     page.wait_for_timeout(400)
 
     after = g(gears(page), "第2档")
-    assert "已买入" not in after["pills"], after
+    assert "已买满" not in after["pills"], after
     assert after["undo"] is False
     # 回到待买，且克重按额度重新分配（> 0）
     gp = after["gpill"]
@@ -119,7 +119,7 @@ def test_g3_undo_clears_mark_and_reallocs(make_env):
     num = float(gp.replace("待买", "").replace("g", "").strip())
     assert num > 0
     # 第1档不受影响
-    assert "已买入" in g(gears(page), "第1档")["pills"]
+    assert "已买满" in g(gears(page), "第1档")["pills"]
 
 
 def test_g4_undo_allows_rebuy_when_price_returns(make_env):
@@ -132,7 +132,7 @@ def test_g4_undo_allows_rebuy_when_price_returns(make_env):
     # 第2档 4128，现价 4072 在它下方 —— 先把价格抬到 4135 制造「已跌破/已过」
     page.evaluate("(p) => window.__xt.tick(p)", 4135)
     page.wait_for_timeout(200)
-    assert "已买入" in g(gears(page), "第2档")["pills"]
+    assert "已买满" in g(gears(page), "第2档")["pills"]
 
     page.click('#ladder [data-ungear="第2档"]')
     page.wait_for_timeout(300)
@@ -166,8 +166,8 @@ def test_g5_undo_survives_reload(make_env):
     page.wait_for_timeout(600)
     open_plan(page)
     rows = gears(page)
-    assert "已买入" not in g(rows, "第2档")["pills"], g(rows, "第2档")
-    assert "已买入" in g(rows, "第1档")["pills"]
+    assert "已买满" not in g(rows, "第2档")["pills"], g(rows, "第2档")
+    assert "已买满" in g(rows, "第1档")["pills"]
     cleared = page.evaluate("() => window.__xt.state().cfg.gearCleared")
     assert "第2档" in cleared and cleared["第2档"] > 0
     # 墓碑挡住了旧买入记录的反推
@@ -193,7 +193,7 @@ def test_g6_rebuy_after_undo_marks_again(make_env):
     page.wait_for_timeout(400)
 
     row = g(gears(page), "第2档")
-    assert "已买入" in row["pills"], row
+    assert "已买满" in row["pills"], row
     assert "已买" in row["gpill"]
     assert bought_grams(page, "第2档") > 0
 
@@ -212,9 +212,9 @@ def test_g7_recalc_follows_holding(make_env):
 
     rows = gears(page)
     # 持仓 40 克：第1档 16 + 第2档 24，刚好两档
-    assert "已买入" in g(rows, "第1档")["pills"]
-    assert "已买入" in g(rows, "第2档")["pills"]
-    assert "已买入" not in g(rows, "第3档")["pills"]
+    assert "已买满" in g(rows, "第1档")["pills"]
+    assert "已买满" in g(rows, "第2档")["pills"]
+    assert "已买满" not in g(rows, "第3档")["pills"]
 
     # 减到 10 克再重算 → 只剩第1档
     page.evaluate("""() => {
@@ -229,8 +229,8 @@ def test_g7_recalc_follows_holding(make_env):
     page.wait_for_timeout(400)
 
     rows = gears(page)
-    assert "已买入" in g(rows, "第1档")["pills"]
-    assert "已买入" not in g(rows, "第2档")["pills"], g(rows, "第2档")
+    assert "已买满" in g(rows, "第1档")["pills"]
+    assert "已买满" not in g(rows, "第2档")["pills"], g(rows, "第2档")
 
 
 def test_g8_recalc_writes_tombstones(make_env):
@@ -300,7 +300,7 @@ def test_g12_undo_scope_is_single_gear(make_env):
     after = {r["name"]: r for r in gears(page)}
     a_rows = {r["name"]: r for r in page.evaluate("() => window.__xt.gearRows()")}
 
-    assert "已买入" not in after["第1档"]["pills"]
+    assert "已买满" not in after["第1档"]["pills"]
     assert a_rows["第1档"]["boughtG"] == 0
     assert a_rows["第1档"]["pending"] == pytest.approx(16, abs=0.01)
 
