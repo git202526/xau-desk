@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.25 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.26 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -302,6 +302,8 @@ body.tab-ov .tpx{display:none}
 .pill.p-hit{color:#F08A8E;border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.1)}
 .pill.p-near{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.09)}
 .pill.p-done{color:#8FB8FF;border-color:rgba(76,141,255,.35);background:rgba(76,141,255,.09)}
+/* 「估」= 这一档的成本是拿档位价估的（P5 前的标记没有真实成交价），差价只能当参考 */
+.pill.est{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.08);padding:2px 5px}
 .pill.g{color:var(--gold);border-color:rgba(212,162,76,.3)}
 /* 「已买入」可点撤销：热区靠伪元素撑到 40px 上下，视觉上仍是一枚小标签 */
 .pill.undo{position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;-webkit-tap-highlight-color:transparent}
@@ -611,7 +613,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.25 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.26 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2783,6 +2785,10 @@ function computeGears(){
     var mk = planOnly ? ((cfg.gearMarks || {})[String(k)] || null) : null;
     var grossG = mk ? (Number(mk.g) || 0) : 0;
     var soldG  = mk ? (Number(mk.sold) || 0) : 0;
+    /* 老标记（P5 只有 g/at，没有 cost）的成本是拿档位价估出来的，
+       界面上要标「估」，否则用户会把它当成真实成交均价去比差价。
+       只要这一档有过一次带价买入（markBuy 折进 cost），估字就自动消失。 */
+    var costEst = !!mk && grossG > 0 && !(Number(mk.cost) > 0);
     var realized = (planOnly && soldG > 0) ? gearRealized(mk, gearCost(k, mk, price)) : 0;
     var turns = planOnly ? gearTurns(soldG, pl) : 0;
     rows.push({
@@ -2793,7 +2799,7 @@ function computeGears(){
       gram: pending, pending: pending,
       boughtG: bought, overG: overG, doneG: bought,
       grossG: grossG, soldG: soldG, netG: bought,
-      realized: realized, turns: turns,
+      realized: realized, turns: turns, costEst: costEst,
       swing: planOnly && isSwingGear(k),
       done: bought > 0,
       price: price, total: total, held: held, remain: remain,
@@ -4815,7 +4821,7 @@ function addSampleMark(){
 
 function gearUI(g){
   var p = S.price;
-  if(g.done) return { cls:"s-done", label:"已买入", pill:"p-done" };
+  if(g.done) return { cls:"s-done", label:"已买入", pill:"p-done", est:!!g.costEst };
   if(p===null) return { cls:"", label:"未到", pill:"" };
   if(p <= g.price*0.99) return { cls:"s-dead", label:g.warn?"预警已过":"已跌破", pill:"p-hit" };
   if(p <= g.price) return { cls:"s-hit", label:g.warn?"预警触发":"刚到价", pill:"p-hit" };
@@ -4945,6 +4951,7 @@ function renderLadder(){
         (planTxt ? '<span class="plan">' + planTxt + '</span>' : '') + '</div>' +
         '<div class="r2"><span class="pill ' + ui.pill + (g.done ? " undo" : "") + '"' +
           (g.done ? ' data-ungear="' + escapeHtml(g.name) + '"' : '') + '>' + ui.label + '</span>' +
+        (ui.est ? '<span class="pill est" title="成本按档位价估算：这是早期版本留下的标记，没有真实成交价，行尾差价仅供参考">估</span>' : '') +
         '<span class="pill">' + g.pct + '%</span>' +
         '<span class="pill g">' + grams + '</span>' +
         (gap !== null ? '<span class="dist num">' + (gap >= 0 ? "+" : "") + gap.toFixed(1) + '%</span>' : '') +
