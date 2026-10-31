@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.24 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.25 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -363,6 +363,8 @@ body.tab-ov .tpx{display:none}
 
 /* P8 配额重分配：行内的下沉标记 */
 .shift{font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid transparent;white-space:nowrap;cursor:pointer}
+.shift b{font-weight:650}
+.shift b::after{content:"g";font-size:9px;margin-left:.5px;opacity:.7}
 .shift.in{color:var(--gold);background:rgba(212,162,76,.13);border-color:rgba(212,162,76,.3)}
 .shift.out{color:var(--tx3);background:rgba(255,255,255,.045);border-color:var(--line)}
 .mktabs{display:flex;gap:6px;margin-bottom:10px}
@@ -609,7 +611,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.24 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.25 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -742,6 +744,7 @@ body.tab-ov .tpx{display:none}
     <div id="avgCard"></div>
     <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，弹药进度才会累加。
       <br>均价卡给两个口径：<strong>锚定均价</strong> = 只买 1–锚定档位（设置页「目标均价锚定档位」，自动时取权重重心档）；<strong>选定档位试算均价</strong> = 全部档位买满。点「对齐目标」两个数一起重算。
+      <br>档位上的「<strong>+2.2g 下沉入</strong>」是<strong>克重</strong>：已跌破的档买不到了，它的待补额度挪给现价附近的档，这一档因此多出 2.2 克；「−1.5g 下沉出」是让出去的克重。点一下看全额明细。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
       <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
       <br>高点只有一个：在设置里留空就自动（取 D60 高点），填了就锁死；第 1 档锚在 高点 ×（1 − 起始跌幅），目标只拉档距。</div>
@@ -1194,7 +1197,7 @@ function _walk(n){
     if(x.nodeType===1){
       if(!_ALLOW[x.tagName]){ n.removeChild(x); return; }
       Array.prototype.slice.call(x.attributes).forEach(function(a){
-        if(!/^(class|value|data-[\w-]+)$/.test(a.name)) x.removeAttribute(a.name);
+        if(!/^(class|value|data-[\w-]+|title|aria-label)$/.test(a.name)) x.removeAttribute(a.name);
       });
       _walk(x);
     } else if(x.nodeType!==3){ n.removeChild(x); }
@@ -4907,11 +4910,14 @@ function renderLadder(){
         var hp = hitProb((p - g.price) / p * 100, 40);
         if(hp) circ = '<span class="circ">40日触及 ' + (hp.below ? "≥" : "") + Math.round(hp.p) + '%</span>';
       }
-      /* P8：这一档的额度被挪走 / 收到别人的额度。点一下看明细 */
+      /* P8：这一档的额度被挪走 / 收到别人的额度。单位是克（b 后面的 g 由 CSS 补，别写进文本）。
+         点一下看明细 */
       if(planOnly && !g.warn && Math.abs(Number(g.shift) || 0) >= 0.05){
         var sIn = Number(g.shift) > 0;
-        shiftTag = '<span class="shift ' + (sIn ? "in" : "out") + '" data-shift="' + escapeHtml(g.name) + '">' +
-          (sIn ? "+" : "−") + gnum(Math.abs(g.shift)) + (sIn ? " 下沉入" : " 下沉出") + '</span>';
+        shiftTag = '<span class="shift ' + (sIn ? "in" : "out") + '" data-shift="' + escapeHtml(g.name) + '"' +
+          ' title="配额下沉：' + (sIn ? "从已跌破档收到的待补克重" : "待补额度让给了现价附近的档") + '">' +
+          '<b>' + (sIn ? "+" : "−") + gnum(Math.abs(g.shift)) + '</b>' +
+          (sIn ? " 下沉入" : " 下沉出") + '</span>';
       }
     }
 
