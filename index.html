@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.23 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.24 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -335,7 +335,7 @@ body.tab-ov .tpx{display:none}
 #setWGrid input::-webkit-outer-spin-button,#setWGrid input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #setWGrid input:focus{border-color:rgba(212,162,76,.55);box-shadow:0 0 0 3px rgba(212,162,76,.1)}
 .wlab{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px;margin-top:4px;text-align:center;font-size:10px;color:var(--tx3)}
-.wrow{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:7px}
+.wrow{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:7px;flex-wrap:wrap}
 .wrow .wn{font-size:11.5px;color:var(--tx3);min-width:0}
 .wn{display:block;margin-top:7px;font-size:11.5px;color:var(--tx3);line-height:1.5}
 .planTag{display:inline-block;font-size:10px;line-height:1.6;padding:0 6px;border-radius:5px;background:rgba(154,164,178,.18);color:var(--tx2);margin-left:6px;vertical-align:1px;font-weight:400}
@@ -609,7 +609,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.23 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.24 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -821,7 +821,10 @@ body.tab-ov .tpx{display:none}
         <div class="wgrid" id="setWGrid"></div>
         <div class="wlab" id="setWLab"></div>
         <div class="wn" id="setWLive">—</div>
-        <div class="wrow"><button class="btn-ghost" id="btnWReset" style="width:auto;margin:0;padding:6px 12px;font-size:11.5px">恢复默认</button></div>
+        <div class="wrow">
+          <button class="btn-ghost" id="btnWNorm" style="width:auto;margin:0;padding:6px 12px;font-size:11.5px">归一化到 100%</button>
+          <button class="btn-ghost" id="btnWReset" style="width:auto;margin:0;padding:6px 12px;font-size:11.5px">恢复默认</button>
+        </div>
       </div>
       <div class="fld" style="margin-top:14px">
         <label>循环档（可反复买卖）</label>
@@ -5344,8 +5347,10 @@ function renderSetGear(){
 
   var wl = $("setWLive");
   if(wl){
-    var pl = planOf();
-    wl.textContent = "归一化 → " + pl.map(function(x){ return gnum(x); }).join(" / ") + " g";
+    var wv = curW(), pl = planOf(), sw = 0;
+    for(var wi = 0; wi < wv.length; wi++) sw += Number(wv[wi]) || 0;
+    wl.textContent = wLiveText(wv, pl);
+    wl.className = "wn" + (Math.abs(sw - 100) > 0.5 ? " warn" : "");
   }
   var po = $("setPlanOnly");
   if(po) po.checked = !!S.cfg.planOnly;
@@ -5530,6 +5535,7 @@ function renderWGrid(){
       inp.setAttribute("data-w", String(i));
       inp.setAttribute("aria-label", "第" + (i + 1) + "档权重");
       inp.onchange = onWeightChange;
+      inp.oninput = updateWLiveDraft;   /* 只更新「合计」提示，落盘仍走 change */
       box.appendChild(inp);
     }
     var lab = $("setWLab");
@@ -5549,12 +5555,69 @@ function renderWGrid(){
 function onWeightChange(){
   var grid = $("setWGrid");
   if(!grid) return;
-  var ws = [];
-  Array.prototype.forEach.call(grid.querySelectorAll("[data-w]"), function(x){
-    ws.push(Number(x.value) || 0);
-  });
+  var ws = readWInputs();
   S.cfg.wPct = normW(ws);
   saveCfg(); compute(); refreshAll();
+}
+
+/* 读网格当前输入值（含还没 change 的草稿），用于「合计」实时提示 */
+function readWInputs(){
+  var grid = $("setWGrid"), out = [];
+  if(!grid) return out;
+  Array.prototype.forEach.call(grid.querySelectorAll("[data-w]"), function(x){
+    out.push(Number(x.value) || 0);
+  });
+  return out;
+}
+
+/* 合计提示文案：百分比是相对权重，不强制等于 100，但必须让人一眼看出超没超。
+   plan 由调用方给：落盘态用 planOf()，草稿态用同算法的临时折算。 */
+function wLiveText(w, plan){
+  var s = 0;
+  for(var i = 0; i < w.length; i++) s += Number(w[i]) || 0;
+  var head = "合计 " + num(s, 0) + "%";
+  if(s > 100.5) head += "（超 " + num(s - 100, 0) + "%）";
+  else if(s < 99.5) head += "（缺 " + num(100 - s, 0) + "%）";
+  else head += " ✓";
+  return head + " · 归一化 → " + plan.map(function(x){ return gnum(x); }).join(" / ") + " g";
+}
+
+/* 输入过程中的草稿提示：只更新文字，不写盘，避免每敲一个键就重算整页 */
+function updateWLiveDraft(){
+  var w = readWInputs(), n = gearCount();
+  if(w.length !== n) return;
+  var s = 0;
+  for(var i = 0; i < n; i++) s += w[i];
+  var B = totalGrams(), plan = [];
+  for(var j = 0; j < n; j++) plan.push(s > 0 ? B * w[j] / s : 0);
+  var wl = $("setWLive");
+  if(!wl) return;
+  wl.textContent = wLiveText(w, plan);
+  wl.className = "wn" + (Math.abs(s - 100) > 0.5 ? " warn" : "");
+}
+
+/* 一键把权重缩放到合计恰好 100（最大余数法：先取整，再把差额按小数部分从大到小补 1）。
+   只按比例缩放，不改相对关系；某档缩放后不足 1 → 归 0，用户可以再手动加。 */
+function normalizeW(){
+  var w = curW(), n = gearCount(), s = 0;
+  for(var i = 0; i < n; i++) s += Number(w[i]) || 0;
+  if(!(s > 0)){ toast("权重全为 0，先填一个数"); return null; }
+  if(Math.abs(s - 100) < 0.5){ toast("合计已经是 100%"); return w.slice(); }
+  var raw = [], out = [], used = 0;
+  for(var j = 0; j < n; j++){
+    var v = (Number(w[j]) || 0) * 100 / s;
+    raw.push(v);
+    out.push(Math.floor(v));
+    used += Math.floor(v);
+  }
+  var order = raw.map(function(v, i){ return i; }).sort(function(a, b){
+    return (raw[b] - out[b]) - (raw[a] - out[a]);
+  });
+  for(var t = 0; used < 100 && t < order.length; t++, used++) out[order[t]]++;
+  S.cfg.wPct = out;
+  saveCfg(); compute(); refreshAll();
+  toast("已按比例归一到 100%（" + out.join("/") + "）");
+  return out.slice();
 }
 
 /* 设置页循环档六格：点一下切换，切换即写，不设保存按钮。
@@ -6670,6 +6733,7 @@ function bindUI(){
     });
   });
   if($("btnWReset")) $("btnWReset").onclick = function(){ resetW(); };
+  if($("btnWNorm")) $("btnWNorm").onclick = function(){ normalizeW(); };
   if($("btnSwingReset")) $("btnSwingReset").onclick = function(){
     setSwingGears(DEFAULT_SWING);
     toast("循环档已恢复默认");
@@ -6904,6 +6968,9 @@ if(/[?&]xt=1/.test(location.search)){
     curW:curW,
     wCenter:wCenter,
     resetW:resetW,
+    normalizeW:normalizeW,
+    wLiveText:wLiveText,
+    readWInputs:readWInputs,
     atrUsd:atrUsd,
     spanUsd:spanUsd,
     spanForTarget:spanForTarget,
