@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.28 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.29 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -624,7 +624,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.28 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.29 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2658,6 +2658,73 @@ function unmarkGear(i){
   var p = gearState(Number(i));
   markGear(i, 0);
   toast(num(p.pending, 1).replace(/\.0$/, "") + " g 恢复待补");
+}
+
+/* ===== 减仓摊派（P16）=====
+   一次减仓经常横跨好几档（卖 100g 能覆盖六档），逐档点标记不现实。
+   这里按【各档净持占比】把总克重摊到各档的 sold 上，摊完就等同于逐档手动标了一遍，
+   仍然只写 gearMarks，不产生 buys / sells 记录。
+
+   为什么按净持占比、不按计划占比：只买满第 1 档时（净持 16g），卖 8g 应该全落在
+   第 1 档；按计划占比会摊给六档，其中五档净持为 0，摊出来的份额无效（sold 不能超 g）。
+
+   摊完的效果正好是「释放的额度重新参与配额」：
+     净持 = g − sold 变小 → 待补 = 计划 − 净持 变大 → 空出来的量按原权重分布回各档。
+   已持超过计划的档（溢出）自然拿不到下沉额度 —— 因为 realloc 的接收条件是
+   base − bought > 0，溢出时这个差值 ≤ 0，不需要额外判断。
+
+   已知代价：删除或修改那笔卖出记录不会自动回滚档位（标记与记录本就不联动），
+   需要手动取消标记或点「重算档位」。 */
+function splitByGram(gram, weights){
+  var n = weights.length, sum = 0, out = [], used = 0;
+  for(var i = 0; i < n; i++) sum += Math.max(0, Number(weights[i]) || 0);
+  if(!(sum > 0) || !(gram > 0)) return null;
+  for(var j = 0; j < n; j++){
+    var v = Math.round(gram * Math.max(0, Number(weights[j]) || 0) / sum * 10) / 10;
+    out.push(v); used += v;
+  }
+  var diff = Math.round((gram - used) * 10) / 10;      // 尾差补到最后一个有量的档
+  if(Math.abs(diff) >= 0.1){
+    for(var k = n - 1; k >= 0; k--){
+      if(weights[k] > 0){ out[k] = Math.round((out[k] + diff) * 10) / 10; break; }
+    }
+  }
+  return out;
+}
+
+/* 把一笔减仓摊到各档：只改 sold / proceeds，g 与 cost 不动。返回摊到的档数 */
+function allotSell(gram, px){
+  var n = gearCount(), nets = [], sum = 0;
+  for(var i = 1; i <= n; i++){
+    var v = Math.max(0, boughtOf(i));
+    nets.push(v); sum += v;
+  }
+  if(!(sum > 0)) return 0;
+  var q = Math.min(Number(gram) || 0, sum);
+  var parts = splitByGram(q, nets);
+  if(!parts || !(Number(px) > 0)) return 0;
+  S.cfg.gearMarks = S.cfg.gearMarks || {};
+  var hit = 0;
+  for(var j = 0; j < n; j++){
+    var d = parts[j];
+    if(!(d > 0.05)) continue;
+    var k = String(j + 1), m = S.cfg.gearMarks[k] || null;
+    if(!m) continue;                                   // 没标记过的档没有可卖的持仓
+    var g = Number(m.g) || 0, sold = Number(m.sold) || 0;
+    var ns = Math.min(g, sold + d);
+    if(!(ns > sold + 0.001)) continue;
+    var addG = ns - sold;
+    S.cfg.gearMarks[k] = {
+      g: g,
+      cost: Number(m.cost) || 0,
+      sold: Math.round(ns * 10) / 10,
+      proceeds: Math.round(((Number(m.proceeds) || 0) + gramToUsd(addG, Number(px))) * 100) / 100,
+      at: Date.now(),
+      fromBuys: m.fromBuys
+    };
+    hit++;
+  }
+  return hit;
 }
 
 /* 计划模式：把「买入记录」对账回「档位标记」（P15）。
@@ -6712,12 +6779,16 @@ function saveSell(){
   }
 
   var iso = time ? new Date(time).toISOString() : new Date().toISOString();
+  var allotted = 0;
   if(S.editing){
     var s0 = S.cfg.sells.filter(function(x){ return x.id===S.editing; })[0];
     if(s0){ s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note; }
     pushFeed("cut", "修改减仓：" + name, num(gram,1) + " g × " + num(priceCny,2) + " 元/克");
   } else {
     S.cfg.sells.push({ id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note });
+    /* P16：卖出不指定档位，按各档净持占比自动摊到标记上 —— 释放的额度就这样
+       重新回到配额，各档待补随之变大。账本里的记录仍然只有一个总克重。 */
+    if(S.cfg.planOnly) allotted = allotSell(gram, cnyToUsd(priceCny));
     pushFeed("cut", name + " 减仓 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 回笼 " + money(gram*priceCny,2) + " 元");
   }
 
@@ -6725,7 +6796,8 @@ function saveSell(){
   compute();
   refreshAll();
   closeSheet();
-  toast(S.editing ? "已修改" : ("已减 " + num(gram,1) + " 克"));
+  var tail = S.editing ? "，档位标记请手动核对" : (allotted ? " · 已摊到 " + allotted + " 档" : "");
+  toast((S.editing ? "已修改" : ("已减 " + num(gram,1) + " 克")) + tail);
 }
 
 function delBuy(){
@@ -7274,6 +7346,8 @@ if(/[?&]xt=1/.test(location.search)){
     setSwingGears:setSwingGears,
     markBuy:markBuy,
     markSell:markSell,
+    allotSell:allotSell,
+    splitByGram:splitByGram,
     gearCost:gearCost,
     gearRealized:gearRealized,
     gearTurns:gearTurns,
