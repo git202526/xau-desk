@@ -104,6 +104,9 @@ def test_tabbar_not_covering_last_content(make_env):
     env = make_env(width=390, height=844)
     page = env.page
     page.click('.tabbar button[data-tab="set"]')
+    # P14-3 起维护区默认收起；不展开的话 #btnReset 的 rect 全是 0，这条会退化成空断言
+    page.click("#mtToggle")
+    page.wait_for_timeout(200)
     page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
     page.wait_for_timeout(150)
     gap = page.evaluate("""() => {

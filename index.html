@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.26 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.27 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -108,8 +108,19 @@ body{
 .muted{color:var(--tx3);font-size:12.5px;line-height:1.6}
 .note{font-size:11px;color:var(--tx3);line-height:1.65;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
 /* 卡内小分节标题：参数一多就靠它分区，不额外加卡片 */
-.subh{display:flex;align-items:center;gap:8px;margin:16px 0 9px;font-size:11.5px;font-weight:600;color:var(--tx2);letter-spacing:.02em}
-.subh::after{content:"";flex:1 1 auto;height:1px;background:var(--line)}
+/* P14-2 设置页速览条：只读 chips，点一下滚到对应控件（手机上省掉 2.3 屏的滑动） */
+.setnav{display:flex;gap:7px;overflow-x:auto;padding:0 0 11px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.setnav::-webkit-scrollbar{display:none}
+.setnav button{flex:0 0 auto;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--tx2);font-size:11.5px;font-family:inherit;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.setnav button:active{background:rgba(212,162,76,.14);border-color:rgba(212,162,76,.42)}
+.setnav button b{color:var(--gold);font-weight:600;margin-left:4px}
+/* 跳转后的落点闪烁：box-shadow 不吃布局，任何元素都能用 */
+.flash-hold{animation:holdPulse 1.15s ease}
+@keyframes holdPulse{
+  0%{box-shadow:0 0 0 3px rgba(212,162,76,.6)}
+  100%{box-shadow:0 0 0 3px rgba(212,162,76,0)}
+}
+.subh{display:flex;align-items:center;gap:8px;margin:16px 0 9px;font-size:11.5px;font-weight:600;color:var(--tx2);letter-spacing:.02em}.subh::after{content:"";flex:1 1 auto;height:1px;background:var(--line)}
 
 /* 今天要做 */
 .todo{border:1px solid rgba(229,72,77,.28);background:linear-gradient(180deg,rgba(229,72,77,.09),rgba(229,72,77,.015));border-radius:var(--r);padding:13px}
@@ -613,7 +624,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.26 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.27 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -777,8 +788,9 @@ body.tab-ov .tpx{display:none}
   </section>
 
   <section class="panel" id="panel-set">
-    <div class="sech"><h2>建仓参数</h2></div>
-    <div class="card">
+    <div class="setnav" id="setNav" aria-label="设置速览"></div>
+    <div class="sech"><h2>仓位 <span class="cnt" id="sumPos">—</span></h2></div>
+    <div class="card" id="cardPos">
       <div class="row2">
         <div class="fld"><label>目标总克重</label><input type="number" id="setTotal" step="1" inputmode="decimal"></div>
         <div class="fld"><label>底仓保留（g，涨到位也不动）</label><input type="number" id="setKeep" step="1" min="0" inputmode="decimal" placeholder="10"></div>
@@ -786,8 +798,10 @@ body.tab-ov .tpx{display:none}
       <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
       <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
+    </div>
 
-      <div class="subh">档位与高点</div>
+    <div class="sech" style="margin-top:20px"><h2>档位形态 <span class="cnt" id="sumShape">—</span></h2></div>
+    <div class="card" id="cardShape">
       <div class="row2">
         <div class="fld"><label>建仓高点 $/oz</label><input type="number" id="setHigh" step="1" inputmode="decimal" placeholder="留空 = 自动"></div>
         <div class="fld"><label>当前生效</label><input type="text" id="setHighLive" readonly style="color:var(--tx3)" placeholder="—"></div>
@@ -821,7 +835,11 @@ body.tab-ov .tpx{display:none}
         <div class="wgrid" id="setGearCount" style="grid-template-columns:repeat(5,1fr)"></div>
         <div class="wn" id="setGearCountLive">—</div>
       </div>
-      <div class="fld" style="margin-top:12px">
+    </div>
+
+    <div class="sech" style="margin-top:20px"><h2>分布与执行 <span class="cnt" id="sumExec">—</span></h2></div>
+    <div class="card" id="cardExec">
+      <div class="fld">
         <label>档位分布（%）</label>
         <div class="wgrid" id="setWGrid"></div>
         <div class="wlab" id="setWLab"></div>
@@ -894,7 +912,11 @@ body.tab-ov .tpx{display:none}
       </div>
     </div>
 
-    <div class="sech" style="margin-top:20px"><h2>云端数据 · GitHub</h2></div>
+    <div class="sech" style="margin-top:20px">
+      <h2>云端数据 · GitHub <span class="cnt" id="ghFoldState">未接入</span></h2>
+      <button class="act" id="ghToggle" aria-expanded="false" aria-controls="ghWrap">展开</button>
+    </div>
+    <div class="foldwrap" id="ghWrap" hidden>
     <div class="card ghcard">
       <div class="hd">
         <h3>私有数据仓库</h3>
@@ -927,7 +949,13 @@ body.tab-ov .tpx{display:none}
         · 令牌只存在这台设备的浏览器里，不会写进 data.json
       </div>
     </div>
+    </div>
 
+    <div class="sech" style="margin-top:20px">
+      <h2>数据备份与维护</h2>
+      <button class="act" id="mtToggle" aria-expanded="false" aria-controls="mtWrap">展开</button>
+    </div>
+    <div class="foldwrap" id="mtWrap" hidden>
     <div class="note" style="margin-top:14px">
       <b style="color:var(--tx2)">运行说明</b><br>
       · 独立运行：数据直接取自公开行情接口，不依赖任何定时任务<br>
@@ -941,6 +969,7 @@ body.tab-ov .tpx{display:none}
     <input type="file" id="fileImport" accept=".json" class="hide">
     <button class="btn-ghost" id="btnReset">重置档位状态</button>
     <div class="note" id="dbStat"></div>
+    </div>
   </section>
 
 </div>
@@ -3922,6 +3951,8 @@ function setSync(state, msg){
     tag.className = "ghtag" + (on && cls ? " " + cls : "");
     tag.textContent = on ? label : "未接入";
   }
+  var fs = $("ghFoldState");
+  if(fs) fs.textContent = on ? label : "未接入";
   if(st){
     st.textContent = on
       ? ("数据仓库 " + gh.repo + " · " + label + (msg ? " · " + msg : ""))
@@ -4044,6 +4075,7 @@ function bindSync(){
   };
   if($("ghWarnBtn")) $("ghWarnBtn").onclick = function(){
     gotoTab("set");
+    openGhFold();
     var card = $("ghRepo") && $("ghRepo").closest(".ghcard");
     setTimeout(function(){
       if(card) card.scrollIntoView({ block:"center" });
@@ -4054,6 +4086,7 @@ function bindSync(){
   if(bar){
     bar.onclick = function(){
       gotoTab("set");
+      openGhFold();
       var card = $("ghRepo") && $("ghRepo").closest(".ghcard");
       if(card) setTimeout(function(){ card.scrollIntoView({ block:"center" }); }, 120);
       if(!ghOn()) setTimeout(function(){ if($("ghToken")) $("ghToken").focus(); }, 380);
@@ -4126,7 +4159,9 @@ function bindTabbar(){
       window.scrollTo({ top:0, behavior:"smooth" });
       return;
     }
-    gotoTab(name);
+    var bd = $("bdSet");
+    var offAnchor = (bd && !bd.hidden) ? "setHigh" : null;
+    gotoTab(name, offAnchor ? { anchor:offAnchor } : undefined);
   });
 
   if($("posBar")) $("posBar").addEventListener("click", function(){
@@ -5370,7 +5405,119 @@ function renderSetGear(){
   renderSwingGrid();
   renderDripSet();
   renderReallocSet();
+  renderSetSummary();
 }
+
+/* 设置页三张卡的标题摘要（P13-1）：只读回显，一眼看出「现在是什么配置」，
+   不用划到卡里去看输入框。数字全部取自 compute() 之后的结果，这里不重算任何东西。 */
+function renderSetSummary(){
+  var n = gearCount();
+
+  var sp = $("sumPos");
+  if(sp){
+    var hs = holdStats();
+    var tg = totalGrams();
+    sp.textContent = "目标 " + num(tg, 0) + "g" +
+      (hs.grams > 0.05 ? " · 已持 " + num(hs.grams, 1) + "g" : "");
+  }
+
+  var ss = $("sumShape");
+  if(ss){
+    var mode = (S.cfg && S.cfg.spanMode) || "target";
+    var tag = mode === "alpha" ? ("α " + num((S.cfg && S.cfg.alpha) || 1, 2))
+            : mode === "range" ? "区间"
+            : "目标";
+    var p1 = gearPriceOf(1), pn = gearPriceOf(n);
+    ss.textContent = n + " 档 · " + tag +
+      ((p1 > 0 && pn > 0) ? (" · " + num(p1, 0) + "→" + num(pn, 0)) : "");
+  }
+
+  var se = $("sumExec");
+  if(se){
+    var w = curW(), sw = 0, i;
+    for(i = 0; i < w.length; i++) sw += Number(w[i]) || 0;
+    var parts = [];
+    if(S.cfg && S.cfg.planOnly) parts.push("计划");
+    parts.push("合计 " + Math.round(sw) + "%");
+    var sg = 0;
+    for(i = 1; i <= n; i++) if(isSwingGear(i)) sg++;
+    if(sg) parts.push("循环 " + sg);
+    var re = S.cfg && S.cfg.realloc;
+    if(S.cfg && S.cfg.planOnly && re && re.on) parts.push("下沉开");
+    se.textContent = parts.join(" · ");
+  }
+  renderSetNav();
+}
+
+/* 设置页速览条（P14-2）：五枚只读 chip，点一下滚到对应控件。
+   手机一屏 844px，靠滑动找「档位分布」要走 1.5 屏；chip 把「找」变成「点」。 */
+function renderSetNav(){
+  var box = $("setNav");
+  if(!box) return;
+  var n = gearCount();
+  var cfg = S.cfg || {};
+  var mode = (cfg.spanMode === "alpha" || cfg.spanMode === "range") ? cfg.spanMode : "target";
+  var w = curW(), sw = 0, i;
+  for(i = 0; i < w.length; i++) sw += Number(w[i]) || 0;
+
+  var spanAt, spanAnchor;
+  if(mode === "alpha"){
+    spanAt = "α " + num(cfg.alpha || 1, 2); spanAnchor = "setAlpha";
+  } else if(mode === "range"){
+    spanAt = "区间 " + num(startDropOf(), 0) + "~" + num(endDropOf(), 0) + "%"; spanAnchor = "setStartDrop";
+  } else {
+    spanAt = "目标 " + (Number(cfg.avgTarget) > 0 ? num(cfg.avgTarget, 0) : "自动"); spanAnchor = "setAvgT";
+  }
+
+  var re = cfg.realloc || {};
+  var items = [
+    ["setGearCount", n + " 档", ""],
+    [spanAnchor, spanAt, ""],
+    ["setAnchor", "锚定", cfg.avgAnchor ? ("第" + anchorKOf() + "档") : "自动"],
+    ["setWGrid", "合计", Math.round(sw) + "%"],
+    ["setReOn", "下沉", cfg.planOnly ? (re.on ? "开" : "关") : "—"]
+  ];
+  box.innerHTML = items.map(function(it){
+    return '<button type="button" data-jump="' + it[0] + '">' + escapeHtml(it[1]) +
+      (it[2] ? '<b>' + escapeHtml(String(it[2])) + '</b>' : '') + '</button>';
+  }).join("");
+}
+
+/* 滚到设置页某个控件并闪一下。用 box-shadow 动画，不吃布局。 */
+var jumpT = null;
+function jumpToSet(id){
+  var el = $(id);
+  if(!el) return false;
+  try{ el.scrollIntoView({ block:"center", behavior:"smooth" }); }
+  catch(e){ el.scrollIntoView(); }
+  el.classList.remove("flash-hold");
+  void el.offsetWidth;
+  el.classList.add("flash-hold");
+  if(jumpT) clearTimeout(jumpT);
+  jumpT = setTimeout(function(){ el.classList.remove("flash-hold"); }, 1250);
+  return true;
+}
+
+/* P14-3 设置页折叠：云端与「数据备份与维护」默认收起。
+   这两块加起来 1100px，接好云端之后几乎不再打开，却一直占着页面下半截。
+   折叠状态只存内存，不落盘 —— 与档位表的 ladderExpand 同一套思路。 */
+function setFold(wrapId, btnId, open){
+  var w = $(wrapId), b = $(btnId);
+  if(!w) return;
+  w.hidden = !open;
+  if(b){
+    b.textContent = open ? "收起" : "展开";
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+}
+function toggleFold(wrapId, btnId){
+  var w = $(wrapId);
+  if(!w) return;
+  setFold(wrapId, btnId, !!w.hidden);
+}
+/* 任何「要用户看到云端表单」的入口都先展开，否则会滚到一块空白 */
+function openGhFold(){ setFold("ghWrap", "ghToggle", true); }
+function openMtFold(){ setFold("mtWrap", "mtToggle", true); }
 
 /* 设置页档距方式：α / 目标 / 区间 三个胶囊 */
 function renderSpanUI(){
@@ -6747,6 +6894,15 @@ function bindUI(){
   });
   if($("btnWReset")) $("btnWReset").onclick = function(){ resetW(); };
   if($("btnWNorm")) $("btnWNorm").onclick = function(){ normalizeW(); };
+  /* P14-2 速览条：委托一次，chips 重渲染也不用重新绑 */
+  if($("setNav")) $("setNav").onclick = function(e){
+    var b = e.target && e.target.closest ? e.target.closest("[data-jump]") : null;
+    if(!b) return;
+    jumpToSet(b.getAttribute("data-jump"));
+  };
+  /* P14-3 两块折叠 */
+  if($("ghToggle")) $("ghToggle").onclick = function(){ toggleFold("ghWrap", "ghToggle"); };
+  if($("mtToggle")) $("mtToggle").onclick = function(){ toggleFold("mtWrap", "mtToggle"); };
   if($("btnSwingReset")) $("btnSwingReset").onclick = function(){
     setSwingGears(DEFAULT_SWING);
     toast("循环档已恢复默认");

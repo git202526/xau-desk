@@ -170,6 +170,9 @@ def test_export_button_triggers_download(make_env):
     page = env.page
     page.click('.tabbar button[data-tab="set"]')
     page.wait_for_timeout(150)
+    # P14-3 起「数据备份与维护」默认收起，先展开（选文件与断言不变）
+    page.click("#mtToggle")
+    page.wait_for_timeout(200)
     with page.expect_download(timeout=5000) as d:
         page.click("#btnExport")
     name = d.value.suggested_filename

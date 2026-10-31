@@ -87,6 +87,9 @@ def test_t10_keyboard(make_env):
     env = make_env(width=390, height=844)
     page = env.page
     page.click('.tabbar button[data-tab="set"]')
+    # P14-3 起云端表单默认收起，先展开再聚焦（断言与判定标准不变）
+    page.click("#ghToggle")
+    page.wait_for_timeout(150)
     page.focus("#ghToken")
     page.wait_for_timeout(100)
     assert page.evaluate("document.body.classList.contains('kb')") is True

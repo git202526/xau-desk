@@ -11,10 +11,26 @@ WIDTHS = [320, 360, 375, 390, 412, 430]
 OVERFLOW_JS = """() => {
   const vw = document.documentElement.clientWidth;
   const bad = [];
+  /* 横向滚动容器（设置页速览条 .setnav）里的子元素天然会超出容器可视区，
+     这不是页面溢出：只要滚动容器本身在视口内，就跳过它的后代。
+     页面整体的 scrollWidth 检查仍然照做（见 assert_clean 第一条）。 */
+  const inScroller = el => {
+    let p = el.parentElement;
+    while (p && p !== document.body) {
+      const cs = getComputedStyle(p);
+      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') {
+        const pr = p.getBoundingClientRect();
+        if (pr.left >= -1 && pr.right <= vw + 1) return true;
+      }
+      p = p.parentElement;
+    }
+    return false;
+  };
   document.querySelectorAll('body *').forEach(el => {
     const r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) return;
     if (getComputedStyle(el).position === 'fixed') return;
+    if (inScroller(el)) return;
     if (r.right > vw + 1 || r.left < -1) {
       bad.push(el.tagName.toLowerCase() + '#' + (el.id || '') +
                '.' + String(el.className || '').slice(0, 24).trim() +
