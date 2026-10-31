@@ -214,13 +214,15 @@ def test_v13_uncheck_restores(env):
     assert p.evaluate("() => window.__xt.planOf()") == pytest.approx(BASE, abs=0.01)
 
 
-def test_v14_ledger_mode_hides_everything(env):
-    """账本模式：没有标签，设置页说明「不生效」。"""
+def test_v14_ledger_mode_shows_too(env):
+    """P15 需求反转：账本模式同样要标下沉标签，设置页给出下沉明细而不是「不生效」。"""
     p = env(planOnly=False).page
     to_plan(p)
-    assert shifts(p) == []
+    assert len(shifts(p)) == 2
     to_set(p)
-    assert "不生效" in p.inner_text("#setReLive")
+    live = p.inner_text("#setReLive")
+    assert "不生效" not in live
+    assert "已下沉" in live
 
 
 # ---------------------------------------------------------------- 4 双端

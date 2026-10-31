@@ -100,11 +100,11 @@ def test_n5_anchor_auto(env):
     assert nav(p)[2]["t"] == "锚定自动", nav(p)
 
 
-def test_n6_ledger_realloc_dash(env):
-    """账本模式下配额下沉无意义 → chip 显示「—」而不是「开」。"""
+def test_n6_ledger_realloc_on(env):
+    """P15 需求反转：账本模式下沉同样生效 → chip 显示「开」而不是「—」。"""
     p = env(planOnly=False).page
     open_set(p)
-    assert nav(p)[4]["t"] == "下沉—", nav(p)
+    assert nav(p)[4]["t"] == "下沉开", nav(p)
 
 
 # ---------------------------------------------------------------- 跳转

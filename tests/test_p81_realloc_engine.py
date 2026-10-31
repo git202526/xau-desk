@@ -224,11 +224,16 @@ def test_r17_revive_is_full_restore(env):
 
 # ---------------------------------------------------------------- 6 边界
 
-def test_r18_ledger_mode_ignores(env):
-    """账本模式：开关开着也不生效。"""
+def test_r18_ledger_mode_reallocs(env):
+    """P15 需求反转：账本模式同样下沉 —— 买不到的理由和计划模式一模一样，
+    只是「已买」从买卖记录汇总。旧契约是「账本模式不生效」，按新需求改写：
+    仍然要求「真的挪了」且「总量守恒」，不比原来松。"""
     p = env(planOnly=False).page
     set_px(p, 4030.0)
-    assert plan(p) == pytest.approx(pbase(p), abs=1e-9)
+    eff = plan(p)
+    assert eff != pytest.approx(pbase(p), abs=1e-9), "账本模式必须真的重分配"
+    assert sum(eff) == pytest.approx(sum(pbase(p)), abs=0.01), "池子必须分完"
+    assert eff[0] == pytest.approx(0, abs=0.01), "跌破的第 1 档不该再留待补"
 
 
 def test_r19_no_price(env):

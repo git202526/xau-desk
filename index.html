@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.27 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.28 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -624,7 +624,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.27 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.28 · 10/31</span></div>
       </div>
     </div>
     <div class="stat">
@@ -891,7 +891,7 @@ body.tab-ov .tpx{display:none}
       </div>
       <label class="chkline" style="margin-top:14px">
         <input type="checkbox" id="setPlanOnly">
-        <span>计划模式<em>建仓计划只作提醒：可手动标记每档已买多少，不写买卖记录、不读账本持仓</em></span>
+        <span>计划模式<em>建仓计划只作提醒：可手动标记每档已买多少，也可照常「记一笔」——记账会同步回档位，两边是同一套数字</em></span>
       </label>
       <div class="note" style="margin-top:10px">第 1 档 = 高点 ×（1 − 起始跌幅），默认 13%。档距三选一：<strong>波动率</strong>（α×ATR）、<strong>目标均价</strong>（反解档距，可指定落在第几档）、<strong>区间</strong>（起始~终止跌幅均分 n 档）。档位数量 6–10 可切，权重按档数自动套模板后可改。克重与持仓按人民币克价记录，这里只用美元/盎司定档位。</div>
       <button class="btn-primary" id="btnSaveSet">保存参数</button>
@@ -1010,6 +1010,7 @@ body.tab-ov .tpx{display:none}
   <div class="sh"><h3 id="sheetTitle">记录成交</h3><button id="sheetClose">关闭</button></div>
   <div class="form">
     <div class="fld"><label>标签</label><input type="text" name="g_name" placeholder="如 第3档 / 补仓"></div>
+    <div class="fld" id="gearLinkFld" style="display:none"><label>关联档位<em style="font-style:normal;color:var(--tx3);font-weight:400">（选了就同步该档的克重与待补）</em></label><select id="gGear"></select></div>
     <div class="row2">
       <div class="fld"><label id="lbGram">买入克重（g）</label><input type="number" name="g_gram" step="0.1" inputmode="decimal" placeholder="10"></div>
       <div class="fld"><label id="lbPrice">买入单价（元/克）</label><input type="number" name="g_price" step="0.01" inputmode="decimal" placeholder="869.50"></div>
@@ -1038,6 +1039,7 @@ body.tab-ov .tpx{display:none}
       <button class="btn-primary" id="markSave" style="margin-top:0">确认买入</button>
       <button class="btn-ghost" id="markClear" style="margin-top:0">撤销标记</button>
     </div>
+    <button class="btn-ghost" id="markToBuy" style="display:none">改成记一笔（留成交明细）</button>
     <div class="note" id="markFoot">只释放计划额度，实际成交请到「持仓」记一笔。</div>
   </div>
 </div>
@@ -1940,6 +1942,15 @@ function gramToUsd(g, px){
   return g / OZ_PER_G * px;
 }
 
+/* 元/克 → $/oz。买入记录存的是「元/克」，档位成本存的是「美元金额」，
+   计划模式下两边要对账就必须先换到同一个量纲。汇率缺失时返回 null，由调用方退回档位价。 */
+function cnyToUsd(cny){
+  var fx = Number(S.fx);
+  cny = Number(cny);
+  if(!isFinite(cny) || cny <= 0 || !isFinite(fx) || fx <= 0) return null;
+  return cny * OZ_PER_G / fx;
+}
+
 /* 循环档清洗：非数组 → 默认；元素转数字后取 1–6 的整数、去重、升序。
    空数组是合法值（= 关闭循环档），但「全是垃圾值」要回默认，不能悄悄关掉功能。 */
 function normSwing(arr){
@@ -2064,6 +2075,10 @@ function cleanGearMarks(o){
       proceeds: Math.round(proceeds * 100) / 100,
       at: at
     };
+    /* P15：这份标记是从几笔买入记录对账来的。归一化不能把它洗掉，
+       否则删记录时认不出来源，档位上会留下一份撤不掉的「幽灵持仓」。 */
+    var fb = Number(v && v.fromBuys) || 0;
+    if(fb > 0) out[String(i)].fromBuys = Math.round(fb);
   });
   return out;
 }
@@ -2258,11 +2273,12 @@ function planBase(){
 
 /* 生效计划 = 原始计划 + 配额重分配（P8）。
    做成派生量而不是改配置：价格回弹、关掉开关，都会自动回到 planBase，无需撤销逻辑。
-   账本模式直接返回原始值 —— 账本记的是已发生的事实，没有「计划待补」可挪。 */
+   P15：账本模式同样生效 —— 买不到的理由和计划模式一样（价格已跌穿这一档），
+   区别只在「已买」从买卖记录汇总，待补同样是买不到的那部分。 */
 function planOf(){
   var base = planBase();
   var r = S.cfg && S.cfg.realloc;
-  if(!r || !r.on || !(S.cfg && S.cfg.planOnly)) return base;
+  if(!r || !r.on) return base;
   return reallocPlan(base);
 }
 
@@ -2642,6 +2658,54 @@ function unmarkGear(i){
   var p = gearState(Number(i));
   markGear(i, 0);
   toast(num(p.pending, 1).replace(/\.0$/, "") + " g 恢复待补");
+}
+
+/* 计划模式：把「买入记录」对账回「档位标记」（P15）。
+   起因：计划模式下只让标记、不让记一笔，结果持仓汇总与买入记录永远是空的；
+   反过来一旦放开记账，档位表和持仓表就有了两个数据源，改一笔、删一笔就会漂移。
+
+   规则只有一条 —— 记账优先：
+   · 有记账的档，g / cost 完全由 buys 重算（删除或改小会自动跟着变）
+   · 没记账的档，保留手工标记（原地不动，纯标记的用法一点不受影响）
+   · sold / proceeds 不动：账本里的减仓没有档位归属，卖出仍走标记面板
+   只有从 buys 重算过的档才带 fromBuys，删光记录时按它把残留清掉。 */
+function syncMarksFromBuys(){
+  if(!(S.cfg && S.cfg.planOnly)) return false;
+  var seq = gearSeq(), agg = {}, hit = 0;
+  (S.cfg.buys || []).forEach(function(b){
+    var idx = seq.indexOf(b.gear);
+    if(idx < 0) return;
+    /* 与 gearBought 同一套「清除线」：重置过档位状态后，清除线之前的记录不再计入 */
+    var cut = Number((S.cfg.gearCleared || {})[b.gear]) || 0;
+    var idt = Number(String(b.id || "").replace(/^[a-z]/i, "")) || 0;
+    if(cut && (!idt || idt < cut)) return;
+    var k = idx + 1, a = agg[k] || (agg[k] = { g:0, cost:0, n:0 });
+    var gram = Number(b.gram) || 0;
+    a.g += gram; a.n++;
+    var usd = cnyToUsd(Number(b.priceCny) || 0);
+    if(usd) a.cost += gramToUsd(gram, usd);
+  });
+  S.cfg.gearMarks = S.cfg.gearMarks || {};
+  var marks = S.cfg.gearMarks, changed = false;
+  Object.keys(marks).forEach(function(k){
+    if(marks[k] && marks[k].fromBuys && !agg[k]){
+      delete marks[k]; changed = true;                    // 记录全删了，标记跟着撤
+    }
+  });
+  Object.keys(agg).forEach(function(k){
+    var a = agg[k], old = marks[k] || {};
+    var next = {
+      g: Math.round(a.g * 10) / 10,
+      cost: Math.round(a.cost * 100) / 100,
+      sold: Number(old.sold) || 0,
+      proceeds: Number(old.proceeds) || 0,
+      at: Number(old.at) || Date.now(),
+      fromBuys: a.n
+    };
+    marks[k] = next; hit++;
+    changed = true;
+  });
+  return changed && hit >= 0;
 }
 
 /* ===== 深档兜底（P7）=====
@@ -4952,8 +5016,8 @@ function renderLadder(){
         if(hp) circ = '<span class="circ">40日触及 ' + (hp.below ? "≥" : "") + Math.round(hp.p) + '%</span>';
       }
       /* P8：这一档的额度被挪走 / 收到别人的额度。单位是克（b 后面的 g 由 CSS 补，别写进文本）。
-         点一下看明细 */
-      if(planOnly && !g.warn && Math.abs(Number(g.shift) || 0) >= 0.05){
+         点一下看明细。P15 起账本模式也显示 —— 两种模式的「待补」含义相同。 */
+      if(!g.warn && Math.abs(Number(g.shift) || 0) >= 0.05){
         var sIn = Number(g.shift) > 0;
         shiftTag = '<span class="shift ' + (sIn ? "in" : "out") + '" data-shift="' + escapeHtml(g.name) + '"' +
           ' title="配额下沉：' + (sIn ? "从已跌破档收到的待补克重" : "待补额度让给了现价附近的档") + '">' +
@@ -5004,7 +5068,7 @@ function renderLadder(){
   var total = gs[0] ? gs[0].total : totalGrams();
   /* P8：下沉汇总放弹药进度行 —— sech 标题宽度不够，390 下会被 ellipsis 吃掉 */
   var rePool = 0;
-  if(planOnly){
+  if(S.cfg && S.cfg.realloc && S.cfg.realloc.on){
     var inf = reallocInfo();
     rePool = inf.pool;
   }
@@ -5067,7 +5131,11 @@ function renderLadder(){
       if(sl){ openMarkSheet(sl.getAttribute("data-sell"), "sell"); return; }
       var um = e && e.target && e.target.closest ? e.target.closest("[data-unmark]") : null;
       if(um){ unmarkGearByName(um.getAttribute("data-unmark")); return; }
-      openSheet(node.getAttribute("data-gear"));
+      /* 点行：计划模式进「标记已买」（既有习惯，一行两下就标完）；
+         要留成交明细走「持仓 · 记一笔」，那边能选档位并对账。账本模式仍是记一笔。 */
+      var gname = node.getAttribute("data-gear");
+      if(planOnly){ openMarkSheet(gname, "buy"); return; }
+      openSheet(gname);
     };
   });
 }
@@ -5116,6 +5184,7 @@ function renderMarkSheet(){
   $("markGramLb").textContent = sell ? "本次卖出（g）" : "本次买入（g）";
   $("markSave").textContent = sell ? "确认卖出" : "确认买入";
   $("markClear").style.display = sell ? "none" : "";
+  if($("markToBuy")) $("markToBuy").style.display = sell ? "none" : "";
 
   if(sell){
     var mk = (S.cfg.gearMarks || {})[String(g.idx)] || null;
@@ -5133,7 +5202,7 @@ function renderMarkSheet(){
       (g.overG > 0.05 ? '　<span class="warn">超买 ' + gnum(g.overG) + ' g</span>' : '');
     $("markGram").value = gnum(pend > 0.05 ? pend : g.plan);
     $("markPx").value = num(g.price, 2);               // 买入默认档位价（挂单成交）
-    $("markFoot").textContent = "填本次成交克重，会累加到该档；不写买卖记录。";
+    $("markFoot").textContent = "填本次成交克重，会累加到该档；要留成交明细改用「持仓 · 记一笔」，同一档别两边都填";
   }
   updateMarkAmt();
 }
@@ -5443,7 +5512,7 @@ function renderSetSummary(){
     for(i = 1; i <= n; i++) if(isSwingGear(i)) sg++;
     if(sg) parts.push("循环 " + sg);
     var re = S.cfg && S.cfg.realloc;
-    if(S.cfg && S.cfg.planOnly && re && re.on) parts.push("下沉开");
+    if(re && re.on) parts.push("下沉开");
     se.textContent = parts.join(" · ");
   }
   renderSetNav();
@@ -5475,7 +5544,7 @@ function renderSetNav(){
     [spanAnchor, spanAt, ""],
     ["setAnchor", "锚定", cfg.avgAnchor ? ("第" + anchorKOf() + "档") : "自动"],
     ["setWGrid", "合计", Math.round(sw) + "%"],
-    ["setReOn", "下沉", cfg.planOnly ? (re.on ? "开" : "关") : "—"]
+    ["setReOn", "下沉", re.on ? "开" : "关"]
   ];
   box.innerHTML = items.map(function(it){
     return '<button type="button" data-jump="' + it[0] + '">' + escapeHtml(it[1]) +
@@ -5890,7 +5959,6 @@ function renderReallocSet(){
   var live = $("setReLive");
   if(!live) return;
   if(!r.on){ live.textContent = "已关闭，计划保持原样"; return; }
-  if(!(S.cfg && S.cfg.planOnly)){ live.textContent = "账本模式下不生效"; return; }
   var inf = reallocInfo();
   if(!(inf.pool > 0.05)){ live.textContent = "当前没有档位跌破，计划保持原样"; return; }
   var a = inf.out.map(function(x){ return "第" + x.i + "档"; }).join("、");
@@ -6492,6 +6560,7 @@ function openSell(name, id){
   S.editing = item ? item.id : null;
   S.linkGear = null;
   setSheetMode("sell");
+  fillGearLink("");
   $("sheetTitle").textContent = item ? "修改这笔减仓" : (name ? ("减仓 · " + name) : "记一笔减仓");
   qs('[name="g_name"]').value = item ? (item.name||"") : (name || "减仓");
   qs('[name="g_gram"]').value = item ? item.gram : (take ? take.cut : "");
@@ -6507,12 +6576,8 @@ function openSell(name, id){
 }
 
 function openSheet(gearName){
-  /* 计划模式：档位表不记账，点行只弹标记面板 */
-  if(S.cfg && S.cfg.planOnly){
-    if(gearName) openMarkSheet(gearName);
-    else toast("计划模式不记账，先关闭计划模式");
-    return;
-  }
+  /* P15：计划模式不再挡记账 —— 「标记已买」是快速标一下，「记一笔」是留下成交明细
+     （克重 / 元每克 / 时间 / 备注），两者共用同一套档位状态，由 syncMarksFromBuys 对账。 */
   var g = gearName ? (S.gears||[]).filter(function(x){ return x.name===gearName; })[0] : null;
   S.editing = null;
   S.linkGear = g ? g.name : null;
@@ -6526,9 +6591,29 @@ function openSheet(gearName){
   qs('[name="g_time"]').value = d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes());
   qs('[name="g_note"]').value = "";
   $("btnDelBuy").style.display = "none";
+  fillGearLink(g ? g.name : "");
   updateSubtotal();
   $("mask").className = "sheet-mask on";
   $("sheet").className = "sheet on";
+}
+
+/* 记账表单的「关联档位」下拉：只在计划模式出现。
+   计划模式下档位状态来自 gearMarks，记了账却不选档，档位还是「待补」，
+   持仓汇总与弹药进度会给出两个答案；选一下就把两条轨并成一条。 */
+function fillGearLink(sel){
+  var fld = $("gearLinkFld"), box = $("gGear");
+  if(!fld || !box) return;
+  var on = !!(S.cfg && S.cfg.planOnly) && S.sheetMode !== "sell";
+  fld.style.display = on ? "" : "none";
+  if(!on){ box.innerHTML = ""; return; }
+  var rows = (S.gears || []).filter(function(x){ return !x.warn; });
+  var html = '<option value="">不关联（只记持仓）</option>';
+  rows.forEach(function(g){
+    html += '<option value="' + escapeHtml(g.name) + '">' + escapeHtml(g.name) +
+      "　待补 " + gnum(g.pending) + "g</option>";
+  });
+  box.innerHTML = html;
+  box.value = sel || "";
 }
 
 function openBuyEdit(id){
@@ -6536,6 +6621,7 @@ function openBuyEdit(id){
   if(!b) return;
   S.editing = id;
   S.linkGear = b.gear || null;
+  setSheetMode("buy");
   $("sheetTitle").textContent = "修改这笔买入";
   qs('[name="g_name"]').value = b.name || "";
   qs('[name="g_gram"]').value = b.gram || "";
@@ -6544,6 +6630,7 @@ function openBuyEdit(id){
   qs('[name="g_time"]').value = d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes());
   qs('[name="g_note"]').value = b.note || "";
   $("btnDelBuy").style.display = "block";
+  fillGearLink(b.gear || "");
   updateSubtotal();
   $("mask").className = "sheet-mask on";
   $("sheet").className = "sheet on";
@@ -6565,6 +6652,14 @@ function saveBuy(){
   if(!gram || gram <= 0){ toast("克重要大于 0"); return; }
   if(!priceCny || priceCny <= 0){ toast("单价要填数字"); return; }
 
+  /* 档位归属：计划模式下以「关联档位」下拉为准（可选「不关联」）；
+     选了档位但标签还空着，就顺手把标签补成档名 */
+  var gfld = $("gearLinkFld");
+  if(gfld && gfld.style.display !== "none" && $("gGear")){
+    S.linkGear = $("gGear").value || null;
+    if(S.linkGear && (!name || name === "买入")) name = S.linkGear;
+  }
+
   S.cfg.buys = S.cfg.buys || [];
   var iso = time ? new Date(time).toISOString() : new Date().toISOString();
 
@@ -6585,11 +6680,14 @@ function saveBuy(){
     pushFeed("gear", name + " 买入 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 合计 " + money(gram*priceCny,2) + " 元");
   }
 
+  /* 计划模式：记账后立刻对账，档位表、待补、下沉都跟着这笔记录走（P15） */
+  var synced = syncMarksFromBuys();
+
   saveCfg();
   compute();
   refreshAll();
   closeSheet();
-  toast(S.editing ? "已修改" : ("已记入 " + num(gram,1) + " 克"));
+  toast(S.editing ? "已修改" : ("已记入 " + num(gram,1) + " 克" + (synced ? " · 档位已同步" : "")));
 }
 
 function saveSell(){
@@ -6646,13 +6744,13 @@ function delBuy(){
       if(!still) S.cfg.gearsDone = (S.cfg.gearsDone||[]).filter(function(n){ return n!==b.gear; });
     }
   }
+  syncMarksFromBuys();          // 记录删了，档位上那份对账结果要跟着退回去
   saveCfg();
   compute();
   refreshAll();
   closeSheet();
   toast("已删除");
 }
-
 function onAction(act){
   if(act === "setbase"){
     gotoTab("set", { anchor:"setHigh" });
@@ -6855,7 +6953,10 @@ function bindUI(){
     S.cfg.avgTarget = at;
     S.cfg.avgBand = ab || 20;
     if(al){ S.cfg.alpha = al; S.cfg.spanMode = "alpha"; }
+    var wasPlan = !!S.cfg.planOnly;
     S.cfg.planOnly = !!($("setPlanOnly") && $("setPlanOnly").checked);
+    /* 刚切进计划模式：已有的买入记录先对一次账，档位不会一片空白 */
+    if(!wasPlan && S.cfg.planOnly) syncMarksFromBuys();
     /* 深档兜底三格：与 change 事件同一套规范化，保存时一并落 */
     if($("setDripDays")){
       var dv = Number($("setDripDays").value);
@@ -6963,6 +7064,15 @@ function bindUI(){
     if(S.markName) unmarkGearByName(S.markName);
     closeMarkSheet();
   };
+  /* 标记面板 → 记账表单：同一条成交，想留克重/单价/时间/备注就走这边。
+     面板里已经填好的克重与价格原样带过去，不用重打。 */
+  if($("markToBuy")) $("markToBuy").onclick = function(){
+    var nm = S.markName, gm = $("markGram") ? $("markGram").value : "";
+    closeMarkSheet();
+    if(!nm) return;
+    openSheet(nm);
+    if(gm && qs('[name="g_gram"]')){ qs('[name="g_gram"]').value = gm; updateSubtotal(); }
+  };
 
   $("btnExport").onclick = function(){
     var blob = new Blob([JSON.stringify(S.cfg,null,2)], {type:"application/json"});
@@ -6996,6 +7106,7 @@ function bindUI(){
     S.cfg.gearsDone = []; S.cfg.gearHit = {}; S.cfg.gearCleared = {}; S.cfg.feed = []; S.cfg.buys = []; S.cfg.sells = [];
     S.cfg.swingGears = DEFAULT_SWING.slice();   /* 循环档跟着回默认（P6 §6） */
     S.cfg.dripAt = {};                          /* 兜底计时清零，compute 会从今天重新起表（P7） */
+    S.cfg.gearMarks = {};                       /* 档位标记一起清 —— 否则重置完还标着「已买入」（P15） */
     saveCfg(); compute(); refreshAll(); toast("已清空，正在写入云端");
   };
 
@@ -7137,6 +7248,8 @@ if(/[?&]xt=1/.test(location.search)){
     curW:curW,
     wCenter:wCenter,
     resetW:resetW,
+    syncMarksFromBuys:syncMarksFromBuys,
+    cnyToUsd:cnyToUsd,
     normalizeW:normalizeW,
     wLiveText:wLiveText,
     readWInputs:readWInputs,
@@ -7223,7 +7336,9 @@ if(/[?&]xt=1/.test(location.search)){
       return S.cfg.spanMode;
     },
     setPlanOnly:function(b){
+      var was = !!S.cfg.planOnly;
       S.cfg.planOnly = !!b;
+      if(!was && S.cfg.planOnly) syncMarksFromBuys();
       saveCfg(); compute(); refreshAll();
       return S.cfg.planOnly;
     },
