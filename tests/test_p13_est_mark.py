@@ -184,3 +184,19 @@ def test_e11_ten_gears(env):
     p.wait_for_timeout(250)
     assert row(p, "第3档")["est"] is True
     assert row(p, "第7档")["est"] is False
+
+
+def test_e12_est_kept_when_not_full(env):
+    """只买了一半（未买满）、成本仍是估算的，「估」必须还在。
+
+    P16 之后 `done` 的含义改成「买满」，第 1 档只标 8g（计划 16g）时 done=False，
+    标签退回「已跌破」。但成本依然是按档位价估的，标签变了不等于成本变真了 ——
+    est 与 done 必须解耦，否则用户会以为这 8g 有真实成交价。
+    """
+    p = env(gearMarks={"1": {"g": 8, "at": 1700000000000}}).page
+    open_plan(p)
+    p.wait_for_timeout(250)
+    r = row(p, "第1档")
+    assert "已买入" not in r["pills"], r
+    assert r["est"] is True, r
+    assert "估" in r["pills"], r

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.29 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.30 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -624,7 +624,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.29 · 10/31</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.30 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2961,7 +2961,9 @@ function computeGears(){
       grossG: grossG, soldG: soldG, netG: bought,
       realized: realized, turns: turns, costEst: costEst,
       swing: planOnly && isSwingGear(k),
-      done: bought > 0,
+      /* done = 买满（待补归零）。卖出后净持变小、待补重新出现，
+         标签要跟着退回「已跌破」，否则会出现「已买入 + 待补 8g」这种自相矛盾的状态。 */
+      done: bought > 0.05 && pending <= 0.05,
       price: price, total: total, held: held, remain: remain,
       over: held > total + 0.05
     });
@@ -4987,13 +4989,16 @@ function addSampleMark(){
 
 function gearUI(g){
   var p = S.price;
-  if(g.done) return { cls:"s-done", label:"已买入", pill:"p-done", est:!!g.costEst };
-  if(p===null) return { cls:"", label:"未到", pill:"" };
-  if(p <= g.price*0.99) return { cls:"s-dead", label:g.warn?"预警已过":"已跌破", pill:"p-hit" };
-  if(p <= g.price) return { cls:"s-hit", label:g.warn?"预警触发":"刚到价", pill:"p-hit" };
+  /* 「估」只取决于成本是不是估算出来的（有标记、有净持仓、没有真实成交价），
+     跟这档买没买满无关。所以每个分支都要带出去，不能只挂在「已买入」上。 */
+  var est = !!g.costEst;
+  if(g.done) return { cls:"s-done", label:"已买入", pill:"p-done", est:est };
+  if(p===null) return { cls:"", label:"未到", pill:"", est:est };
+  if(p <= g.price*0.99) return { cls:"s-dead", label:g.warn?"预警已过":"已跌破", pill:"p-hit", est:est };
+  if(p <= g.price) return { cls:"s-hit", label:g.warn?"预警触发":"刚到价", pill:"p-hit", est:est };
   var gap = (g.price/p-1)*100;
-  if(gap < 0 && gap > -1.2) return { cls:"s-near", label:"逼近", pill:"p-near" };
-  return { cls:"", label:"未到", pill:"" };
+  if(gap < 0 && gap > -1.2) return { cls:"s-near", label:"逼近", pill:"p-near", est:est };
+  return { cls:"", label:"未到", pill:"", est:est };
 }
 
 /* 档位表窗口（P9-4）：超过 9 个档时只显示「当前档 ±4」，其余折叠。
