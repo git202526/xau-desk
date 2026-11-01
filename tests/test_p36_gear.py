@@ -158,7 +158,9 @@ def test_g5_undo_survives_reload(make_env):
     open_plan(page)
     accept_dialogs(page)
     page.click('#ladder [data-ungear="第2档"]')
-    page.wait_for_timeout(1500)
+    # 等提交落库：全量并发跑时 1.5s 不够（22 个浏览器同时压着），单跑必过。
+    # 与 P14b 那次同理 —— 加的是等待，不是放宽判据。
+    page.wait_for_timeout(2400)
 
     # 落库后再打开
     page.goto(BASE + "/index.html?xt=1", wait_until="domcontentloaded")

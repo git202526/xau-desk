@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.33 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.34 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -410,6 +410,17 @@ body.tab-ov .tpx{display:none}
 .wrow .wn{font-size:11.5px;color:var(--tx3);min-width:0}
 .wn{display:block;margin-top:7px;font-size:11.5px;color:var(--tx3);line-height:1.5}
 .planTag{display:inline-block;font-size:10px;line-height:1.6;padding:0 6px;border-radius:5px;background:rgba(154,164,178,.18);color:var(--tx2);margin-left:6px;vertical-align:1px;font-weight:400}
+/* P22 标题行的异常标签：只在「超预算 / 超目标」时出现。
+   正常态标题行保持干净 —— 待补克重由「档位执行 x / y 克」那一行报，不重复。 */
+.sech .mtag{display:inline-block;flex:0 0 auto;font-size:10.5px;line-height:1.6;padding:0 6px;
+  border-radius:5px;background:rgba(224,145,63,.16);color:#E0913F;font-weight:500;margin-left:6px}
+/* P22 建仓阶梯的两枚重操作（都会重排整张档位表）：原来是无边框纯文字，
+   看起来像行内标签而不是按钮，390 下又紧贴标题，误触和漏点都很常见。 */
+.sact .btn-st{font-size:11.5px;font-weight:600;line-height:1;padding:0 11px;min-height:36px;
+  border-radius:8px;border:1px solid rgba(212,162,76,.42);background:rgba(212,162,76,.12);
+  color:var(--gold);white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.sact .btn-st.solid{background:rgba(212,162,76,.9);border-color:rgba(212,162,76,.9);color:#1B1409}
+.sact .btn-st:active{transform:scale(.97)}
 .lv.markDone{opacity:.55}
 .mkbtn{background:none;border:1px solid var(--line);border-radius:7px;color:var(--tx2);font-size:11px;padding:6px 9px;cursor:pointer;font-family:inherit;min-height:30px;position:relative}
 .mkbtn:active{background:rgba(255,255,255,.06)}
@@ -495,25 +506,31 @@ body.tab-ov .tpx{display:none}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
 
-/* P16b 仓位进度条：20 段色块，左绿右红，点亮的段不透明、未点亮压到 .14。
+/* P16b 仓位进度条：20 段色块，点亮的段不透明、未点亮压到 .14。
    颜色不能写在行内 style 上（sanitizeHtml 会剥掉 style 属性），
-   所以按 nth-child 分五阶给色，每阶 4 格 —— 视觉上是从绿到红的连续过渡。 */
+   所以按 nth-child 分五阶给色，每阶 4 格。
+
+   P22 改色：原来左绿右红，绿在本页是「跌」（var(--dn)），拿它表示「仓位还低、安全」
+   会读反，所以整条去掉绿，改走「深钢蓝 → 亮蓝 → 金 → 橙 → 红」——
+   色相从冷到暖单向走，明度与饱和度同向递增，越往后越紧张。 */
 .gauge{padding:14px 16px;cursor:pointer}
 .gg-h{display:flex;align-items:baseline;justify-content:space-between}
 .gg-h span{font-size:11px;color:var(--tx3)}
 .gg-h b{font-size:26px;font-weight:660;letter-spacing:-.5px;color:var(--tx)}
-.gg-h b.ok{color:var(--dn)}
-.gg-h b.warm{color:var(--amber)}
-.gg-h b.hot{color:#EE8A57}
-.gg-h b.over{color:var(--up)}
+.gg-h b.p0{color:#7FA3C0}
+.gg-h b.p1{color:#86C0E8}
+.gg-h b.p2{color:#DDB469}
+.gg-h b.p3{color:#EE9A55}
+.gg-h b.p4{color:#E5645E}
+.gg-h b.over{color:#F2685F}
 .gbar{display:flex;gap:2px;margin:9px 0 7px}
 .gbar i{flex:1;height:10px;border-radius:3px;opacity:.14;transition:opacity .25s}
 .gbar i.on{opacity:1}
-.gbar i:nth-child(-n+4){background:#2FA36B}
-.gbar i:nth-child(n+5):nth-child(-n+8){background:#8FA83A}
-.gbar i:nth-child(n+9):nth-child(-n+12){background:var(--amber)}
-.gbar i:nth-child(n+13):nth-child(-n+16){background:#E2703A}
-.gbar i:nth-child(n+17){background:var(--up)}
+.gbar i:nth-child(-n+4){background:#446A8C}
+.gbar i:nth-child(n+5):nth-child(-n+8){background:#6B9FC6}
+.gbar i:nth-child(n+9):nth-child(-n+12){background:#C9A24F}
+.gbar i:nth-child(n+13):nth-child(-n+16){background:#E08A45}
+.gbar i:nth-child(n+17){background:#D8514B}
 .gg-f{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3)}
 .gg-f .warn{color:var(--up)}
 /* 弹药 */
@@ -704,7 +721,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.33 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.34 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -842,8 +859,8 @@ body.tab-ov .tpx{display:none}
     <div class="sech">
       <h2>建仓阶梯 <span class="cnt" id="ladderMeta"></span></h2>
       <div class="sact">
-        <button class="act" id="btnRecalc">重算档位</button>
-        <button class="act" id="btnRebuild">按高点</button>
+        <button class="act btn-st solid" id="btnRecalc">重算档位</button>
+        <button class="act btn-st" id="btnRebuild">按高点</button>
       </div>
     </div>
     <div id="gearSrcBox"></div>
@@ -5568,23 +5585,18 @@ function renderLadder(){
   $("ammoTxt").textContent = amTxt;
   $("ammoFill").style.width = Math.max(0, Math.min(100, total > 0 ? bt / total * 100 : 0)) + "%";
 
-  var m = S.gearMeta || {};
-  var tailTxt = "";
+  /* P22 标题行去重：高点与「手动 / 自动」只保留在下面「档位来源」那一行，
+     待补 / 待建与「档位执行 x / y 克」是同一个数（y − x），也不该在标题里再报一遍。
+     标题行只留「需要你处理」的异常 + 计划模式标签；正常态一个字不显示，
+     把宽度让给标题本身，390 下也不再被 ellipsis 截成「待补…」。 */
+  var mtxt = "", mcls = "";
   if(planOnly){
-    if(sub.overBudget > 0.05) tailTxt = " · 已超预算 " + gnum(sub.overBudget) + " 克";
-    else if(sub.pending < 0.05) tailTxt = " · 计划已执行完毕";
-    else tailTxt = " · 待补 " + gnum(sub.pending) + " 克";
-  } else if(bt > total + 0.05) tailTxt = " · 已超目标 " + num(bt - total, 1) + " 克";
-  else if(total - bt < 0.1) tailTxt = " · 已建满";
-  else tailTxt = " · 待建 " + num(total - bt, 1) + " 克";
-
-  var head = "";
-  if(m.he){
-    var how = m.highManual ? "手动高点" : ("自动 " + ((m.auto && m.auto.win) || ""));
-    head = "高点 " + num(m.he, 0) + " · " + how;
+    if(sub.overBudget > 0.05){ mtxt = "已超预算 " + gnum(sub.overBudget) + "g"; mcls = " warn"; }
+  } else if(bt > total + 0.05){
+    mtxt = "已超目标 " + num(bt - total, 1) + "g"; mcls = " warn";
   }
-  /* P8：下沉汇总已放到弹药进度行（见上），这里只保留档位来源 */
-  $("ladderMeta").innerHTML = escapeHtml(head + tailTxt) +
+  $("ladderMeta").innerHTML =
+    (mtxt ? '<span class="mtag' + mcls + '">' + escapeHtml(mtxt) + '</span>' : "") +
     (planOnly ? '<span class="planTag">计划模式</span>' : "");
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-fold]"), function(node){
@@ -6475,7 +6487,13 @@ function renderGauge(){
   if(on > GAUGE_SEG) on = GAUGE_SEG;
   var bars = "", i;
   for(i = 0; i < GAUGE_SEG; i++) bars += '<i' + (i < on ? ' class="on"' : '') + '></i>';
-  var cls = pct > 100 ? "over" : pct >= 85 ? "hot" : pct >= 60 ? "warm" : "ok";
+  /* 文字色跟「当前点亮到第几阶」走，与色块位置严格同源：
+     段 i 落在第 floor(i/4) 阶，所以最后一格亮到哪、字就是哪一阶的颜色，
+     不会出现「条是橙的、字是红的」这种两套色。超过上限单独一档。 */
+  var cls;
+  if(pct > 100) cls = "over";
+  else if(!(pct > 0)) cls = "";
+  else cls = "p" + Math.min(4, Math.floor((Math.max(on, 1) - 1) / 4));
   var rest = lim - cur, tail;
   if(rest > 0.05)       tail = "还能买 " + num(rest, 1) + " g";
   else if(rest < -0.05) tail = "超上限 " + num(-rest, 1) + " g";
