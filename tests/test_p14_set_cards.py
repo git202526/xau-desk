@@ -47,7 +47,7 @@ def body(page):
                      'setHigh','setHighLive','btnHighAuto','setAvgT','setAvgB','setSpanMode',
                      'setAlpha','setSpanLive','setStartDrop','setEndDrop','setAnchor','setGearCount',
                      'setWGrid','setWLab','setSwingGrid','setAlertGrid','setDripDays','setReOn',
-                     'setPlanOnly','btnSaveSet'];
+                     'btnSaveSet'];
         const own = {};
         ids.forEach(i => { own[i] = inCard(i); });
         return {
@@ -107,7 +107,7 @@ def test_l4_exec_owns(env):
     open_set(p)
     own = body(p)["own"]
     for i in ("setWGrid", "setWLab", "setSwingGrid", "setAlertGrid", "setDripDays",
-              "setReOn", "setPlanOnly", "btnSaveSet"):
+              "setReOn", "btnSaveSet"):
         assert own[i] == "cardExec", (i, own[i])
 
 
@@ -175,13 +175,13 @@ def test_l10_shape_summary_follows_count(env):
 
 
 def test_l11_exec_summary(env):
-    """执行摘要：计划标记 + 合计百分比 + 循环档数。"""
-    p = env(planOnly=True, swingGears=[1, 2]).page
+    """执行摘要：合计百分比 + 循环档数（P20 起不再有「计划」模式标签）。"""
+    p = env(swingGears=[1, 2]).page
     open_set(p)
     s = body(p)["sums"]["exec"]
-    assert s.startswith("计划"), s
     assert "合计 100%" in s, s
     assert "循环 2" in s, s
+    assert "计划" not in s, s
 
 
 def test_l12_exec_summary_over_100(env):

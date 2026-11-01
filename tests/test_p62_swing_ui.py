@@ -211,14 +211,19 @@ def test_u12_empty_swing_shows_hint(env):
 
 # ---------------------------------------------------------------- 边界
 
-def test_u13_ledger_mode_has_no_mark_sheet(env):
-    """账本模式已经有 sells[]，再叠一层会让「卖了几次」有两个答案（P6 §5.4）。"""
+def test_u13_row_click_opens_mark_sheet(env):
+    """点档位行打开标记面板 —— 只有一个入口，不再按模式分流。
+
+    P20 契约变更：原名 `test_u13_ledger_mode_has_no_mark_sheet`，守的是
+    「账本模式不弹标记面板」。合并后每个用户都有一张档位表，档位层的入口必须一致；
+    「卖了几次」的答案仍然只有一处（sells[] 记事实，gearMarks.sold 记摊派）。
+    """
     e = env(c=dict(cfg(), planOnly=False))
     p = e.page
     plan_tab(p)
     p.click('#ladder [data-gear="第1档"] .price')
     p.wait_for_timeout(300)
-    assert p.evaluate("() => document.getElementById('sheetMark').classList.contains('on')") is False
+    assert p.evaluate("() => document.getElementById('sheetMark').classList.contains('on')") is True
 
 
 def test_u14_no_overflow_on_both_widths(env):

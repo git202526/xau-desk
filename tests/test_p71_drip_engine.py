@@ -197,11 +197,15 @@ def test_d11_clock_not_reset_by_price_tick(env):
     assert after == before
 
 
-def test_d12_ledger_mode_clears_clock(env):
-    """账本模式没有「计划待补」，计时表必须为空。"""
-    p = env(planOnly=False).page
-    assert p.evaluate("() => window.__xt.state().cfg.dripAt") == {}
-    assert p.evaluate("() => window.__xt.dripInfo(1).why") == "ledger"
+def test_d12_clock_needs_no_mode(env):
+    """计时只看 dripDays 与队首，不看模式。
+
+    P20 契约变更：原名 `test_d12_ledger_mode_clears_clock`，守的是「账本模式清空计时」。
+    单模式之后每个用户都有「下一个待买档」，计时照走；关闭方式只剩 dripDays = 0（d13）。
+    """
+    p = env().page
+    assert p.evaluate("() => Object.keys(window.__xt.state().cfg.dripAt).length") >= 1
+    assert p.evaluate("() => window.__xt.dripInfo(1).why") != "ledger"
 
 
 def test_d13_zero_days_closes_feature(env):

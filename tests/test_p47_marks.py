@@ -64,10 +64,7 @@ def row_text(page, name):
 
 
 def enable_plan(page):
-    open_tab(page, "set")
-    page.check("#setPlanOnly")
-    page.click("#btnSaveSet")
-    page.wait_for_timeout(320)
+    """P20 契约变更：`#setPlanOnly` 随模式合并被删除，进计划页即可。"""
     open_tab(page, "plan")
 
 
@@ -80,21 +77,28 @@ def toast_text(page):
 
 # ---------------------------------------------------------------- 1 开关与价格
 
-def test_plan_toggle_shows_mark_and_keeps_prices(env):
+def test_marks_available_without_mode(env):
+    """档位一开始就有标记入口，开合面板不动档位价。
+
+    P20 契约变更：原名 `test_plan_toggle_shows_mark_and_keeps_prices`，守的是
+    「开计划模式才出现标记按钮」。开关随模式删除，改为直接核对入口与价格不变。
+    """
     e = env()
     p = e.page
     open_tab(p, "plan")
     before = p.evaluate("() => window.__xt.gearRows()")
-    assert row_text(p, "第4档")["mark"] is False
-
-    enable_plan(p)
-    after = p.evaluate("() => window.__xt.gearRows()")
-    assert [r["price"] for r in after] == [r["price"] for r in before], "开计划模式不该动档位价"
     r4 = row_text(p, "第4档")
     assert r4["mark"] is True, r4
     assert r4["plan"] == "计划 72g"
     assert r4["g"] == "待补 72g"
-    assert p.evaluate("() => document.querySelector('#ladderMeta .planTag') !== null")
+
+    p.evaluate("() => window.__xt.openMarkSheet('第4档','buy')")
+    p.wait_for_timeout(220)
+    p.evaluate("() => window.__xt.closeMarkSheet()")
+    p.wait_for_timeout(220)
+    after = p.evaluate("() => window.__xt.gearRows()")
+    assert [r["price"] for r in after] == [r["price"] for r in before], "开合面板不该动档位价"
+    assert p.evaluate("() => document.querySelector('#ladderMeta .planTag')") is None
 
 
 # ---------------------------------------------------------------- 2 标记 20 < 72
@@ -228,9 +232,15 @@ def test_marks_survive_reload(env):
     assert row_text(p, "第3档")["g"] == "12 / 48g"
 
 
-# ---------------------------------------------------------------- 8 切回账本模式
+# ---------------------------------------------------------------- 8 保存设置后标记不动
 
-def test_switch_back_to_ledger_keeps_marks(env):
+def test_marks_survive_settings_save(env):
+    """保存一次设置参数，标记与净持都原样留着。
+
+    P20 契约变更：这一条原名 `test_switch_back_to_ledger_keeps_marks`，
+    守的是「切回账本模式后标记被无视（bought 归 0）」。模式合并后那个维度不存在了，
+    但「保存设置不许动标记」这件事仍然值得守 —— 改成保存一次参数再核对。
+    """
     e = env()
     p = e.page
     enable_plan(p)
@@ -241,19 +251,12 @@ def test_switch_back_to_ledger_keeps_marks(env):
     p.wait_for_timeout(300)
 
     open_tab(p, "set")
-    p.uncheck("#setPlanOnly")
     p.click("#btnSaveSet")
     p.wait_for_timeout(320)
     open_tab(p, "plan")
     assert row_text(p, "第4档")["mark"] is False
     assert p.evaluate("() => Object.keys(window.__xt.state().cfg.gearMarks || {}).length") == 1
-    assert p.evaluate("() => window.__xt.gearState(4).bought") == 0
-
-    open_tab(p, "set")
-    p.check("#setPlanOnly")
-    p.click("#btnSaveSet")
-    p.wait_for_timeout(320)
-    open_tab(p, "plan")
+    assert p.evaluate("() => window.__xt.gearState(4).bought") == 20
     assert row_text(p, "第4档")["g"] == "20 / 72g"
 
 

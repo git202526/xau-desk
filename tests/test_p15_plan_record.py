@@ -114,13 +114,22 @@ def test_b2_gear_select(env):
     assert "待补" in p.inner_text("#gGear")
 
 
-def test_b3_ledger_mode_hides_select(env):
-    """账本模式不显示这个下拉（档位归属对账本模式没意义）。"""
-    p = env(cfg(planOnly=False)).page
+def test_b3_buy_and_sell_both_show_select(env):
+    """买入、卖出都能选档 —— 这是 P20 的改动点。
+
+    P20 契约变更：原名 `test_b3_ledger_mode_hides_select`，守的是「账本模式隐藏下拉」。
+    单模式之后档位归属对所有人有意义，卖出也放开了（默认仍选「不关联」）。
+    """
+    p = env(cfg()).page
     to_pos(p)
     p.click("#btnAddBuy")
     p.wait_for_timeout(300)
-    assert p.evaluate("() => document.getElementById('gearLinkFld').style.display") == "none"
+    assert p.evaluate("() => getComputedStyle(document.getElementById('gearLinkFld')).display") != "none"
+
+    p.evaluate("() => window.__xt.openSell(null)")
+    p.wait_for_timeout(250)
+    assert p.evaluate("() => getComputedStyle(document.getElementById('gearLinkFld')).display") != "none"
+    assert p.evaluate("() => document.getElementById('gGear').value") == ""
 
 
 # ---------------------------------------------------------------- 2 记账
@@ -245,14 +254,17 @@ def test_b14_ledger_mode_untouched(env):
     assert marks(p) == {}
 
 
-def test_b15_switch_to_plan_syncs(env):
-    """账本模式里记过账（带档位），切到计划模式时自动对账，档位不会一片空白。"""
+def test_b15_ledger_record_syncs_on_load(env):
+    """账本模式里记过账（带档位）→ 载入即对账，档位不会一片空白。
+
+    P20 契约变更：以前这一步发生在「切到计划模式」那一刻（syncMarksFromBuys 被
+    planOnly 挡住）；单模式之后对账对所有人成立，载入时由 migrateMarksV7() 完成。
+    守的性质没变 —— 账本记录必须能落到档位上。
+    """
     p = env(cfg(planOnly=False, buys=[
         {"id": "b9", "name": "第3档", "gram": 48, "priceCny": 880.0,
          "time": "2026-10-01T02:00:00.000Z", "note": "", "gear": "第3档"}])).page
-    assert marks(p) == {}
-    p.evaluate("() => window.__xt.setPlanOnly(true)")
-    p.wait_for_timeout(400)
+    p.wait_for_function("() => window.__xt.state().cfg.migratedV7 === true", timeout=8000)
     m = marks(p)
     assert m["3"]["g"] == 48
     assert m["3"]["fromBuys"] == 1

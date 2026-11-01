@@ -124,12 +124,16 @@ def test_u4_no_prompt_for_swing_gear(env):
     assert p.query_selector('#ladder [data-drip="第4档"]') is not None
 
 
-def test_u5_no_prompt_in_ledger_mode(env):
-    """账本模式不出现任何提示条。"""
-    p = env(planOnly=False).page
+def test_u5_prompt_appears_for_any_user(env):
+    """到期且溢价达标就出提示条，不再分模式。
+
+    P20 契约变更：原名 `test_u5_no_prompt_in_ledger_mode`，守的是「账本模式不出提示」。
+    合并后兜底对所有人开放，唯一的关闭方式是 dripDays = 0（u6）。
+    """
+    p = env().page
     to_plan(p)
     backdate(p, 3, 40)
-    assert drip_count(p) == 0
+    assert drip_count(p) == 1
 
 
 def test_u6_no_prompt_when_disabled(env):

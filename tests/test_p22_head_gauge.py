@@ -66,10 +66,10 @@ def open_tab(page, tab):
 
 
 def enable_plan(page):
-    open_tab(page, "set")
-    page.check("#setPlanOnly")
-    page.click("#btnSaveSet")
-    page.wait_for_timeout(320)
+    """P20 契约变更：`#setPlanOnly` 已随模式合并被删除，进入计划页即可。
+
+    以前这里是勾一下开关再保存；单模式之后档位表对所有人都在，没有「进入」这个动作了。
+    """
     open_tab(page, "plan")
 
 
@@ -171,7 +171,8 @@ def test_h2_no_pending_in_title(env):
     enable_plan(p.page)
     h = head(p.page)
     assert "待补" not in h["meta"], h
-    assert h["meta"] == "计划模式", h
+    # 标签「计划模式」随模式一起消失 → 正常态标题行留空
+    assert h["meta"] == "", h
 
 
 def test_h3_over_budget_is_the_only_title_alert(env):

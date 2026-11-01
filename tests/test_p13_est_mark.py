@@ -109,12 +109,16 @@ def test_e3_no_mark_no_est(env):
     assert no_hold(r["pills"]), r
 
 
-def test_e4_ledger_mode_no_est(env):
-    """账本模式（非计划模式）没有 gearMarks，一律不标。"""
-    p = env(planOnly=False, gearsDone=["第1档"],
+def test_e4_est_badge_needs_no_mode(env):
+    """「估」只看这一档有没有真实成交价（cost），与谁在用无关。
+
+    P20 契约变更：原名 `test_e4_ledger_mode_no_est`，守的是「账本模式不标估」。
+    单模式之后账本也有标记，判据收敛成 `g > 0 && !cost` —— 没有成交价的标记就得标。
+    """
+    p = env(gearsDone=["第1档"],
             gearMarks={"1": {"g": 16, "at": 1700000000000}}).page
     open_plan(p)
-    assert row(p, "第1档")["est"] is False, rows(p)
+    assert row(p, "第1档")["est"] is True, rows(p)
 
 
 def test_e5_zero_gram_no_est(env):

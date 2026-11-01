@@ -247,23 +247,35 @@ def test_s17_sell_does_not_touch_ledger(env):
 # ---------------------------------------------------------------- 7 汇总口径
 
 def test_s18_summary_bought_is_net(env):
+    """planSummary 的 bought 是净持仓；累计口径由逐档汇总（P20 删了三个死字段）。"""
     p = env().page
     p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
     p.evaluate("() => window.__xt.markSell(1, 6, 4170)")
     s = p.evaluate("() => window.__xt.planSummary()")
     assert s["bought"] == 10
     assert s["pending"] == 190
-    assert s["grossBought"] == 16
-    assert s["soldTotal"] == 6
+    # P20 契约变更：grossBought / soldTotal / realizedTotal 已按计划书 §4 删除，
+    # 这里改成从 gearState 逐档加 —— 守的性质不变（净持 = 累计买 − 累计卖）。
+    tot = p.evaluate("""() => {
+      var g = 0, s = 0;
+      for (var i = 1; i <= 6; i++) { var v = window.__xt.gearState(i); g += v.gross; s += v.soldG; }
+      return [g, s];
+    }""")
+    assert tot == [16, 6]
+    assert s["bought"] == tot[0] - tot[1]
 
 
 def test_s19_summary_realized_matches_gear(env):
     p = env().page
     p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
     p.evaluate("() => window.__xt.markSell(1, 6, 4170)")
-    s = p.evaluate("() => window.__xt.planSummary()")
     g = p.evaluate("() => window.__xt.gearState(1).realized")
-    assert s["realizedTotal"] == pytest.approx(g, abs=0.001)
+    tot = p.evaluate("""() => {
+      var t = 0;
+      for (var i = 1; i <= 6; i++) t += window.__xt.gearState(i).realized;
+      return t;
+    }""")
+    assert tot == pytest.approx(g, abs=0.001)
 
 
 def test_s20_done_flips_back_after_sell(env):

@@ -60,6 +60,12 @@ def bought_grams(page, name):
     return page.evaluate("(n) => window.__xt.gearBought(n)", name)
 
 
+def marks_grams(page, name):
+    """档位净持（P20 起这是唯一的执行口径；gearBought 只数 buys[]）"""
+    i = page.evaluate("(n) => window.__xt.gearSeq().indexOf(n) + 1", name)
+    return page.evaluate("(i) => window.__xt.gearState(i).bought", i)
+
+
 def test_g1_done_gear_shows_bought_gram(make_env):
     env = make_env(CFG)
     page = env.page
@@ -67,10 +73,10 @@ def test_g1_done_gear_shows_bought_gram(make_env):
     rows = gears(page)
     first = g(rows, "第1档")
     assert "已买满" in first["pills"], first
-    assert "已买 16g" in first["gpill"], first
+    assert "16 / 16g" in first["gpill"], first
     second = g(rows, "第2档")
     assert "已买满" in second["pills"]
-    assert "已买 24g" in second["gpill"]
+    assert "24 / 24g" in second["gpill"]
     # 两档都带撤销入口
     assert first["undo"] and second["undo"]
 
@@ -94,7 +100,7 @@ def test_g2_sell_keeps_done_mark(make_env):
     rows = gears(page)
     second = g(rows, "第2档")
     assert "已买满" in second["pills"], second
-    assert "已买 24g" in second["gpill"]
+    assert "24 / 24g" in second["gpill"]
     assert page.evaluate("() => window.__xt.holdStats().grams") == 16
 
 
@@ -115,8 +121,8 @@ def test_g3_undo_clears_mark_and_reallocs(make_env):
     assert after["undo"] is False
     # 回到待买，且克重按额度重新分配（> 0）
     gp = after["gpill"]
-    assert gp.startswith("待买"), gp
-    num = float(gp.replace("待买", "").replace("g", "").strip())
+    assert gp.startswith("待补"), gp
+    num = float(gp.replace("待补", "").replace("g", "").strip())
     assert num > 0
     # 第1档不受影响
     assert "已买满" in g(gears(page), "第1档")["pills"]
@@ -142,7 +148,7 @@ def test_g4_undo_allows_rebuy_when_price_returns(make_env):
     page.wait_for_timeout(200)
     row = g(gears(page), "第2档")
     assert "刚到价" in row["pills"], row
-    assert row["gpill"].startswith("待买"), row
+    assert row["gpill"].startswith("待补"), row
 
     # 待办里也重新出现这一档的买入提示（总览页才渲染待办）
     page.click('.tabbar button[data-tab="ov"]')
@@ -185,19 +191,20 @@ def test_g6_rebuy_after_undo_marks_again(make_env):
     page.click('#ladder [data-ungear="第2档"]')
     page.wait_for_timeout(300)
 
-    # 点该档打开弹层，直接用预填的待买克重记一笔
+    # 点该档打开标记面板，直接用预填的待买克重标回去
+    # （P20：点行不再走「记一笔」，档位层只有一个入口；买卖记录仍由持仓页维护）
     page.click('#ladder .body[data-gear="第2档"]')
     page.wait_for_timeout(250)
-    assert page.eval_on_selector("#sheet", "e => e.classList.contains('on')") is True
-    gram = page.eval_on_selector('input[name="g_gram"]', "e => e.value")
+    assert page.eval_on_selector("#sheetMark", "e => e.classList.contains('on')") is True
+    gram = page.eval_on_selector("#markGram", "e => e.value")
     assert float(gram) > 0
-    page.click("#btnSave")
+    page.click("#markSave")
     page.wait_for_timeout(400)
 
     row = g(gears(page), "第2档")
     assert "已买满" in row["pills"], row
-    assert "已买" in row["gpill"]
-    assert bought_grams(page, "第2档") > 0
+    assert row["gpill"] == "24 / 24g", row
+    assert marks_grams(page, "第2档") > 0
 
 
 def test_g7_recalc_follows_holding(make_env):

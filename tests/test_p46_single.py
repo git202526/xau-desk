@@ -276,15 +276,21 @@ def test_held_already_better_than_target(env):
     assert b["hint"] == "done"
 
 
-def test_planonly_skips_held_conversion(env):
+def test_held_conversion_no_mode_switch(env):
+    """已持仓折算只看「手里有没有货」，没有模式开关了。
+
+    P20 契约变更：这一条原名 `test_planonly_skips_held_conversion`，守的是
+    「计划模式下不折算」。模式合并后那个维度消失，折算判据改成真实持仓 ——
+    有持仓就折，没有就跳过（o2/o5 覆盖空仓与临界值）。
+    """
     c = cfg(buys=[buy(60, 4100 * 7.10 / 31.1035)])
     p = env(c).page
     p.evaluate("() => window.__xt.setTargetT(3980)")
     assert near(p.evaluate("() => window.__xt.gearBase().targetEff"), 3928.571, 0.2)
-    p.evaluate("() => window.__xt.setPlanOnly(true)")
+    # 老接口留着但不再改变行为（返回 false，状态不动）
+    assert p.evaluate("() => window.__xt.setPlanOnly(true)") is False
     b = p.evaluate("() => window.__xt.gearBase()")
-    assert b["targetEff"] == 3980            # 计划模式不折算
-    assert near(b["d"], (4089 - 3980) / 2.56, 0.02)
+    assert near(b["targetEff"], 3928.571, 0.2)
 
 
 # ---------------------------------------------------------------- ATR 兜底
