@@ -119,11 +119,23 @@ def test_l7_period_tags_single_line(make_env, w):
 
 
 def test_l8_period_tags_update_not_wrap(make_env):
-    """切换结构时标签会重渲染，重渲染后仍然一行。"""
+    """切换结构时标签会重渲染，重渲染后仍然一行。
+
+    判据不变（全部 .vtag 的 top 必须相等），只把「固定等 200ms」换成「等布局稳定」：
+    全量串跑时浏览器上下文多、字体与重排慢，200ms 内偶尔还停在换行态，
+    会出现无改动的随机红。改为轮询到稳定（上限 3s）再断言，真换行照样会红。
+    """
     env = make_env()
     page = env.page
     page.evaluate("() => window.__xt.refreshAll()")
-    page.wait_for_timeout(200)
+    try:
+        page.wait_for_function("""() => {
+          const ts = Array.from(document.querySelectorAll('#vTags .vtag'))
+                       .map(e => Math.round(e.getBoundingClientRect().top));
+          return ts.length > 0 && Math.max(...ts) - Math.min(...ts) <= 1;
+        }""", timeout=3000)
+    except Exception:
+        pass          # 真换行时这里必然超时，交给下面的断言报出具体 top
     tops = page.eval_on_selector_all("#vTags .vtag",
                                      "els => els.map(e => Math.round(e.getBoundingClientRect().top))")
     assert len(set(tops)) == 1, tops
