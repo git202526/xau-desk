@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.36 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.37 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -533,6 +533,40 @@ body.tab-ov .tpx{display:none}
 .gbar i:nth-child(n+17){background:#D8514B}
 .gg-f{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3)}
 .gg-f .warn{color:var(--up)}
+/* P18 执行复盘：每档三行块，单列竖排，320 宽也不横滑。
+   配色全走 class —— sanitizeHtml 会剥掉 style 属性，内联样式活不下来。 */
+.rv{padding:0;margin-top:16px}
+.rv-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;cursor:pointer}
+.rv-h>span:first-child{font-weight:650;font-size:14px}
+.rv-sum{font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.rv-arw{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+        border-top:5px solid var(--tx3);transition:transform .18s}
+.rv-arw.on{transform:rotate(180deg)}
+.rv-list{padding:0 14px 2px}
+.rv-g{padding:9px 0;border-top:1px solid rgba(32,48,74,.55)}
+.rv-g:first-child{border-top:none}
+.rv-r1{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13px}
+.rv-r1 .rv-n{font-weight:600}
+.rv-r1 .ok{color:var(--dn);font-size:12px}
+.rv-r1 .warn{color:var(--amber);font-size:12px}
+.rv-r1 .dim{color:var(--tx3);font-size:12px}
+.rv-r2{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;margin-top:3px;
+       font-size:12.5px;color:var(--tx3)}
+.rv-r2 b{font-weight:600;color:var(--tx)}
+.rv-r2 b.good{color:var(--dn)}
+.rv-r2 b.warn{color:var(--amber)}
+.rv-r2 b.dim{color:var(--tx3);font-weight:500}
+.rv-r3{font-size:11.5px;margin-top:2px}
+.rv-r3 b{font-weight:600;color:var(--tx2)}
+.rv-est{font-style:normal;font-size:9.5px;color:var(--tx3);border:1px solid var(--line);
+        border-radius:3px;padding:0 3px;margin-left:1px}
+.rv-f{padding:10px 14px 13px;border-top:1px solid var(--line);font-size:12px;line-height:1.75}
+.rv-f b{font-weight:650;color:var(--tx)}
+.rv-f .good{color:var(--dn)}
+.rv-f .warn{color:var(--amber)}
+.rv-f .dim{color:var(--tx3)}
+.rv-note{padding:0 14px 13px;font-size:10.5px;line-height:1.7;color:var(--tx3)}
+.rv-empty{padding:2px 14px 14px;font-size:12px;line-height:1.6;color:var(--tx3)}
 /* 弹药 */
 /* 档位来源切换条 + 均价校验卡 */
 .gsrc{display:flex;align-items:center;gap:9px;margin:0 0 10px;min-width:0}
@@ -721,7 +755,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.36 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.37 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -887,6 +921,10 @@ body.tab-ov .tpx{display:none}
 
     <div class="sech" style="margin-top:16px"><h2>买入记录 <span class="cnt" id="buyMeta"></span></h2><button class="act" id="btnAddBuy">+ 记一笔</button></div>
     <div class="card" id="buyList"></div>
+
+    <!-- P18 执行复盘：逐档计划价 vs 成交均价 + 四态执行，默认收起不占首屏。
+         不另加 sech 标题 —— 卡片自己的标题行就是标题，两行「执行复盘」是重复。 -->
+    <div class="card rv" id="posReview"></div>
 
     <div class="sech" style="margin-top:16px"><h2>止盈阶梯 <span class="cnt" id="takeMeta"></span></h2></div>
     <div class="card" id="takeBox"></div>
@@ -3451,6 +3489,9 @@ function computeGears(){
     var costEst = !!mk && grossG > 0 && !(Number(mk.cost) > 0);
     var realized = soldG > 0 ? gearRealized(mk, gearCost(k, mk, price)) : 0;
     var turns = gearTurns(soldG, pl);
+    /* P18：成交均价（$/oz）。有 cost 用 cost，没有就按档位价估 —— 与标记面板
+       的「买入均价」同一算法，两处必须同数。grossG 为 0 时给 null，不写 0。 */
+    var avgOz = grossG > 0 ? gearCost(k, mk, price) / grossG * OZ_PER_G : null;
     rows.push({
       name:g.name, idx:k, w:w[k - 1], warn:false,
       pct: price ? Math.round((price / he - 1) * 1000) / 10 : g.pct,
@@ -3460,6 +3501,7 @@ function computeGears(){
       boughtG: bought, overG: overG, doneG: bought,
       grossG: grossG, soldG: soldG, netG: bought,
       realized: realized, turns: turns, costEst: costEst,
+      avgOz: avgOz,
       swing: isSwingGear(k),
       /* done = 买满（待补归零）。卖出后净持变小、待补重新出现，
          标签要跟着退回「已跌破」，否则会出现「已买入 + 待补 8g」这种自相矛盾的状态。 */
@@ -3522,6 +3564,219 @@ function computeGears(){
   try { rows.meta = meta; } catch(e) {}
   S.gearMeta = meta;
   return rows;
+}
+
+/* ===== P18 执行复盘 =====
+
+   累计扫描次数：只给 test b2 断言「收起时一次都不扫」用，不参与业务 */
+var RV_SCANS = 0;
+
+/* 触价扫描：某个价位在日线里被触及过多少根、最近一次是哪根、区间最低多少。
+
+   必须用 scaled("1d")：档位价的高点 H 来自 computeHEff()，它读的也是 scaled，
+   两边同坐标系；用原始 S.kl["1d"] 会差一个 S.scale 倍，判出来的「触及」是错的。
+   —— 这一条与 P19-1 相反（那边只用相对关系，所以刻意用原始序列），不要「统一」掉。 */
+function touchScanIn(bars, px){
+  RV_SCANS++;
+  if(!bars || bars.length < 30 || !(px > 0)) return null;
+  var hit = 0, lastT = 0, low = Infinity, i, l;
+  for(i = 0; i < bars.length; i++){
+    l = Number(bars[i].l);
+    if(!(l > 0)) continue;
+    if(l < low) low = l;
+    if(l <= px){ hit++; if(bars[i].t > lastT) lastT = bars[i].t; }
+  }
+  return {
+    hit: hit, lastT: lastT || null, low: isFinite(low) ? low : null,
+    from: bars[0].t, to: bars[bars.length - 1].t, n: bars.length
+  };
+}
+function touchScan(px){ return touchScanIn(scaled("1d"), px); }
+
+/* 逐档复盘行。只读 S.gears 与标记，不写任何数据。
+
+   触价扫描只对「待补且从没买过」的档跑：已执行 / 已周转的档不需要知道到没到价，
+   省掉一半扫描。bars 只取一次，不要在循环里反复 scaled()。
+   返回 { rows, win }：win 是日线区间（起止 + 根数），页脚要用它标统计范围。 */
+function rvRows(){
+  var gs = S.gears || [];
+  var bars = scaled("1d");
+  var win = (bars && bars.length >= 30)
+    ? { from:bars[0].t, to:bars[bars.length - 1].t, n:bars.length } : null;
+  var rows = [];
+  gs.forEach(function(g){
+    if(g.warn) return;
+    var gross = Number(g.grossG) || 0;
+    var sold  = Number(g.soldG) || 0;
+    var net   = Number(g.boughtG) || 0;
+    var plan  = Number(g.plan) || 0;
+    var price = Number(g.price) || 0;
+    var pending = Math.max(0, plan - net);
+    var est = !!g.costEst;
+    var avgOz = Number(g.avgOz) > 0 ? Number(g.avgOz) : null;
+    /* 估算档的均价恒等于档位价，偏差必为 0 → 一律不给偏差，也不进加权 */
+    var dev = (avgOz !== null && price > 0 && !est) ? (avgOz / price - 1) * 100 : null;
+
+    var state, touch = null;
+    if(!(plan > 0.05))        state = "none";
+    else if(pending <= 0.05)  state = "done";
+    else if(gross > 0.05)     state = "turned";
+    else {
+      touch = touchScanIn(bars, price);
+      state = (touch && touch.hit > 0) ? "missed" : "far";
+    }
+    rows.push({
+      idx:g.idx, name:g.name, price:price, plan:plan,
+      gross:gross, sold:sold, net:net, pending:pending, over:Math.max(0, net - plan),
+      avgOz:avgOz, est:est, dev:dev, state:state, touch:touch,
+      realized:Number(g.realized) || 0, turns:Number(g.turns) || 0
+    });
+  });
+  return { rows:rows, win:win };
+}
+
+/* 合计与对账。加权只用「有真实成交价」的档：估算档的均价等于档位价，
+   混进去会把真实偏差稀释成 0（构造 1 档 +5% + 5 档估算 → 会算成 +0.83%）。 */
+function rvSum(rows){
+  var gross = 0, sold = 0, net = 0, realized = 0, turns = 0;
+  var wg = 0, wAmt = 0, wPlan = 0, graded = 0;
+  rows.forEach(function(r){
+    gross += r.gross; sold += r.sold; net += r.net;
+    realized += r.realized; turns += r.turns;
+    if(r.dev !== null && r.gross > 0.05){
+      wg += r.gross; wAmt += r.gross * r.avgOz; wPlan += r.gross * r.price;
+      graded++;
+    }
+  });
+  var pAvg = wg > 0 ? wPlan / wg : null;
+  var rAvg = wg > 0 ? wAmt / wg : null;
+  return {
+    gross:gross, sold:sold, net:net, realized:realized, turns:turns,
+    pAvg:pAvg, rAvg:rAvg, graded:graded,
+    devAll:(pAvg > 0 && rAvg !== null) ? (rAvg / pAvg - 1) * 100 : null,
+    /* 每克拉低：已实现差价摊到现有持仓上，相当于每克成本降了多少（再折 $/oz） */
+    perOz: net > 0.05 ? realized / net * OZ_PER_G : null,
+    book: holdStats().bought
+  };
+}
+
+/* 折叠状态不持久化：不往 cfg 加字段，避免 P17 的脏值比对多出一个项 */
+var RV_OPEN = false;
+
+function toggleReview(){ RV_OPEN = !RV_OPEN; renderReview(); }
+
+/* 状态文案与色号。missed 是唯一需要用户行动的，其余都是常态，不给压力色。
+   橙点用 ● 字符（不是 emoji），全内联无外部依赖。 */
+function rvStateText(r){
+  if(r.state === "none")   return { t:"—", c:"dim" };
+  if(r.state === "done")   return { t:"已执行" + (r.over > 0.05 ? " · 超 " + gnum(r.over) + "g" : ""), c:"ok" };
+  if(r.state === "turned") return { t:"已周转", c:"dim" };
+  if(r.state === "missed") return { t:"● 待补 · 到过价", c:"warn" };
+  return { t:"待补 · 未到价", c:"dim" };
+}
+
+/* 偏差：买便宜绿、买贵橙、打平灰。不用红 —— 红在本页专指涨/亏损，
+   0.3% 的溢价被标红会读成「亏了」。 */
+function rvDevTag(r){
+  if(r.dev === null) return '<b class="num dim">—</b>';
+  var cls = Math.abs(r.dev) <= 0.3 ? "dim" : (r.dev < 0 ? "good" : "warn");
+  var s = (r.dev < 0 ? "−" : "+") + num(Math.abs(r.dev), 2) + "%";
+  return '<b class="num ' + cls + '">' + s + '</b>';
+}
+
+function rvBlock(r){
+  var st = rvStateText(r);
+  var r2;
+  if(r.avgOz !== null){
+    /* 估算档的均价等于档位价，写成「计划 X → X」就是同一行两个一样的数，
+       只留一个价 + 「估」角标，偏差位照旧给「—」 */
+    r2 = r.est
+      ? '<span>计划</span><b class="num">' + num(r.price, 1) + '</b><i class="rv-est">估</i>' + rvDevTag(r)
+      : '<span>计划</span><b class="num">' + num(r.price, 1) + '</b>' +
+        '<span>→</span><b class="num">' + num(r.avgOz, 1) + '</b>' + rvDevTag(r);
+  } else {
+    r2 = '<span>计划</span><b class="num">' + num(r.price, 1) + '</b><span class="dim">· 未成交</span>';
+  }
+  return '<div class="rv-g">' +
+    '<div class="rv-r1"><span class="rv-n">' + r.name + '</span><span class="' + st.c + '">' + st.t + '</span></div>' +
+    '<div class="rv-r2">' + r2 + '</div>' +
+    '<div class="rv-r3 dim">净持 <b class="num">' + gnum(r.net) + '</b> / <b class="num">' + gnum(r.plan) + '</b> g</div>' +
+    '</div>';
+}
+
+function rvBlockList(rows){
+  return '<div class="rv-list">' + rows.map(rvBlock).join("") + '</div>';
+}
+
+function rvFoot(sum){
+  var lg;
+  if(sum.devAll !== null){
+    var cls = Math.abs(sum.devAll) <= 0.3 ? "dim" : (sum.devAll < 0 ? "good" : "warn");
+    lg = '成交均价 <span class="dim">计划 $' + num(sum.pAvg, 1) + ' → 实际 $' + num(sum.rAvg, 1) + '</span>' +
+         ' <b class="' + cls + '">' + (sum.devAll < 0 ? "−" : "+") + num(Math.abs(sum.devAll), 2) + '%</b>';
+  } else {
+    lg = '成交均价：' + (sum.gross > 0.05 ? '全部为估算，无法计算偏差' : '—');
+  }
+  var diff = sum.gross - sum.book;
+  var recon = Math.abs(diff) > 0.05
+    ? '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 差 <b>' + num(diff, 1) + 'g</b>（手动标记不写账本）'
+    : '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 一致';
+  return '<div class="rv-f">' +
+    '<div>' + lg + '</div>' +
+    '<div class="dim">累计买入 <b>' + num(sum.gross, 1) + 'g</b> · 卖出 <b>' + num(sum.sold, 1) + 'g</b>' +
+    ' · 已实现 <b>$' + num(sum.realized, 0) + '</b> · 周转 <b>' + num(sum.turns, 1) + '</b> 轮</div>' +
+    (sum.perOz !== null
+      ? '<div class="dim">每克拉低 <b>$' + num(sum.perOz, 1) + '/oz</b>（$' + num(sum.realized / sum.net, 2) + '/g）</div>'
+      : '<div class="dim">每克拉低 —（当前无持仓）</div>') +
+    '<div class="dim">' + recon + '</div>' +
+  '</div>';
+}
+
+/* PRD §八 三条诚实边界，必须出现在页面上，不能只写在文档里。
+   每句一个 div —— sanitizeHtml 的白名单没有 BR，用 <br> 会把三句粘成一段。 */
+function rvNote(win, sum){
+  var s = "";
+  if(win) s += '<div>统计区间 ' + btDate(win.from) + ' ~ ' + btDate(win.to) + ' · ' + win.n + ' 根日线</div>';
+  else     s += '<div>K 线不足，未做触及判定</div>';
+  s += '<div>档位价按当前参数计算，改过参数后早期成交的偏差含参数变化的影响。</div>';
+  if(win) s += '<div>近 ' + win.n + ' 根日线内未触及，不代表历史上没到过。</div>';
+  return '<div class="rv-note">' + s + '</div>';
+}
+
+function renderReview(){
+  var box = $("posReview");
+  if(!box) return;
+
+  /* 收起时只算 summary（O(n)，n ≤ 10），不跑 800 根扫描 —— test b2 用调用计数锁住 */
+  var sm = planSummary();
+  var head = '<div class="rv-h" data-rv="h">' +
+    '<span>执行复盘</span>' +
+    '<span class="rv-sum num">' +
+      (sm.pending > 0.05 ? "待补 " + num(sm.pending, 1) + "g"
+       : (sm.overBudget > 0.05 ? "超 " + num(sm.overBudget, 1) + "g" : "已建满")) +
+      ' <i class="rv-arw' + (RV_OPEN ? " on" : "") + '"></i>' +
+    '</span></div>';
+
+  var body = "";
+  if(RV_OPEN){
+    var rr = rvRows(), rows = rr.rows;
+    var hasPlan = rows.some(function(r){ return r.plan > 0.05; });
+    if(!hasPlan){
+      body = '<div class="rv-empty">档位克重为 0，先在设置页定「目标总克重」。</div>';
+    } else {
+      var sum = rvSum(rows);
+      body = rvBlockList(rows) + rvFoot(sum) + rvNote(rr.win, sum);
+      /* 没标记也照常出明细，只在表尾补一句引导 —— 六档各自差多少本身就是信息 */
+      if(!(sum.gross > 0.05) && !(sum.sold > 0.05)){
+        body += '<div class="rv-empty">还没有买入标记。在档位卡点「标记已买」，或记一笔带档位的买入，这里就会有成交价。</div>';
+      }
+    }
+  }
+
+  box.innerHTML = sanitizeHtml(head + body);
+  /* sanitizeHtml 的白名单不放行 id 属性，只能靠 data-* 找回来 */
+  var h = box.querySelector('[data-rv="h"]');
+  if(h) h.onclick = toggleReview;
 }
 function holdStats(){
   var buys = (S.cfg.buys||[]).slice();
@@ -6954,6 +7209,7 @@ function refreshAll(){
   renderSetGear();
   renderGauge();
   renderPos();
+  renderReview();
   renderBuys();
   renderTake();
   renderEvents();
@@ -8029,6 +8285,10 @@ if(/[?&]xt=1/.test(location.search)){
     boughtOf:boughtOf,
     gearState:gearState,
     planSummary:planSummary,
+    /* === P18 执行复盘（P19-2 的逐档触及表复用 touchScan，不写第二份） === */
+    touchScan:touchScan, touchScanIn:touchScanIn,
+    rvRows:rvRows, rvSum:rvSum,
+    rvScans:function(){ return RV_SCANS; },
     markGear:markGear,
     unmarkGear:unmarkGear,
     cleanGearMarks:cleanGearMarks,
