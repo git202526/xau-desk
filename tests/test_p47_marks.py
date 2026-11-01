@@ -270,7 +270,11 @@ def test_ammo_uses_plan_not_ledger(env):
     p.wait_for_timeout(300)
     assert p.evaluate("() => document.getElementById('ammoTxt').textContent.trim()") == "10 / 200 克"
     assert p.evaluate("() => window.__xt.holdStats().grams") == 0
-    assert "待补 190" in p.evaluate("() => document.getElementById('ladderMeta').textContent")
+    # P22 起标题行不再报待补（与「档位执行 10 / 200 克」是同一个数），也不报高点
+    # （与下一行「档位来源」重复）。数没丢，只是搬到该在的位置。
+    meta = p.evaluate("() => document.getElementById('ladderMeta').textContent")
+    assert "待补" not in meta and "高点" not in meta, meta
+    assert p.evaluate("() => window.__xt.planSummary().pending") == pytest.approx(190, abs=0.01)
 
 
 # ---------------------------------------------------------------- 10 超买
