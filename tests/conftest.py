@@ -156,12 +156,20 @@ def make_env(browser):
         def kline(route):
             url = route.request.url
             itv = "1h"
-            for k in ("1d", "4h", "1h"):
+            for k in ("1w", "1d", "4h", "1h"):
                 if "interval=" + k in url:
                     itv = k
                     break
+            # bars 支持两种形态：单一数组（所有周期共用）或 {周期: 数组}。
+            # 后者给「各周期根数不同」的用例用（如判定回溯的窗口长度）。
+            if isinstance(bars, dict):
+                data = bars.get(itv, bars.get("1h", []))
+            elif bars is not None:
+                data = bars
+            else:
+                data = _bars(itv)
             route.fulfill(status=200, content_type="application/json",
-                          body=json.dumps(bars if bars is not None else _bars(itv)))
+                          body=json.dumps(data))
 
         page.route("**/data-api.binance.vision/**", kline)
         page.route("**/open.er-api.com/**", lambda r: r.fulfill(

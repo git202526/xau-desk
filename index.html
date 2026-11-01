@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.32 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.33 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 绿橙红 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -272,6 +272,34 @@ body.tab-ov .tpx{display:none}
 .rz .ok.n{background:rgba(101,121,147,.14);color:var(--tx3);border:1px solid var(--line)}
 .rz .c{flex:1;min-width:0;color:var(--tx2)}
 .rz .c b{color:var(--tx);font-weight:600}
+
+/* 判定回溯（P19-1） */
+.btwin{font-size:11px;color:var(--tx3);margin:2px 0 9px;line-height:1.55}
+.btwin b{color:var(--tx2);font-weight:600}
+.btstrip{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+.btstrip svg{display:block;height:30px;border-radius:8px}
+.btdrag{font-size:10px;color:var(--tx3);margin-top:5px;text-align:right}
+.btseg{cursor:pointer}
+.btseg.up{fill:var(--up)}
+.btseg.rg{fill:var(--tx3)}
+.btseg.dn{fill:var(--dn)}
+.btseg.sel{stroke:#E8EEF6;stroke-width:1.5;stroke-opacity:.85}
+.btpick{margin-top:8px;font-size:11.5px;color:var(--tx2);background:var(--card2);border-radius:8px;padding:7px 9px;line-height:1.55}
+.btpick b{color:var(--tx);font-weight:650}
+.btdist{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:11px;font-size:11.5px;color:var(--tx2)}
+.btdist span{display:flex;align-items:center;gap:5px}
+.btdist i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+.btdist b{color:var(--tx);font-weight:650}
+.btdist .up i{background:var(--up)}
+.btdist .rg i{background:var(--tx3)}
+.btdist .dn i{background:var(--dn)}
+.btsw{margin-top:11px}
+.btsw .r{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid rgba(255,255,255,.05);font-size:11.5px;color:var(--tx2)}
+.btsw .r:first-child{border-top:none}
+.btsw .r em{font-style:normal;color:var(--tx);font-weight:600}
+.btsw .more{width:100%;margin-top:6px;background:none;border:1px solid var(--line);color:var(--tx2);border-radius:9px;min-height:36px;font-size:11.5px;font-family:inherit}
+.btnote{margin-top:10px;font-size:10.5px;color:var(--tx3);line-height:1.55}
+.btempty{font-size:12px;color:var(--tx3);padding:12px 0;line-height:1.6}
 
 /* 关键位 */
 .klfilter{display:flex;align-items:center;gap:8px;margin:0 0 10px}
@@ -676,7 +704,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.32 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.33 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -756,6 +784,23 @@ body.tab-ov .tpx{display:none}
     <div class="card" style="margin-top:10px">
       <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">日线判定依据（满足 3 条即成方向）</div>
       <div class="reasons" id="reasons"></div>
+    </div>
+
+    <div class="sech" style="margin-top:18px"><h2>判定回溯 <span class="cnt" id="btMeta">—</span></h2></div>
+    <div class="card" id="btCard">
+      <div class="fchips" id="btChips">
+        <button data-k="1w">周线</button>
+        <button data-k="1d" class="on">日线</button>
+        <button data-k="4h">4小时</button>
+        <button data-k="1h">1小时</button>
+      </div>
+      <div class="btwin" id="btWin">—</div>
+      <div class="btstrip" id="btStrip"></div>
+      <div class="btdrag" id="btDrag" hidden>← 左右拖动查看更早</div>
+      <div class="btpick" id="btPick" hidden></div>
+      <div class="btdist" id="btDist"></div>
+      <div class="btsw" id="btSw"></div>
+      <div class="btnote" id="btNote"></div>
     </div>
 
     <div class="sech" style="margin-top:18px">
@@ -1496,6 +1541,286 @@ function judgeOne(bars){
     rsi:r, rsiState:rsiState, macd:m, adx:a, atr:at,
     hi20:hi20, lo20:lo20, bars:bars.length
   };
+}
+
+/* ===== P19-1 判定回溯 =====
+   judgeOne 只看 bars 的最后一根，所以「第 i 天的判定」= judgeOne(bars.slice(0, i+1))，
+   天然可复现，不需要另写一套历史判定。
+
+   预热 209 根：MA200 要 i-199，20 根高低点回看要 i-39，取更严的一侧。
+   用原始 S.kl[k] 而不是 scaled(k)：五条条件全是大小关系 / 比例，线性缩放不改真假，
+   但用原始序列能保证「回溯结果不随汇率开关变化」（test b12 锁住这条）。 */
+var BT_WARM = 209;
+
+/* 可回溯窗口；数据不足返回 null（不返回半张图） */
+function btWindow(k){
+  var bars = (S.kl || {})[k];
+  if(!bars || bars.length <= BT_WARM) return null;
+  var last = bars[bars.length - 1];
+  return {
+    from: bars[BT_WARM].t, to: last.t,
+    n: bars.length - BT_WARM, total: bars.length
+  };
+}
+
+/* 序列缓存：同一份数据不重复算 590 次判定。key 含首末时间与末根收盘，
+   数据增量或换周期都会自然失效；不落盘，刷新即丢（纯派生数据） */
+var _btCache = {};
+
+function btRun(k){
+  var bars = (S.kl || {})[k];
+  var win = btWindow(k);
+  if(!win) return null;
+  var last = bars[bars.length - 1];
+  var key = k + "|" + bars.length + "|" + bars[0].t + "|" + last.t + "|" + last.c;
+  if(_btCache[k] && _btCache[k].key === key) return _btCache[k].seq;
+
+  var seq = [];
+  for(var i = BT_WARM; i < bars.length; i++){
+    var r = judgeOne(bars.slice(0, i + 1));
+    /* 震荡时取命中较多的那一侧做依据，否则「命中 3/5」会和列出的条件名对不上 */
+    var side = r.state === "up" ? r.upC : r.state === "dn" ? r.dnC
+             : (r.upN >= r.dnN ? r.upC : r.dnC);
+    var names = [];
+    for(var j = 0; j < side.length && names.length < 3; j++){
+      if(side[j].v) names.push(side[j].k);
+    }
+    var hits = r.state === "up" ? r.upN : r.state === "dn" ? r.dnN
+             : Math.max(r.upN, r.dnN);
+    seq.push({ i:i, t:bars[i].t, c:bars[i].c, state:r.state, hits:hits, names:names });
+  }
+  _btCache[k] = { key:key, seq:seq };
+  return seq;
+}
+
+/* 分布与切换记录。占比取整后做尾差修正，保证三项合计 100 */
+function btStats(seq){
+  if(!seq || !seq.length) return null;
+  var c = { up:0, rg:0, dn:0 }, sw = [], prev = null;
+  for(var i = 0; i < seq.length; i++){
+    var p = seq[i];
+    c[p.state] = (c[p.state] || 0) + 1;
+    if(prev && prev.state !== p.state){
+      sw.push({ i:i, t:p.t, from:prev.state, to:p.state });
+    }
+    prev = p;
+  }
+  var total = seq.length;
+  var pct = {
+    up: Math.round(c.up / total * 100),
+    rg: Math.round(c.rg / total * 100),
+    dn: Math.round(c.dn / total * 100)
+  };
+  var diff = 100 - (pct.up + pct.rg + pct.dn);
+  if(diff !== 0){
+    var big = "up";
+    if(c.rg > c[big]) big = "rg";
+    if(c.dn > c[big]) big = "dn";
+    pct[big] += diff;
+  }
+  return { total: total, count: c, pct: pct, switches: sw };
+}
+
+/* 精简序列，供测试断言用（不带条件名，减少往返体积） */
+function btSeq(k){
+  var seq = btRun(k);
+  if(!seq) return null;
+  return seq.map(function(p){ return { t:p.t, state:p.state, hits:p.hits }; });
+}
+
+/* 清缓存：只给测试用，验证「重算结果与缓存一致」 */
+function btClear(){ _btCache = {}; }
+
+/* ---- P19-1 渲染 ---- */
+var BT_PX = 1.5, BT_PX_WEEK = 8;
+var _btView = { dom:"", scroll:{}, pick:null, open:false };
+
+function btName(st){
+  return st === "up" ? "上行" : st === "dn" ? "下行" : "震荡";
+}
+
+/* 单位：周线按周、日线按天；4h / 1h 的根数换算成日历天会因休市失真，
+   直接用「根」，避免 791 根小时线被写成「791 天」 */
+function btUnit(k){
+  return k === "1w" ? "周" : k === "1d" ? "天" : "根";
+}
+
+function btDate(t){
+  var d = new Date(t), m = d.getMonth() + 1, dd = d.getDate();
+  return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd;
+}
+
+/* 切换记录的日期：4h / 1h 一天内可能切换多次，必须带到分钟，否则同一天出现
+   两行「下行 → 上行」「上行 → 下行」，读起来像自相矛盾 */
+function btShort(t, k){
+  var d = new Date(t), y = d.getFullYear(), m = d.getMonth() + 1, dd = d.getDate();
+  var s = (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd;
+  if(y !== new Date().getFullYear()) s = y + "-" + s;
+  if(k === "4h" || k === "1h"){
+    var hh = d.getHours(), mi = d.getMinutes();
+    s += " " + (hh < 10 ? "0" : "") + hh + ":" + (mi < 10 ? "0" : "") + mi;
+  }
+  return s;
+}
+
+function renderBt(){
+  var strip = $("btStrip");
+  if(!strip) return;
+  var k = S.btPeriod || "1d";
+  var meta = $("btMeta"), winEl = $("btWin"), dist = $("btDist"), sw = $("btSw"), note = $("btNote");
+  var pkEl = $("btPick");
+
+  Array.prototype.forEach.call(document.querySelectorAll("#btChips button"), function(b){
+    b.className = b.getAttribute("data-k") === k ? "on" : "";
+  });
+
+  var seq = btRun(k), win = btWindow(k);
+
+  if(!seq || !win){
+    var bars = (S.kl || {})[k] || [];
+    meta.textContent = "—";
+    winEl.textContent = "";
+    strip.innerHTML = '<div class="btempty">数据不足，暂时无法回溯。需要至少 211 根历史数据，当前只有 '
+      + bars.length + " 根。</div>";
+    dist.innerHTML = "";
+    sw.innerHTML = "";
+    note.textContent = "";
+    if(pkEl) pkEl.hidden = true;
+    var dg0 = $("btDrag");
+    if(dg0) dg0.hidden = true;
+    _btView.dom = "";
+    return;
+  }
+
+  var unit = btUnit(k);
+  meta.textContent = win.n + " " + unit;
+  winEl.innerHTML = "可回溯 <b>" + btDate(win.from) + "</b> ~ <b>" + btDate(win.to)
+    + "</b> · 共 <b>" + win.n + "</b> " + unit + "（前 209 根用于指标预热）";
+
+  /* 同色连续段合并：591 天通常压到 20–40 段，既省节点也点得准 */
+  var sig = k + "|" + win.n + "|" + win.to;
+  if(_btView.dom !== sig){
+    var segs = [], st0 = 0;
+    for(var i = 1; i <= seq.length; i++){
+      if(i === seq.length || seq[i].state !== seq[st0].state){
+        segs.push({ s:st0, n:i - st0, st:seq[st0].state });
+        st0 = i;
+      }
+    }
+    var px = k === "1w" ? BT_PX_WEEK : BT_PX;
+    var W = seq.length * px;
+    var html = '<svg viewBox="0 0 ' + W + ' 30" preserveAspectRatio="none" style="min-width:'
+      + W + 'px;width:100%">';
+    segs.forEach(function(g){
+      html += '<rect class="btseg ' + g.st + '" data-i="' + g.s + '" data-n="' + g.n
+        + '" x="' + (g.s * px) + '" y="0" width="' + (g.n * px) + '" height="30"></rect>';
+    });
+    html += "</svg>";
+    strip.innerHTML = html;
+    _btView.dom = sig;
+    _btView.pick = null;
+    if(pkEl) pkEl.hidden = true;
+  }
+
+  var keep = _btView.scroll[k];
+  requestAnimationFrame(function(){
+    strip.scrollLeft = (keep === undefined) ? strip.scrollWidth : keep;
+    var dg = $("btDrag");
+    if(dg) dg.hidden = strip.scrollWidth <= strip.clientWidth + 4;
+  });
+
+  var stat = btStats(seq);
+  dist.innerHTML =
+    '<span class="up"><i></i>上行 <b>' + stat.count.up + "</b> " + unit + " · " + stat.pct.up + "%</span>" +
+    '<span class="rg"><i></i>震荡 <b>' + stat.count.rg + "</b> " + unit + " · " + stat.pct.rg + "%</span>" +
+    '<span class="dn"><i></i>下行 <b>' + stat.count.dn + "</b> " + unit + " · " + stat.pct.dn + "%</span>";
+
+  if(!stat.switches.length){
+    sw.innerHTML = '<div class="r"><span>区间内方向未发生切换</span></div>';
+  } else {
+    var all = stat.switches;
+    var list = (_btView.open ? all.slice() : all.slice(-5)).reverse();
+    var h2 = "";
+    list.forEach(function(x){
+      h2 += '<div class="r"><span>' + btShort(x.t, k) + "</span><em>"
+        + btName(x.from) + " → " + btName(x.to) + "</em></div>";
+    });
+    if(all.length > 5){
+      h2 += '<button class="more" id="btMore">'
+        + (_btView.open ? "收起" : "展开全部（" + all.length + "）") + "</button>";
+    }
+    sw.innerHTML = h2;
+  }
+
+  note.textContent = k === "1w"
+    ? "周线数据只有 220 根，可回溯约 10 周。"
+    : "四周期共振的回溯受 1 小时数据限制，最多 33 天。想看更长的方向轨迹，请用日线。";
+}
+
+/* 点某一天：三态 + 命中条数 + 命中条件名（最多列 3 个） */
+function btShowPick(idx){
+  var k = S.btPeriod || "1d";
+  var seq = btRun(k);
+  if(!seq || !(idx >= 0) || idx >= seq.length) return;
+  var p = seq[idx], pk = $("btPick");
+  if(!pk) return;
+  var more = p.hits > p.names.length ? "，共 " + p.hits + " 条" : "";
+  pk.innerHTML = "<b>" + btDate(p.t) + "</b> · " + btName(p.state) + " · 命中 <b>"
+    + p.hits + "/5</b>（" + (p.names.join("、") || "—") + more + "）";
+  pk.hidden = false;
+  _btView.pick = idx;
+  var svg = $("btStrip").querySelector("svg");
+  if(!svg) return;
+  Array.prototype.forEach.call(svg.querySelectorAll(".btseg"), function(r){
+    var s0 = Number(r.getAttribute("data-i")) || 0;
+    var n0 = Number(r.getAttribute("data-n")) || 0;
+    if(idx >= s0 && idx < s0 + n0) r.classList.add("sel");
+    else r.classList.remove("sel");
+  });
+}
+
+function bindBt(){
+  var chips = $("btChips");
+  if(chips) chips.addEventListener("click", function(e){
+    var b = e.target.closest("button");
+    if(!b) return;
+    var k = b.getAttribute("data-k");
+    if(!k || k === S.btPeriod) return;
+    S.btPeriod = k;
+    _btView.pick = null;
+    _btView.open = false;
+    var pk = $("btPick");
+    if(pk) pk.hidden = true;
+    renderBt();
+  });
+
+  var strip = $("btStrip");
+  if(strip){
+    strip.addEventListener("scroll", function(){
+      _btView.scroll[S.btPeriod || "1d"] = this.scrollLeft;
+    }, {passive:true});
+
+    strip.addEventListener("click", function(e){
+      var r = e.target.closest(".btseg");
+      if(!r) return;
+      var svg = strip.querySelector("svg");
+      if(!svg) return;
+      var rc = svg.getBoundingClientRect();
+      if(!(rc.width > 0)) return;
+      var vb = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width) || rc.width;
+      var xv = (e.clientX - rc.left) * (vb / rc.width);
+      var px = (S.btPeriod || "1d") === "1w" ? BT_PX_WEEK : BT_PX;
+      btShowPick(Math.floor(xv / px));
+    });
+  }
+
+  var sw = $("btSw");
+  if(sw) sw.addEventListener("click", function(e){
+    if(e.target && e.target.id === "btMore"){
+      _btView.open = !_btView.open;
+      renderBt();
+    }
+  });
 }
 
 /* ===== 共振 ===== */
@@ -4336,6 +4661,9 @@ function gotoTab(name, opts){
     }
   }
   renderDirtyBar();     /* 换页后「保存按钮在不在视野内」变了，浮条要跟着走 */
+  /* 面板从隐藏变可见后宽度才算得准：首屏渲染时 panel-struct 是 display:none，
+     色带 scrollWidth 为 0，会导致「可拖动」提示被误判成不需要 */
+  if(name === "struct") renderBt();
 }
 
 function initTabFromHash(){
@@ -6512,6 +6840,7 @@ function refreshAll(){
   renderBadges();
   renderStruct();
   renderChart();
+  renderBt();
   renderKL();
   renderMarks();
   renderLadder();
@@ -7196,6 +7525,7 @@ function bindUI(){
 
   bindSync();
   bindDirtyWatch();
+  bindBt();
 
   var sub = function(){ updateSubtotal(); };
   var gi = document.querySelector('[name="g_gram"]');
@@ -7493,6 +7823,16 @@ if(/[?&]xt=1/.test(location.search)){
     gearUI:gearUI,
     buildLevels:buildLevels,
     scaled:scaled,
+    /* === P19-1 判定回溯 === */
+    BT_WARM:BT_WARM,
+    btWindow:btWindow,
+    btRun:btRun,
+    btStats:btStats,
+    btSeq:btSeq,
+    btClear:btClear,
+    renderBt:renderBt,
+    btShowPick:btShowPick,
+    setBtPeriod:function(k){ S.btPeriod = k; renderBt(); },
     levelWindow:levelWindow,
     volumeProfile:volumeProfile,
     findGaps:findGaps,
