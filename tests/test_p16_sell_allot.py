@@ -79,7 +79,8 @@ def test_a1_full_hold_sell_half(env):
     """六档全买满 200g，卖 100g → 各档净持减半，待补均分 100g。"""
     e = env()
     p = e.page
-    assert p.evaluate("() => window.__xt.allotSell(100, 4000)") == 6
+    # P21 契约变更：返回值由「摊到的档数」变成 { lot, hit }，档数改读 .hit
+    assert p.evaluate("() => window.__xt.allotSell(100, 4000).hit") == 6
     got = [round(x, 2) for x in net(p)]
     assert got == [8, 12, 24, 36, 12, 8]
     pend = [round(x, 2) for x in pends(p)]
@@ -101,7 +102,7 @@ def test_a3_only_first_gear_held(env):
     """只买满第 1 档 16g，卖 8g → 全落在第 1 档，其余档待补不变。"""
     e = env(gm=marks([16, 0, 0, 0, 0, 0]))
     p = e.page
-    assert p.evaluate("() => window.__xt.allotSell(8, 4000)") == 1
+    assert p.evaluate("() => window.__xt.allotSell(8, 4000).hit") == 1
     assert state(p, 1)["soldG"] == pytest.approx(8)
     assert state(p, 1)["pending"] == pytest.approx(8)
     # 其余档仍是「一克没买」，待补 = 计划

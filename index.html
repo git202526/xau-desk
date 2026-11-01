@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.35 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.36 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -390,6 +390,7 @@ body.tab-ov .tpx{display:none}
 .tk .a.cut{color:#E8C079;border-color:rgba(212,162,76,.42);background:rgba(212,162,76,.11)}
 .tk .a.ref{color:var(--tx3)}
 .tk .l2{font-size:10.5px;color:var(--tx3);margin-top:3px}
+.tk .l3{font-size:10.5px;line-height:1.5;margin-top:2px;color:var(--tx3)}
 .tk .sc{font-size:10px;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--tx3);margin-left:5px;white-space:nowrap;display:inline-block}
 .tk .sc.hi{color:#E8C079;border-color:rgba(212,162,76,.4);background:rgba(212,162,76,.1)}
 .tk.sum{border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px;padding-bottom:11px}
@@ -720,7 +721,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.35 · 11/01</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.36 · 11/01</span></div>
       </div>
     </div>
     <div class="stat">
@@ -3079,19 +3080,24 @@ function splitByGram(gram, weights){
   return out;
 }
 
-/* 把一笔减仓摊到各档：只改 sold / proceeds，g 与 cost 不动。返回摊到的档数 */
+/* 把一笔减仓摊到各档：只改 sold / proceeds，g 与 cost 不动。
+
+   P21：返回 { lot, hit } —— lot 是「这一次实际写进了哪几档、各多少克」的快照，
+   记到那笔卖出记录上。有了它，改动 / 删除这笔记录时才能精确退回，
+   而不是按当前比例猜（档数一改、或中间又卖过一次，比例就对不上了）。
+   无可摊时返回 null。 */
 function allotSell(gram, px){
   var n = gearCount(), nets = [], sum = 0;
   for(var i = 1; i <= n; i++){
     var v = Math.max(0, boughtOf(i));
     nets.push(v); sum += v;
   }
-  if(!(sum > 0)) return 0;
+  if(!(sum > 0)) return null;
   var q = Math.min(Number(gram) || 0, sum);
   var parts = splitByGram(q, nets);
-  if(!parts || !(Number(px) > 0)) return 0;
+  if(!parts || !(Number(px) > 0)) return null;
   S.cfg.gearMarks = S.cfg.gearMarks || {};
-  var hit = 0;
+  var lot = {}, hit = 0;
   for(var j = 0; j < n; j++){
     var d = parts[j];
     if(!(d > 0.05)) continue;
@@ -3109,9 +3115,54 @@ function allotSell(gram, px){
       at: Date.now(),
       fromBuys: m.fromBuys
     };
+    lot[k] = Math.round(addG * 10) / 10;
     hit++;
   }
-  return hit;
+  return hit ? { lot: lot, hit: hit } : null;
+}
+
+/* 把一笔卖出的分摊退回去（改克重 / 删记录时用）。
+   lot 在 → 精确退那几档；lot 缺失（P21 之前记的老数据）→ 按当前各档 sold 占比近似退，
+   总量精确、分布近似。只动 sold / proceeds，g 与 cost 一律不碰。 */
+function unallotSell(lot, gram){
+  var n = gearCount(), marks = (S.cfg && S.cfg.gearMarks) || {};
+  if(!Object.keys(marks).length) return false;
+
+  function giveBack(k, back){
+    var m = marks[k];
+    if(!m) return;
+    var sold = Number(m.sold) || 0;
+    if(!(sold > 0)) return;
+    var q = Math.min(sold, back);
+    if(!(q > 0.001)) return;
+    var ratio = sold > 0 ? q / sold : 0;
+    m.sold = Math.round((sold - q) * 10) / 10;
+    m.proceeds = Math.round(((Number(m.proceeds) || 0) * (1 - ratio)) * 100) / 100;
+    if(m.sold <= 0.05){ m.sold = 0; m.proceeds = 0; }
+  }
+
+  if(lot && typeof lot === "object"){
+    Object.keys(lot).forEach(function(k){
+      var idx = Number(k);
+      if(!(idx >= 1 && idx <= n)) return;              // 档数改小了，超界的档号跳过
+      giveBack(String(idx), Number(lot[k]) || 0);
+    });
+    return true;
+  }
+
+  /* 近似路径：按各档 sold 占比退 */
+  var total = 0, arr = [];
+  for(var i = 1; i <= n; i++){
+    var s1 = Number((marks[String(i)] || {}).sold) || 0;
+    arr.push(s1); total += s1;
+  }
+  if(!(total > 0)) return false;
+  var parts = splitByGram(Math.min(Number(gram) || 0, total), arr);
+  if(!parts) return false;
+  for(var j = 0; j < n; j++){
+    if(parts[j] > 0.05) giveBack(String(j + 1), parts[j]);
+  }
+  return true;
 }
 
 /* 把「买入记录」对账回「档位标记」（P15）。
@@ -6557,6 +6608,23 @@ function renderPos(){
   box.innerHTML = sanitizeHtml(html);
 }
 
+/* P21：减仓记录的第二行明细 —— 这笔卖出摊到了哪几档、各多少克。
+   只读，不给编辑入口：要改就改克重，分摊会自动重算。
+   allot 缺失（P21 之前记的老数据）时明说「未记录」。 */
+function allotLine(rec, isSell){
+  if(!isSell) return "";
+  var lot = rec && rec.allot;
+  if(!lot || !Object.keys(lot).length){
+    return '<div class="l3 dim">已摊入：未记录（这笔记于 P21 之前，改动时按比例近似退回）</div>';
+  }
+  var seq = gearSeq(), parts = [];
+  Object.keys(lot).map(Number).sort(function(a,b){ return a-b; }).forEach(function(k){
+    var nm = seq[k-1] || ("第" + k + "档");
+    parts.push(nm + " " + gnum(lot[k]) + "g");
+  });
+  return '<div class="l3 dim">已摊入：' + escapeHtml(parts.join(" · ")) + '</div>';
+}
+
 function renderBuys(){
   var hs = holdStats();
   var list = $("buyList");
@@ -6582,6 +6650,7 @@ function renderBuys(){
         '<span class="a '+(isSell?"cut":"")+' num">'+(isSell?"+":"")+money(amt,2)+'</span>' +
       '</div>' +
       '<div class="l2">'+escapeHtml(b.name||(isSell?"减仓":"买入"))+' · '+tm+(b.note?" · "+escapeHtml(b.note):"")+'</div>' +
+      allotLine(b, isSell) +
     '</div>';
   });
   list.innerHTML = sanitizeHtml(html);
@@ -7275,17 +7344,28 @@ function saveSell(){
   }
 
   var iso = time ? new Date(time).toISOString() : new Date().toISOString();
-  var allotted = 0;
+  var hit = 0;
   if(S.editing){
     var s0 = S.cfg.sells.filter(function(x){ return x.id===S.editing; })[0];
-    if(s0){ s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note; }
+    if(s0){
+      /* P21：顺序不能反 —— 先退旧的，再摊新的。反过来就是双重累加。
+         老记录没有 allot，走近似退（按当前 sold 占比），总量仍然对。 */
+      unallotSell(s0.allot || null, Number(s0.gram) || 0);
+      var hadAllot = !!s0.allot;
+      s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note;
+      var r2 = allotSell(gram, cnyToUsd(priceCny));
+      if(r2){ s0.allot = r2.lot; hit = r2.hit; }
+      else if(hadAllot) delete s0.allot;
+    }
     pushFeed("cut", "修改减仓：" + name, num(gram,1) + " g × " + num(priceCny,2) + " 元/克");
   } else {
-    S.cfg.sells.push({ id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note });
+    var rec = { id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note };
+    S.cfg.sells.push(rec);
     /* P16/P20：卖出不指定档位，按各档净持占比自动摊到标记上 —— 释放的额度就这样
        重新回到配额，各档待补随之变大。账本里的记录仍然只有一个总克重。
-       单模式之后不再看 planOnly：账本用户也有一张档位表，卖出同样要释放额度。 */
-    allotted = allotSell(gram, cnyToUsd(priceCny));
+       P21：把这次实际摊到哪几档记进 allot，改克重 / 删记录时按它精确退回。 */
+    var r1 = allotSell(gram, cnyToUsd(priceCny));
+    if(r1){ rec.allot = r1.lot; hit = r1.hit; }
     pushFeed("cut", name + " 减仓 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 回笼 " + money(gram*priceCny,2) + " 元");
   }
 
@@ -7293,17 +7373,26 @@ function saveSell(){
   compute();
   refreshAll();
   closeSheet();
-  var tail = S.editing ? "，档位标记请手动核对" : (allotted ? " · 已摊到 " + allotted + " 档" : "");
+  var tail = hit ? " · 已摊到 " + hit + " 档" : "";
   toast((S.editing ? "已修改" : ("已减 " + num(gram,1) + " 克")) + tail);
 }
 
 function delBuy(){
   if(!S.editing) return;
   var isSell = String(S.editing).charAt(0) === "s";
-  if(!window.confirm(isSell ? "删除这笔减仓记录？持仓会加回来。" : "删除这笔买入记录？")) return;
+  var askSell = "删除这笔减仓记录？持仓和档位卖出量都会退回去。";
+  if(isSell){
+    var rec = (S.cfg.sells||[]).filter(function(x){ return x.id===S.editing; })[0];
+    if(rec && !rec.allot)
+      askSell += "\n\n这笔记录没有分摊明细，将按当前比例近似退回。";
+  }
+  if(!window.confirm(isSell ? askSell : "删除这笔买入记录？")) return;
   // 记一笔墓碑，否则另一台设备合并时会把这条"复活"
   S.cfg.del = (S.cfg.del || []).concat([S.editing]).slice(-400);
   if(isSell){
+    /* P21：删记录先把那笔卖出的分摊退回去，否则各档 sold 会永远虚挂在那里 */
+    var so = (S.cfg.sells||[]).filter(function(x){ return x.id===S.editing; })[0];
+    if(so) unallotSell(so.allot || null, Number(so.gram) || 0);
     S.cfg.sells = (S.cfg.sells||[]).filter(function(x){ return x.id!==S.editing; });
   } else {
     var b = (S.cfg.buys||[]).filter(function(x){ return x.id===S.editing; })[0];
@@ -7954,6 +8043,7 @@ if(/[?&]xt=1/.test(location.search)){
     markBuy:markBuy,
     markSell:markSell,
     allotSell:allotSell,
+    unallotSell:unallotSell,
     splitByGram:splitByGram,
     gearCost:gearCost,
     gearRealized:gearRealized,
