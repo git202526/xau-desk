@@ -103,4 +103,37 @@
 ```bash
 python3 -m pytest tests/test_smoke.py     # ≤2 分钟，先跑这个
 python3 -m pytest                          # 全量，发布前跑
+python3 -m pytest -m deploy                # 上线门禁，收尾必跑
 ```
+
+## 八、上线纪律（v6.44 起）
+
+> 起因：v6.35～v6.43 九个版本、24 小时，只提交没推送，线上一直停在 v6.34。
+> 当时的三个验收条件（用例全绿 / 全量通过 / `git status` 干净）**全都在本地闭环**，
+> 没有任何一条会因为「没上线」变红 —— 848 条测试全都 `page.goto(localhost)`。
+
+GitHub Pages 是 **push 即发布**，所以「提交」不等于「上线」。每期收尾固定三步，缺一步都不算完成：
+
+| 步 | 命令 | 通过判据 |
+|---|---|---|
+| 1 | `python3 -m pytest -m smoke` | 22 条全绿 |
+| 2 | `git push origin main` | `git rev-list --count HEAD...origin/main` 输出 `0	0` |
+| 3 | `python3 -m pytest -m deploy` | 5 条全绿（含线上字节 sha256 比对） |
+
+`tests/test_deploy_parity.py` 是这条纪律的执行体，`pytest.ini` 用 `addopts` 默认把它排除
+（日常全量不联网），只有显式 `-m deploy` 才跑。五条的分工：
+
+| 条 | 断什么 | 断了说明 |
+|---|---|---|
+| `d1` | 工作区无未提交改动 | 改完没提交 |
+| `d2` | HEAD == 远端 main SHA | 提交了没推（本地引用领先必红，不依赖网络） |
+| `d3` | 线上 HTTP 200 且体积正常 | Pages 挂了或没构建 |
+| `d4` | 线上 sha256 == 本地 | 构建成功但不是这份文件 |
+| `d5` | 版本号一致 | 同上，但给人话 |
+
+三条硬规矩：
+
+1. **汇报「完成」以第 3 步绿为前提**。只说「848 条通过」不算数，那是本地事实。
+2. **版本号对不上先分清是哪种**：没推（`d2` 也会红）还是 Pages 还在构建（约 1～2 分钟，重跑即可）。不要急着重推。
+3. **不要 force push 覆盖 `calendar.yml` 的自动提交**。远程每天会有 `chore: refresh calendar`，先合并（`calendar.json` 取远程），再推。
+

@@ -76,6 +76,7 @@ Playwright + pytest，行情 / GitHub API / 汇率全部 mock，不依赖外网�
 python3 -m pytest tests/test_smoke.py   # 冒烟 22 条，26 秒，**改完先跑这个**
 python3 -m pytest -m smoke               # 同上，按 marker 选
 python3 -m pytest                        # 全量 848 条，约 16 分钟，发布前跑
+python3 -m pytest -m deploy              # 上线门禁 5 条，8 秒，**收尾必跑**
 python3 -m pytest tests/test_p18_review.py -q    # 单个文件
 ```
 
@@ -83,6 +84,9 @@ python3 -m pytest tests/test_p18_review.py -q    # 单个文件
 |---|---|---|---|
 | 冒烟 `test_smoke.py` | 22 | 26 秒 | 每次改完 |
 | 全量 | 848 | ~16 分钟 | 每期收尾、发布前 |
+| 上线门禁 `-m deploy` | 5 | 8 秒 | 每次 `push` 之后 |
+
+`-m deploy` 被 `addopts` 默认排除（`-m "not deploy"`），日常全量不联网。它查的是「线上那份文件是不是本地这份」：工作区干净、HEAD 与远端一致、线上 sha256 相等、版本号相等。详见 `docs/约束-代码与DOM.md` 第八节。
 
 冒烟不是全量的随机抽样，而是**按链路挑**：十条链路各一两条主路径，回答「这个功能还活着吗」。边界仍归全量。`pytest.ini` 开了 `--strict-markers`，marker 写错会直接报错，不会静默少跑。
 
