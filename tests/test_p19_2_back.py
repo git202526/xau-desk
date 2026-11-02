@@ -19,6 +19,13 @@ TOTAL = 200.0
 GEARS = [4350.0, 4230.0, 4110.0, 3990.0, 3870.0, 3750.0]
 PLAN = [16.0, 24.0, 48.0, 72.0, 24.0, 16.0]
 
+OZ = 31.1035
+
+
+def pxg(usd_oz):
+    """$/oz → $/g。P28 前回测直接拿「克 × $/oz」，金额放大 31.1 倍。"""
+    return usd_oz / OZ
+
 
 def make_bars(n=260, peak=H, trough=4100.0, rally=None, i0=60, amp=12.0, flat=False):
     """前 i0 根爬升到 peak（决定 H），之后跌到 trough，可选再反弹到 rally。
@@ -61,8 +68,10 @@ def cfg(**kw):
 
 @pytest.fixture
 def env(make_env):
-    def _f(bars=None, **kw):
-        return make_env(cfg=cfg(**kw), bars=bars if bars is not None else make_bars())
+    def _f(bars=None, width=390, height=844, **kw):
+        # width/height 必须给 make_env，不能塞进 cfg —— 否则 320 宽的用例实际跑在 390 上
+        return make_env(cfg=cfg(**kw), bars=bars if bars is not None else make_bars(),
+                        width=width, height=height)
     return _f
 
 
@@ -90,28 +99,39 @@ def test_b1_triggers_three_gears(env):
 
 
 def test_b2_invest_matches_hand_calc(env):
-    """投入 = Σ 计划克重 × 档位价，误差 < 0.5%。"""
+    """投入 = Σ 计划克重 × 档位价($/g)，误差 < 0.5%。
+
+    P28 契约变更：旧断言是 `PLAN × GEARS`（克 × $/oz），量纲不成立，
+    金额被放大 31.1035 倍。正确写法是先把 $/oz 转 $/g 再乘克重。
+    """
     p = env().page
     got = back(p)["stats"]["invest"]
-    want = sum(PLAN[i] * GEARS[i] for i in range(3))
+    want = sum(PLAN[i] * pxg(GEARS[i]) for i in range(3))
     assert got == pytest.approx(want, rel=0.005), (got, want)
 
 
 def test_b3_avg_cost_matches_hand_calc(env):
-    """均价 = 投入 ÷ 累计买入克重（分母是买入量，不是期末持仓）。"""
+    """均价 = 投入 ÷ 累计买入克重（分母是买入量，不是期末持仓），单位 $/g。
+
+    P28：分子同样是「克 ÷ 31.1035 × $/oz」，否则均价会是 $/oz 的三十分之一。
+    """
     p = env().page
     s = back(p)["stats"]
-    want = sum(PLAN[i] * GEARS[i] for i in range(3)) / sum(PLAN[:3])
+    want = sum(PLAN[i] * pxg(GEARS[i]) for i in range(3)) / sum(PLAN[:3])
     assert s["avgCost"] == pytest.approx(want, rel=0.005)
     assert s["holdGram"] == pytest.approx(sum(PLAN[:3]), abs=0.01)
 
 
 def test_b4_three_peers_same_budget(env):
-    """三组对照的本金完全相等 —— 不相等就不是「同本金比收益」。"""
+    """三组对照的本金完全相等 —— 不相等就不是「同本金比收益」。
+
+    P28 契约变更：本金 = 总克重 ÷ 31.1035 × 起点价（美元）。
+    旧断言 `TOTAL * H` 是「克 × $/oz」，把量纲错误固定成了期望值。
+    """
     p = env().page
     r = back(p)
     b = r["meta"]["budget"]
-    assert b == pytest.approx(TOTAL * H, rel=0.02)
+    assert b == pytest.approx(TOTAL * pxg(H), rel=0.02)
     assert r["peers"]["dca"]["budget"] == pytest.approx(b)
     assert r["peers"]["lump"]["budget"] == pytest.approx(b)
     assert r["peers"]["dca"]["invest"] == pytest.approx(b)
@@ -299,21 +319,30 @@ def test_c4_curve_downsampled(env):
     assert p.eval_on_selector_all("#bbEquip polyline", "e => e.length") == 2
 
 
-def test_c5_gear_chips_include_zero(env):
-    """触及表 chip 数 = 建仓档数，0 次的档也在。"""
+def test_c5_gear_rows_include_zero(env):
+    """逐档表行数 = 建仓档数，0 次的档也在。
+
+    P28 契约变更：`.bgc`（一行横滚 chip）改为 `.bbg`（逐档一行表格）。
+    原因是 chip 只写得出「档1 0 次」，写不出这一档挂在哪个价、配多少克 ——
+    而「能不能和阶梯页对上」正是这次要解决的问题。
+    """
     p = env().page
     goto_struct(p)
-    chips = p.eval_on_selector_all("#bbGears .bgc", "els => els.map(e => e.innerText.trim())")
-    assert len(chips) == 6, chips
-    assert any("0 次" in c for c in chips), chips
-    assert any("次" in c and "0 次" not in c for c in chips), chips
+    rows = p.eval_on_selector_all("#bbGears .bbg", "els => els.map(e => e.innerText.trim())")
+    assert len(rows) == 6, rows
+    assert any("0 次" in c for c in rows), rows
+    assert any("次" in c and "0 次" not in c for c in rows), rows
+    # 每行都要有价格与克重，否则「对照」无从谈起
+    assert all("$" in c for c in rows), rows
+    assert all("g" in c for c in rows), rows
 
 
 def test_c6_narrow_screen(env):
-    """320 宽：整页不横向溢出，且六枚触及 chip 全部落在视口内（换行而不是被截）。
+    """320 宽：整页不横向溢出，且六行档位表都落在视口内。
 
-    计划书原本写「横向滚动、不换行」，实测 6 枚 chip 在 320 宽要滚 340px —— 后三档根本看不见，
-    与「一眼看完各档触及」的目的相反，所以改成换行。
+    历史上这里踩过两次：先是计划书写「chip 横向滚动不换行」，实测 320 宽要滚 340px，
+    后三档根本看不见；改成换行后，P28 又从 chip 换成表格。判据始终是「每一条都在视口里」，
+    不绑定具体控件形态。
     """
     p = env(width=320).page
     goto_struct(p)
@@ -325,7 +354,7 @@ def test_c6_narrow_screen(env):
     assert over["bd"] <= 1, over
     outside = p.evaluate("""() => {
       var vw = document.documentElement.clientWidth, bad = [];
-      document.querySelectorAll('#bbGears .bgc').forEach(function(e){
+      document.querySelectorAll('#bbGears .bbg').forEach(function(e){
         var r = e.getBoundingClientRect();
         if(r.right > vw + 1 || r.left < -1) bad.push(e.innerText.trim());
       });
