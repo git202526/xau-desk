@@ -46,6 +46,14 @@ def env(make_env):
     return _f
 
 
+FX = 7.10
+
+
+def cny(gram, oz):
+    """克重 × $/oz → 人民币。P27 起已实现差价是 ¥，用固定 7.10 记账让数值可读。"""
+    return round(gram / OZ * oz * FX, 2)
+
+
 def mark(p, i):
     return p.evaluate("(i) => (window.__xt.state().cfg.gearMarks || {})[String(i)] || null", i)
 
@@ -132,32 +140,36 @@ def test_s5_sell_releases_pending(env):
 # ---------------------------------------------------------------- 4 已实现差价
 
 def test_s6_realized_basic(env):
-    """16g 买入 @4089、全部卖出 @4170 → 差价 ≈ +41.7 美元。"""
+    """16g 买入 @4089、全部卖出 @4170 → 差价 ≈ +41.7 美元 ≈ +296 元。
+
+    P27 契约变更：已实现改为人民币（costCny / proceedsCny），
+    「同一组价、只换单位」—— 判据的严格程度没变。
+    """
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
-    p.evaluate("() => window.__xt.markSell(1, 16, 4170)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
+    p.evaluate("() => window.__xt.markSell(1, 16, 4170, %f)" % cny(16, 4170))
     r = p.evaluate("() => window.__xt.gearState(1).realized")
-    assert r == pytest.approx(16 / OZ * 4170 - 16 / OZ * 4089, abs=0.02)
-    assert r == pytest.approx(41.7, abs=0.1)
+    assert r == pytest.approx(cny(16, 4170) - cny(16, 4089), abs=0.05)
+    assert r == pytest.approx(41.7 * FX, abs=0.8)
 
 
 def test_s7_realized_partial_sell(env):
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
-    p.evaluate("() => window.__xt.markSell(1, 8, 4170)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
+    p.evaluate("() => window.__xt.markSell(1, 8, 4170, %f)" % cny(8, 4170))
     r = p.evaluate("() => window.__xt.gearState(1).realized")
-    assert r == pytest.approx(8 / OZ * 4170 - 8 / OZ * 4089, abs=0.02)
-    assert r == pytest.approx(20.8, abs=0.1)
+    assert r == pytest.approx(cny(8, 4170) - cny(16, 4089) / 2, abs=0.05)
+    assert r == pytest.approx(20.8 * FX, abs=0.8)
 
 
 def test_s8_realized_can_be_negative(env):
     """卖亏了要出负数（回本位以下卖出）。"""
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
-    p.evaluate("() => window.__xt.markSell(1, 16, 4000)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
+    p.evaluate("() => window.__xt.markSell(1, 16, 4000, %f)" % cny(16, 4000))
     r = p.evaluate("() => window.__xt.gearState(1).realized")
     assert r < 0
-    assert r == pytest.approx(16 / OZ * (4000 - 4089), abs=0.02)
+    assert r == pytest.approx(cny(16, 4000) - cny(16, 4089), abs=0.05)
 
 
 def test_s9_turns(env):
@@ -267,8 +279,8 @@ def test_s18_summary_bought_is_net(env):
 
 def test_s19_summary_realized_matches_gear(env):
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
-    p.evaluate("() => window.__xt.markSell(1, 6, 4170)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
+    p.evaluate("() => window.__xt.markSell(1, 6, 4170, %f)" % cny(6, 4170))
     g = p.evaluate("() => window.__xt.gearState(1).realized")
     tot = p.evaluate("""() => {
       var t = 0;

@@ -41,6 +41,13 @@ def env(make_env):
     return _f
 
 
+def save_mark(p, amt="20000"):
+    """P27：金额必填。这些用例只关心克重与入口，填一个正数即可。"""
+    if not p.input_value("#markAmt"):
+        p.fill("#markAmt", amt)
+    p.click("#markSave")
+
+
 def open_tab(page, tab):
     page.click('.tabbar button[data-tab="%s"]' % tab)
     page.wait_for_timeout(260)
@@ -113,7 +120,7 @@ def test_mark_prefills_plan_then_shows_pending(env):
     assert p.input_value("#markGram") == "72"
 
     p.fill("#markGram", "20")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
     r4 = row_text(p, "第4档")
     assert r4["g"] == "20 / 72g", r4
@@ -130,7 +137,7 @@ def test_mark_does_not_touch_neighbors(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "10")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
 
     r3 = row_text(p, "第3档")
@@ -150,7 +157,7 @@ def test_unmark_restores_and_toasts(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "10")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
     before = {r["name"]: r["pending"] for r in p.evaluate("() => window.__xt.gearRows()") if not r["warn"]}
 
@@ -178,14 +185,14 @@ def test_second_buy_accumulates(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "10")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(320)
     # 已标记的档再点行（不点撤销）→ 面板带出待补克重，可改
     p.click('#ladder [data-gear="第3档"] .price')
     p.wait_for_timeout(260)
     assert p.input_value("#markGram") == "38"
     p.fill("#markGram", "30")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(320)
     r3 = row_text(p, "第3档")
     assert r3["g"] == "40 / 48g", r3
@@ -204,7 +211,7 @@ def test_mark_does_not_write_ledger(env):
     p.click('#ladder [data-mark="第4档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "20")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
     assert p.evaluate("() => (window.__xt.state().cfg.buys || []).length") == n0
     assert p.evaluate("() => window.__xt.holdStats().avg") == avg0
@@ -220,7 +227,7 @@ def test_marks_survive_reload(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "12")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(1400)          # 等云端推送落地
     assert e.gh.puts > 0
 
@@ -247,7 +254,7 @@ def test_marks_survive_settings_save(env):
     p.click('#ladder [data-mark="第4档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "20")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
 
     open_tab(p, "set")
@@ -269,7 +276,7 @@ def test_ammo_uses_plan_not_ledger(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "10")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
     assert p.evaluate("() => document.getElementById('ammoTxt').textContent.trim()") == "10 / 200 克"
     assert p.evaluate("() => window.__xt.holdStats().grams") == 0
@@ -289,7 +296,7 @@ def test_overbuy_is_flagged(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "58")
-    p.click("#markSave")
+    save_mark(p)
     p.wait_for_timeout(300)
     r3 = row_text(p, "第3档")
     assert r3["g"] == "58 / 48g", r3

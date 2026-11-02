@@ -198,6 +198,8 @@ def test_g6_rebuy_after_undo_marks_again(make_env):
     assert page.eval_on_selector("#sheetMark", "e => e.classList.contains('on')") is True
     gram = page.eval_on_selector("#markGram", "e => e.value")
     assert float(gram) > 0
+    if not page.input_value("#markAmt"):
+        page.fill("#markAmt", "20000")   # P27：金额必填（人民币实付）
     page.click("#markSave")
     page.wait_for_timeout(400)
 

@@ -182,6 +182,7 @@ def test_h3_over_budget_is_the_only_title_alert(env):
     p.click('#ladder [data-mark="第3档"]')
     p.wait_for_timeout(200)
     p.fill("#markGram", "58")
+    p.fill("#markAmt", "52000")      # P27：金额必填（人民币实付）
     p.click("#markSave")
     p.wait_for_timeout(320)
     h = head(p)

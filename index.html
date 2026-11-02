@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.42 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.43 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -432,6 +432,7 @@ body.tab-ov .tpx{display:none}
 .pill.p-part{color:var(--tx2);border-color:rgba(157,174,199,.34);background:rgba(157,174,199,.08)}
 /* 「估」= 这一档的成本是拿档位价估的（P5 前的标记没有真实成交价），差价只能当参考 */
 .pill.est{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.08);padding:2px 5px}
+.pill.cnymiss{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.08);padding:2px 5px}
 .pill.g{color:var(--gold);border-color:rgba(212,162,76,.3)}
 /* 「已买入」可点撤销：热区靠伪元素撑到 40px 上下，视觉上仍是一枚小标签 */
 .pill.undo{position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;-webkit-tap-highlight-color:transparent}
@@ -704,6 +705,9 @@ body.tab-ov .tpx{display:none}
 .fld label{display:block;font-size:11.5px;color:var(--tx3);margin-bottom:5px;line-height:1.45}
 .fld input,.fld select{width:100%;background:#0C1522;border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:11px 12px;font-size:16px;font-family:inherit;outline:none;transition:border-color .18s,box-shadow .18s}
 .fld input:focus,.fld select:focus{border-color:rgba(212,162,76,.55);box-shadow:0 0 0 3px rgba(212,162,76,.1)}
+.hint{font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.5}
+.hint.warn{color:var(--amber)}
+.hint:empty{display:none}
 /* 两列并排：标签行数不同也让输入框底部对齐 */
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
 .row2 .fld{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -814,7 +818,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.42 · 11/02</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.43 · 11/02</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1270,9 +1274,14 @@ body.tab-ov .tpx{display:none}
     <div class="note" id="markNote" style="margin-top:0">—</div>
     <div class="row2">
       <div class="fld"><label id="markGramLb">本次买入（g）</label><input type="number" id="markGram" step="0.1" inputmode="decimal" placeholder="10"></div>
-      <div class="fld"><label>成交价 $/oz</label><input type="number" id="markPx" step="0.01" inputmode="decimal" placeholder="4089"></div>
+      <div class="fld"><label id="markPxLb">成交价 $/oz <span class="dim">· 仅记录</span></label><input type="number" id="markPx" step="0.01" inputmode="decimal" placeholder="4089"></div>
     </div>
-    <div class="fld" style="margin-top:-4px"><label>本次金额</label><input type="text" id="markAmt" readonly style="color:var(--gold);font-weight:600"></div>
+    <div class="fld" style="margin-top:-4px">
+      <label id="markAmtLb">本次<span id="markAmtUnit">实付</span>金额（¥）</label>
+      <input type="number" id="markAmt" step="0.01" inputmode="decimal" placeholder="按实际扣款填">
+      <div class="hint" id="markAmtHint"></div>
+      <div class="hint" id="markFxHint"></div>
+    </div>
     <div class="row2" style="margin-top:4px">
       <button class="btn-primary" id="markSave" style="margin-top:0">确认买入</button>
       <button class="btn-ghost" id="markClear" style="margin-top:0">撤销标记</button>
@@ -3033,12 +3042,18 @@ function cleanGearMarks(o){
     sold = Math.max(0, Math.min(g, sold));         // 卖出不会超过累计买入
     var cost = Number(v && v.cost) || 0;
     var proceeds = Number(v && v.proceeds) || 0;
+    /* P27：人民币是主口径，但这里**不补值也不剔除** —— 缺失就是 0（未填），
+       由显示层判「¥ —」。在清洗层猜汇率，等于把「不知道」伪装成「知道」。 */
+    var costCny = Number(v && v.costCny) || 0;
+    var proceedsCny = Number(v && v.proceedsCny) || 0;
     var at = Number(v && v.at) || 0;
     out[String(i)] = {
       g: Math.round(g * 10) / 10,
       cost: Math.round(cost * 100) / 100,
+      costCny: Math.round(costCny * 100) / 100,
       sold: Math.round(sold * 10) / 10,
       proceeds: Math.round(proceeds * 100) / 100,
+      proceedsCny: Math.round(proceedsCny * 100) / 100,
       at: at
     };
     /* P15：这份标记是从几笔买入记录对账来的。归一化不能把它洗掉，
@@ -3077,15 +3092,21 @@ function gearCost(i, m, px){
 }
 
 /* 已实现差价 = 卖出所得 − 卖掉那部分的成本（成本按克重摊） */
-function gearRealized(m, cost){
+/* 已实现差价（人民币）= 卖出到账 − 卖掉那部分的成本。
+   P27：成本口径只剩 costCny（用户填的实付人民币），不再接受外部折来的美元成本。
+
+   costCny = 0 表示「不知道花了多少钱」，返回 null 而不是 0：
+   0 会被读成「不赚不亏」，这是两个完全不同的结论，页面上也必须分开显示。 */
+function gearRealized(m){
   m = m || {};
-  var g = Number(m.g) || 0;
-  var sold = Number(m.sold) || 0;
-  var proceeds = Number(m.proceeds) || 0;
-  if(!(g > 0) || !(sold > 0)) return 0;
-  var c = Number(cost) || 0;
-  if(!(c > 0)) return 0;
-  return proceeds - sold * c / g;
+  var g = Number(m.g) || 0, sold = Number(m.sold) || 0;
+  var costCny = Number(m.costCny) || 0;
+  var proceedsCny = Number(m.proceedsCny) || 0;
+  if(!(g > 0) || !(sold > 0)) return null;
+  if(!(costCny > 0)) return null;
+  /* 成本已知、卖出却没填到账金额 → 只能算成 0，面板会标「未填到账」 */
+  if(!(proceedsCny > 0)) return 0;
+  return proceedsCny - sold * costCny / g;
 }
 
 /* 周转次数：卖出克重 / 该档计划克重（1.0 轮 = 整档换手一次） */
@@ -3408,12 +3429,15 @@ function gearState(i){
   var m = (S.cfg && S.cfg.gearMarks && S.cfg.gearMarks[String(i)]) || null;
   var gross = m ? (Number(m.g) || 0) : 0;
   var soldG = m ? (Number(m.sold) || 0) : 0;
-  var cost = gross > 0 ? gearCost(i, m) : 0;
+  var costCny = m ? (Number(m.costCny) || 0) : 0;
   return {
     plan: plan, bought: bought, gross: gross, soldG: soldG,
     pending: Math.max(0, plan - bought),
     over: Math.max(0, bought - plan),
-    realized: gearRealized(m, cost),
+    /* P27：已实现是人民币；成本没填时是 null（不是 0），调用方必须能接 null */
+    realized: gearRealized(m),
+    costCny: costCny,
+    avgCny: gross > 0 && costCny > 0 ? costCny / gross : null,
     turns: gearTurns(soldG, plan),
     isSwing: isSwingGear(i)
   };
@@ -3528,7 +3552,7 @@ function reachInfo(){
    一律只写 cfg.gearMarks，绝不碰 buys[] / sells[]：
    计划层管「执行到哪一步」，账本层管「真实持仓与成本」，混写会双重计数。 */
 
-function markBuy(i, deltaG, px){
+function markBuy(i, deltaG, px, cny){
   i = Number(i); deltaG = Number(deltaG);
   if(!(i >= 1 && i <= gearCount()) || !(deltaG > 0)) return false;
   S.cfg.gearMarks = S.cfg.gearMarks || {};
@@ -3541,11 +3565,24 @@ function markBuy(i, deltaG, px){
      否则 realized 会把这笔新成本当成全部成本，差价虚高 */
   if(!(cost > 0) && prevG > 0 && fallback > 0) cost = gramToUsd(prevG, fallback);
   if(p > 0) cost += gramToUsd(deltaG, p);
+
+  /* P27：人民币成本是这个字段里唯一的主口径，且**绝不用 S.fx 兜**。
+     ① 传了 cny → 直接累加（用户填的实付，最终事实）
+     ② 没传 cny 但本档有历史单价 → 按历史单价延续，避免「16g 有价、又加了 8g 却只记 0 元」
+     ③ 都没 → 保持 0，显示层标「¥ —」，不猜 */
+  var costCny = Number(m.costCny) || 0;
+  var addCny = Number(cny) > 0 ? Number(cny) : 0;
+  if(addCny > 0) costCny += addCny;
+  else if(prevG > 0 && costCny > 0) costCny += costCny / prevG * deltaG;
+  costCny = Math.round(costCny * 100) / 100;
+
   S.cfg.gearMarks[k] = {
     g: Math.round((prevG + deltaG) * 10) / 10,
     cost: Math.round(cost * 100) / 100,
+    costCny: costCny,
     sold: Number(m.sold) || 0,
     proceeds: Number(m.proceeds) || 0,
+    proceedsCny: Number(m.proceedsCny) || 0,
     at: Date.now()
   };
   saveCfg(); compute(); refreshAll();
@@ -3554,7 +3591,7 @@ function markBuy(i, deltaG, px){
 
 /* 卖出：只对循环档开放（swingGears 之外一律拒绝，不只是 UI 置灰）。
    P20：不再要求计划模式 —— 单模式之后每个用户都有档位表，循环档的买卖通道没有理由分模式。 */
-function markSell(i, deltaG, px){
+function markSell(i, deltaG, px, cny){
   i = Number(i); deltaG = Number(deltaG);
   if(!(i >= 1 && i <= gearCount())) return false;
   if(!isSwingGear(i)){ toast("建仓档不卖出"); return false; }
@@ -3568,11 +3605,18 @@ function markSell(i, deltaG, px){
   var q = Math.min(deltaG, net);
   var p = Number(px) > 0 ? Number(px) : Number(S.price);
   if(!(p > 0)) return false;
+  /* P27：到账金额是人民币。没传 cny 时按**本档成本单价**记（不是现价、不是汇率），
+     语义是「先按成本价保底，用户之后可改」，与面板默认值一致。 */
+  var costCny = Number(m.costCny) || 0;
+  var addCny = Number(cny) > 0 ? Number(cny)
+             : (costCny > 0 && g > 0 ? q * costCny / g : 0);
   S.cfg.gearMarks[String(i)] = {
     g: g,
     cost: Number(m.cost) || 0,
+    costCny: costCny,
     sold: Math.round((sold + q) * 10) / 10,
     proceeds: Math.round(((Number(m.proceeds) || 0) + gramToUsd(q, p)) * 100) / 100,
+    proceedsCny: Math.round(((Number(m.proceedsCny) || 0) + addCny) * 100) / 100,
     at: Date.now()
   };
   saveCfg(); compute(); refreshAll();
@@ -3603,13 +3647,21 @@ function markGear(i, g){
   var ratio = cur > 0 ? g / cur : 0;
   var sold = Number(m && m.sold) || 0;
   var proceeds = Number(m && m.proceeds) || 0;
+  /* P27：人民币成本与到账同比例折出 —— 克重少了多少，钱就少了多少 */
+  var costCny = Number(m && m.costCny) || 0;
+  var proceedsCny = Number(m && m.proceedsCny) || 0;
   var nsold = Math.min(sold, g);
-  if(sold > 0 && nsold < sold) proceeds = proceeds * (nsold / sold);
+  if(sold > 0 && nsold < sold){
+    proceeds = proceeds * (nsold / sold);
+    proceedsCny = proceedsCny * (nsold / sold);
+  }
   S.cfg.gearMarks[k] = {
     g: Math.round(g * 10) / 10,
     cost: Math.round(cost * ratio * 100) / 100,
+    costCny: Math.round(costCny * ratio * 100) / 100,
     sold: Math.round(nsold * 10) / 10,
     proceeds: Math.round(proceeds * 100) / 100,
+    proceedsCny: Math.round(proceedsCny * 100) / 100,
     at: Date.now()
   };
   saveCfg(); compute(); refreshAll();
@@ -3659,7 +3711,10 @@ function splitByGram(gram, weights){
    记到那笔卖出记录上。有了它，改动 / 删除这笔记录时才能精确退回，
    而不是按当前比例猜（档数一改、或中间又卖过一次，比例就对不上了）。
    无可摊时返回 null。 */
-function allotSell(gram, px){
+/* 把一次卖出摊到各档标记上。
+   P27：cny 是本次卖出到账的人民币总额，按各档摊到的克重比例分下去；
+   不传时按各档成本单价估（与 markSell 同一兜底口径）。 */
+function allotSell(gram, px, cny){
   var n = gearCount(), nets = [], sum = 0;
   for(var i = 1; i <= n; i++){
     var v = Math.max(0, boughtOf(i));
@@ -3680,11 +3735,16 @@ function allotSell(gram, px){
     var ns = Math.min(g, sold + d);
     if(!(ns > sold + 0.001)) continue;
     var addG = ns - sold;
+    var costCny = Number(m.costCny) || 0;
+    var addCny = Number(cny) > 0 ? Number(cny) * addG / q
+               : (costCny > 0 && g > 0 ? addG * costCny / g : 0);
     S.cfg.gearMarks[k] = {
       g: g,
       cost: Number(m.cost) || 0,
+      costCny: costCny,
       sold: Math.round(ns * 10) / 10,
       proceeds: Math.round(((Number(m.proceeds) || 0) + gramToUsd(addG, Number(px))) * 100) / 100,
+      proceedsCny: Math.round(((Number(m.proceedsCny) || 0) + addCny) * 100) / 100,
       at: Date.now(),
       fromBuys: m.fromBuys
     };
@@ -3711,7 +3771,8 @@ function unallotSell(lot, gram){
     var ratio = sold > 0 ? q / sold : 0;
     m.sold = Math.round((sold - q) * 10) / 10;
     m.proceeds = Math.round(((Number(m.proceeds) || 0) * (1 - ratio)) * 100) / 100;
-    if(m.sold <= 0.05){ m.sold = 0; m.proceeds = 0; }
+    m.proceedsCny = Math.round(((Number(m.proceedsCny) || 0) * (1 - ratio)) * 100) / 100;
+    if(m.sold <= 0.05){ m.sold = 0; m.proceeds = 0; m.proceedsCny = 0; }
   }
 
   if(lot && typeof lot === "object"){
@@ -3759,9 +3820,12 @@ function syncMarksFromBuys(){
     var cut = Number((S.cfg.gearCleared || {})[b.gear]) || 0;
     var idt = Number(String(b.id || "").replace(/^[a-z]/i, "")) || 0;
     if(cut && (!idt || idt < cut)) return;
-    var k = idx + 1, a = agg[k] || (agg[k] = { g:0, cost:0, n:0 });
+    var k = idx + 1, a = agg[k] || (agg[k] = { g:0, cost:0, costCny:0, n:0 });
     var gram = Number(b.gram) || 0;
     a.g += gram; a.n++;
+    /* P27：元/克 × 克 = 元，全程不碰汇率 —— 汇率没到也能算出准确的人民币成本。
+       这让 P20 的汇率门只挡「$/oz 均价」，不再挡「成本」。 */
+    a.costCny += gram * (Number(b.priceCny) || 0);
     var usd = cnyToUsd(Number(b.priceCny) || 0);
     if(usd) a.cost += gramToUsd(gram, usd);
   });
@@ -3777,15 +3841,19 @@ function syncMarksFromBuys(){
     var next = {
       g: Math.round(a.g * 10) / 10,
       cost: Math.round(a.cost * 100) / 100,
+      costCny: Math.round(a.costCny * 100) / 100,
       sold: Number(old.sold) || 0,
       proceeds: Number(old.proceeds) || 0,
+      proceedsCny: Number(old.proceedsCny) || 0,
       at: Number(old.at) || Date.now(),
       fromBuys: a.n
     };
     hit++;
     /* 结果没变就不算「改过」：迁移要幂等（m4），而且每次记账都无谓重写会多推一次云端 */
     if(old.g === next.g && Number(old.cost) === next.cost &&
+       Number(old.costCny) === next.costCny &&
        Number(old.sold) === next.sold && Number(old.proceeds) === next.proceeds &&
+       Number(old.proceedsCny) === next.proceedsCny &&
        Number(old.fromBuys) === next.fromBuys) return;
     marks[k] = next;
     changed = true;
@@ -3831,7 +3899,9 @@ function migrateMarksV7(){
     cfg.gearMarks[k] = {
       g: Math.round(pl * 10) / 10,
       cost: Math.round(gramToUsd(pl, pr) * 100) / 100,
-      sold: 0, proceeds: 0, at: Date.now(), migrated: true
+      /* 纯名单推不出实付人民币 —— 留 0 标「未填」，不按当天汇率猜（P27 规则三） */
+      costCny: 0,
+      sold: 0, proceeds: 0, proceedsCny: 0, at: Date.now(), migrated: true
     };
     changed = true;
   });
@@ -3857,7 +3927,7 @@ function migrateMarksV7(){
 
    四个「数据到达」时机（applyRemote / doPull 合并 / 断网快照 / fetchFx 回调）只调 migrateAll()，
    不直接调具体迁移。这样下一期加 v2，只改 runMigrations 一处。 */
-var SCHEMA = 1;
+var SCHEMA = 2;
 function runMigrations(){
   var cfg = S.cfg || (S.cfg = {});
   var from = Number(cfg.schemaVersion) || 0;
@@ -3872,8 +3942,49 @@ function runMigrations(){
     cfg.schemaVersion = 1;
   }
 
+  if(from < 2){
+    /* v2 只做一件事：从账本补人民币成本。与汇率无关，所以**没有门**，一次到底。 */
+    migrateMarksV8();
+    cfg.schemaVersion = 2;
+  }
+
   if(Number(cfg.schemaVersion) > from) saveCfg();
   return Number(cfg.schemaVersion) > from;
+}
+
+/* v2：把账本里带档记录的人民币成本补进标记。
+   为什么不需要汇率门：priceCny 是元/克，克 × 元/克 = 元，全程不碰汇率。
+   纯标记用户（没有账本记录）补不出来 —— 留 0 标「未填」，不猜。 */
+function migrateMarksV8(){
+  var cfg = S.cfg || {};
+  var marks = cfg.gearMarks || {};
+  var keys = Object.keys(marks);
+  if(!keys.length) return false;
+
+  /* 只补 costCny，**不重算 g / cost / sold**。
+     走 syncMarksFromBuys 会把用户手动撤销过的标记从记录里重新长出来 ——
+     升级不该改变任何已有的执行进度。 */
+  var seq = gearSeq(), agg = {};
+  (cfg.buys || []).forEach(function(b){
+    var idx = seq.indexOf(b.gear);
+    if(idx < 0) return;
+    var cut = Number((cfg.gearCleared || {})[b.gear]) || 0;
+    var idt = Number(String(b.id || "").replace(/^[a-z]/i, "")) || 0;
+    if(cut && (!idt || idt < cut)) return;
+    var k = String(idx + 1);
+    agg[k] = (agg[k] || 0) + (Number(b.gram) || 0) * (Number(b.priceCny) || 0);
+  });
+
+  var changed = false;
+  keys.forEach(function(k){
+    var m = marks[k], v = agg[k];
+    if(!m || !(v > 0)) return;
+    if(Number(m.costCny) > 0) return;        // 已经有的更准（用户填的），不覆盖
+    m.costCny = Math.round(v * 100) / 100;
+    changed = true;
+  });
+  if(changed){ compute(); refreshAll(); saveCfg(); }
+  return changed;
 }
 
 /* 唯一入口。迁移函数内部自己会 compute / refreshAll / saveCfg，这里不重复做 */
@@ -3931,7 +4042,7 @@ function dripInfo(i){
   var cfg = S.cfg || {};
   var out = {
     i: i, armed: false, days: 0, premium: null,
-    pending: 0, gram: 0, amt: 0, canPrompt: false, why: ""
+    pending: 0, gram: 0, amt: null, canPrompt: false, why: ""
   };
   if(!(i >= 1 && i <= gearCount())){ out.why = "bad-gear"; return out; }
 
@@ -3950,7 +4061,12 @@ function dripInfo(i){
   var g = pend * pct;
   if(g > 0 && g < 1) g = pend;                    // 尾数保护：不足 1g 一次清掉，避免 0.3g 无限触发
   out.gram = g > 0 ? Math.round(g * 10) / 10 : 0;
-  out.amt = (out.gram > 0 && Number(S.price) > 0) ? gramToUsd(out.gram, Number(S.price)) : 0;
+  /* P27：预估金额按**本档已填的人民币单价**算。
+     本档没填过 → null（界面「—」），不拿现价 × 汇率编一个像事实的数字出来。 */
+  var mk0 = ((cfg.gearMarks || {})[String(i)]) || null;
+  var uCny = (mk0 && Number(mk0.g) > 0 && Number(mk0.costCny) > 0)
+    ? Number(mk0.costCny) / Number(mk0.g) : 0;
+  out.amt = (out.gram > 0 && uCny > 0) ? Math.round(uCny * out.gram * 100) / 100 : null;
 
   if(!(days > 0)){ out.why = "off"; return out; }
   if(isSwingGear(i)){ out.why = "swing"; return out; }
@@ -4030,7 +4146,8 @@ function computeGears(){
       rows.push({
         name:g.name, pct:g.pct, w:0, warn:true, idx:0,
         plan:0, planBase:0, shift:0, gram:0, pending:0, boughtG:0, overG:0, doneG:0,
-        grossG:0, soldG:0, netG:0, realized:0, turns:0, swing:false,
+        grossG:0, soldG:0, netG:0, realized:null, turns:0, swing:false,
+        costCny:0, avgCny:null, cnyMissing:false,
         price: he * (1 + g.pct / 100),
         done:false, total:total, held:held, remain:remain,
         over: held > total + 0.05
@@ -4051,7 +4168,11 @@ function computeGears(){
        界面上要标「估」，否则用户会把它当成真实成交均价去比差价。
        只要这一档有过一次带价买入（markBuy 折进 cost），估字就自动消失。 */
     var costEst = !!mk && grossG > 0 && !(Number(mk.cost) > 0);
-    var realized = soldG > 0 ? gearRealized(mk, gearCost(k, mk, price)) : 0;
+    /* P27：已实现改为人民币，成本没填时是 null —— 不能拿 `|| 0` 抹平，
+       否则「不知道赚了多少」会显示成「不赚不亏」。 */
+    var realized = gearRealized(mk);
+    var costCny = mk ? (Number(mk.costCny) || 0) : 0;
+    var cnyMissing = grossG > 0.05 && !(costCny > 0);
     var turns = gearTurns(soldG, pl);
     /* P18：成交均价（$/oz）。有 cost 用 cost，没有就按档位价估 —— 与标记面板
        的「买入均价」同一算法，两处必须同数。grossG 为 0 时给 null，不写 0。 */
@@ -4065,6 +4186,8 @@ function computeGears(){
       boughtG: bought, overG: overG, doneG: bought,
       grossG: grossG, soldG: soldG, netG: bought,
       realized: realized, turns: turns, costEst: costEst,
+      costCny: costCny, avgCny: costCny > 0 && grossG > 0 ? costCny / grossG : null,
+      cnyMissing: cnyMissing,
       avgOz: avgOz,
       swing: isSwingGear(k),
       /* done = 买满（待补归零）。卖出后净持变小、待补重新出现，
@@ -4193,7 +4316,12 @@ function rvRows(){
       idx:g.idx, name:g.name, price:price, plan:plan,
       gross:gross, sold:sold, net:net, pending:pending, over:Math.max(0, net - plan),
       avgOz:avgOz, est:est, dev:dev, state:state, touch:touch,
-      realized:Number(g.realized) || 0, turns:Number(g.turns) || 0
+      /* P27：null 要原样传下去（「不知道」不是「不赚不亏」），不能 `|| 0`。
+         cnyKnown 只在「这一档真的卖过、但算不出来」时为 false ——
+         没买没卖的档天然是 null，不该拖累整张表。 */
+      realized:(g.realized === null || g.realized === undefined) ? null : (Number(g.realized) || 0),
+      cnyKnown: !(sold > 0.05 && (g.cnyMissing || g.realized === null || g.realized === undefined)),
+      turns:Number(g.turns) || 0
     });
   });
   return { rows:rows, win:win };
@@ -4203,10 +4331,16 @@ function rvRows(){
    混进去会把真实偏差稀释成 0（构造 1 档 +5% + 5 档估算 → 会算成 +0.83%）。 */
 function rvSum(rows){
   var gross = 0, sold = 0, net = 0, realized = 0, turns = 0;
+  /* 只要有一档人民币成本没填，合计就不能冒充完整 —— 用 cnyKnown 一路传到页脚 */
+  var cnyKnown = true;
   var wg = 0, wAmt = 0, wPlan = 0, graded = 0;
   rows.forEach(function(r){
     gross += r.gross; sold += r.sold; net += r.net;
-    realized += r.realized; turns += r.turns;
+    /* 只有「这一档有持仓却不知道成本」才把合计标成未知；
+       没买过的档 realized 天然是 null，不该让整张表变「—」 */
+    if(r.cnyKnown === false) cnyKnown = false;
+    realized += Number(r.realized) || 0;
+    turns += r.turns;
     if(r.dev !== null && r.gross > 0.05){
       wg += r.gross; wAmt += r.gross * r.avgOz; wPlan += r.gross * r.price;
       graded++;
@@ -4216,10 +4350,12 @@ function rvSum(rows){
   var rAvg = wg > 0 ? wAmt / wg : null;
   return {
     gross:gross, sold:sold, net:net, realized:realized, turns:turns,
+    cnyKnown:cnyKnown,
     pAvg:pAvg, rAvg:rAvg, graded:graded,
     devAll:(pAvg > 0 && rAvg !== null) ? (rAvg / pAvg - 1) * 100 : null,
-    /* 每克拉低：已实现差价摊到现有持仓上，相当于每克成本降了多少（再折 $/oz） */
-    perOz: net > 0.05 ? realized / net * OZ_PER_G : null,
+    /* 每克拉低：已实现差价摊到现有持仓上，相当于每克成本降了多少。
+       P27 起直接是 ¥/g —— 原来换回 $/oz 只为跟金价单位一致，人民币口径下没必要。 */
+    perGram: (net > 0.05 && cnyKnown) ? realized / net : null,
     book: holdStats().bought
   };
 }
@@ -4285,13 +4421,18 @@ function rvFoot(sum){
   var recon = Math.abs(diff) > 0.05
     ? '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 差 <b>' + num(diff, 1) + 'g</b>（手动标记不写账本）'
     : '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 一致';
+  /* P27：钱一律人民币。有档位没填成本时整条标「—」，
+     不拿 0 冒充 —— 「不知道」和「不赚不亏」在复盘里是两个结论。 */
+  var rvTxt = sum.cnyKnown ? ('¥' + money(sum.realized, 0)) : '¥ —';
+  var pgTxt;
+  if(!sum.cnyKnown)        pgTxt = '每克拉低 —（部分档位未填人民币成本）';
+  else if(sum.perGram === null) pgTxt = '每克拉低 —（当前无持仓）';
+  else                     pgTxt = '每克拉低 <b>¥' + num(sum.perGram, 2) + '/g</b>';
   return '<div class="rv-f">' +
     '<div>' + lg + '</div>' +
     '<div class="dim">累计买入 <b>' + num(sum.gross, 1) + 'g</b> · 卖出 <b>' + num(sum.sold, 1) + 'g</b>' +
-    ' · 已实现 <b>$' + num(sum.realized, 0) + '</b> · 周转 <b>' + num(sum.turns, 1) + '</b> 轮</div>' +
-    (sum.perOz !== null
-      ? '<div class="dim">每克拉低 <b>$' + num(sum.perOz, 1) + '/oz</b>（$' + num(sum.realized / sum.net, 2) + '/g）</div>'
-      : '<div class="dim">每克拉低 —（当前无持仓）</div>') +
+    ' · 已实现 <b>' + rvTxt + '</b> · 周转 <b>' + num(sum.turns, 1) + '</b> 轮</div>' +
+    '<div class="dim">' + pgTxt + '</div>' +
     '<div class="dim">' + recon + '</div>' +
   '</div>';
 }
@@ -6432,9 +6573,13 @@ function renderLadder(){
       }
       /* 已实现差价：只看卖过没有，卖空后标签仍留着（§6） */
       if(g.swing && g.soldG > 0.05){
-        var rv = Math.round(g.realized);
-        swingTag = '<span class="swing' + (rv < 0 ? " neg" : "") + '">' +
-          (rv < 0 ? "−" : "+") + Math.abs(rv) + ' / ' + num(g.turns, 1) + ' 轮</span>';
+        /* P27：带币种。旧版写「+1234」没有任何符号，用户按人民币读，实际是美元 —— 差 7 倍。
+           成本没填时给「¥ —」，不显示一个假的 0。 */
+        var rv = (g.realized === null || g.realized === undefined) ? null : Number(g.realized);
+        var rvTxt = rv === null ? "¥ —"
+          : (rv < 0 ? "−¥" : "+¥") + money(Math.abs(rv), 0);
+        swingTag = '<span class="swing' + (rv !== null && rv < 0 ? " neg" : "") + '">' +
+          rvTxt + ' / ' + num(g.turns, 1) + ' 轮</span>';
       }
       if(g.overG > 0.05) tail = '<span class="pill p-hit" style="margin-left:auto">超预算</span>' + tail;
       if(p && g.price < p){
@@ -6477,6 +6622,7 @@ function renderLadder(){
         '<div class="r2"><span class="pill ' + ui.pill + (g.done ? " undo" : "") + '"' +
           (g.done ? ' data-ungear="' + escapeHtml(g.name) + '"' : '') + '>' + ui.label + '</span>' +
         (ui.est ? '<span class="pill est" title="成本按档位价估算：这是早期版本留下的标记，没有真实成交价，行尾差价仅供参考">估</span>' : '') +
+        (g.cnyMissing ? '<span class="pill cnymiss" title="这一档还没有填人民币成本，已实现与每克拉低会显示为 —。点这一档补一笔就会补上">¥未填</span>' : '') +
         '<span class="pill">' + g.pct + '%</span>' +
         '<span class="pill g">' + grams + '</span>' +
         (gap !== null ? '<span class="dist num">' + (gap >= 0 ? "+" : "") + gap.toFixed(1) + '%</span>' : '') +
@@ -6602,12 +6748,23 @@ function renderMarkSheet(){
   $("markClear").style.display = sell ? "none" : "";
   if($("markToBuy")) $("markToBuy").style.display = sell ? "none" : "";
 
+  /* 金额的币种标签随 Tab 切换：「实付」/「到账」 */
+  if($("markAmtUnit")) $("markAmtUnit").textContent = sell ? "到账" : "实付";
+
+  var mk = (S.cfg.gearMarks || {})[String(g.idx)] || null;
+  var gross = mk ? (Number(mk.g) || 0) : 0;
+
   if(sell){
-    var mk = (S.cfg.gearMarks || {})[String(g.idx)] || null;
-    var gross = mk ? (Number(mk.g) || 0) : 0;
-    var avg = gross > 0 ? gearCost(g.idx, mk) / gross * OZ_PER_G : 0;   /* 克重成本 → 美元/盎司 */
+    /* 成本给人民币，美元/盎司放括号里当参考 —— 缩写成「$4089/oz」是给比价用的，
+       不再是主口径。 */
+    var avgOz = gross > 0 ? gearCost(g.idx, mk) / gross * OZ_PER_G : 0;
+    var avgCny = (gross > 0 && Number(mk.costCny) > 0) ? Number(mk.costCny) / gross : 0;
+    var rz = gearRealized(mk);
     $("markNote").innerHTML = '净持仓 <b>' + gnum(g.boughtG) + ' g</b>' +
-      '　买入均价 <b>' + (avg > 0 ? ("$" + num(avg, 0) + "/oz") : "—") + '</b>';
+      '　成本 <b>' + (avgCny > 0 ? ("¥" + num(avgCny, 2) + "/g") : "¥ —") + '</b>' +
+      (avgOz > 0 ? ' <span class="dim">$' + num(avgOz, 0) + '/oz</span>' : "") +
+      (rz === null ? "" : '　已实现 <b class="' + (rz < 0 ? "green" : "red") + '">' +
+        (rz < 0 ? "−¥" : "+¥") + money(Math.abs(rz), 0) + '</b>');
     $("markGram").value = g.boughtG > 0.05 ? gnum(g.boughtG) : "";
     $("markPx").value = num(S.price || 0, 2);          // 卖出按现价成交
     $("markFoot").textContent = "只释放计划额度，实际成交请到「持仓」记一笔。";
@@ -6615,12 +6772,17 @@ function renderMarkSheet(){
     var pend = Math.max(0, g.plan - g.boughtG);
     $("markNote").innerHTML = '本档计划 <b>' + gnum(g.plan) + ' g</b>' +
       '　当前净持仓 <b>' + gnum(g.boughtG) + ' g</b>' +
-      (g.overG > 0.05 ? '　<span class="warn">超买 ' + gnum(g.overG) + ' g</span>' : '');
+      (g.overG > 0.05 ? '　<span class="warn">超买 ' + gnum(g.overG) + ' g</span>' : "") +
+      (Number(mk && mk.costCny) > 0 && gross > 0
+        ? '　已填 <b>¥' + money(Number(mk.costCny), 0) + '</b>' +
+          ' <span class="dim">· ¥' + num(Number(mk.costCny) / gross, 2) + '/g</span>'
+        : "");
     $("markGram").value = gnum(pend > 0.05 ? pend : g.plan);
     $("markPx").value = num(g.price, 2);               // 买入默认档位价（挂单成交）
     $("markFoot").textContent = "填本次成交克重，会累加到该档；要留成交明细改用「持仓 · 记一笔」，同一档别两边都填";
   }
-  updateMarkAmt();
+  S.markAmtDirty = false;          // 重开面板：金额回到「按本档单价建议」的状态
+  syncMarkAmt();
 }
 
 function switchMarkTab(tab){
@@ -6633,14 +6795,61 @@ function switchMarkTab(tab){
   renderMarkSheet();
 }
 
-/* 「本次金额」：克重 × 成交价，随输入实时变 */
-function updateMarkAmt(){
+/* 「本次金额」：不再是「克重 × 成交价」算出来的推导值，而是**用户填的事实**。
+   建议值只在本档有历史单价、且用户没手动改过时给（S.markAmtDirty）。
+   一旦用户自己填过，改克重也不覆盖 —— 否则等于替用户改了真实扣款。 */
+function syncMarkAmt(){
   var box = $("markAmt");
   if(!box) return;
-  var v = Number($("markGram").value);
+  var sell = S.markTab === "sell";
+  var g = (S.gears || []).filter(function(x){ return x.name === S.markName; })[0];
+  var mk = g ? ((S.cfg.gearMarks || {})[String(g.idx)]) || null : null;
+  var unit = (mk && Number(mk.g) > 0 && Number(mk.costCny) > 0)
+    ? Number(mk.costCny) / Number(mk.g) : 0;
+  var gram = Number($("markGram").value);
+  var hint = $("markAmtHint"), txt;
+
+  if(S.markAmtDirty){
+    txt = sell ? "按实际到账填" : "按实际扣款填";
+  } else if(unit > 0 && gram > 0){
+    box.value = Math.round(unit * gram * 100) / 100;
+    txt = (sell ? "按本档成本 ¥" : "沿用本档 ¥") + num(unit, 2) + "/g";
+  } else if(unit > 0){
+    box.value = "";
+    txt = "本档单价 ¥" + num(unit, 2) + "/g";
+  } else {
+    box.value = "";
+    txt = (sell ? "按实际到账填" : "按实际扣款填") + "，不按汇率折算";
+  }
+  if(hint) hint.textContent = txt;
+  renderImpliedFx();
+}
+
+/* 只提示，不落库、不参与任何计算。
+   三个数都填了才反推，偏离当前汇率 > 10% 才显示 —— 平时完全不占位。
+
+   为什么不是 2%：购汇时点的汇率与点差本来就有 2~4% 的正常差异，
+   2% 会让这条提示在正常数据上常驻，等于没有提示（第一版就是这么写的，截图时才发现）。
+   10% 仍然能抓住真正的错误：把 $3326 填进人民币框（隐含汇率 ≈ 1.00）、
+   或者多打一个零（隐含汇率 ≈ 70）。 */
+function renderImpliedFx(){
+  var box = $("markFxHint");
+  if(!box) return;
+  var g = Number($("markGram").value);
   var px = Number($("markPx").value);
-  var amt = (v > 0 && px > 0) ? gramToUsd(v, px) : 0;
-  box.value = amt > 0 ? ("$" + num(amt, 2)) : "—";
+  var cny = Number($("markAmt").value);
+  var fx = Number(S.fx);
+  if(!(g > 0) || !(px > 0) || !(cny > 0) || !(fx > 0)){
+    box.textContent = ""; box.className = "hint"; return;
+  }
+  var implied = cny / (g / OZ_PER_G * px);
+  var dev = (implied / fx - 1) * 100;
+  if(Math.abs(dev) > 10){
+    box.textContent = "隐含汇率 ¥" + num(implied, 2) + "/$（当前 ¥" + num(fx, 2) + "）· 确认金额不是美元？";
+    box.className = "hint warn";
+  } else {
+    box.textContent = ""; box.className = "hint";
+  }
 }
 
 function closeMarkSheet(){
@@ -6656,13 +6865,16 @@ function saveMarkGear(){
   if(i < 0){ closeMarkSheet(); return; }
   var v = Number($("markGram").value);
   var px = Number($("markPx").value);
+  var cny = Number($("markAmt").value);
   var sell = S.markTab === "sell";
   if(isNaN(v) || !(v > 0)){ toast("克重要填正数"); return; }
   if(!(px > 0)){ toast("成交价要填正数"); return; }
-  var ok = sell ? markSell(i + 1, v, px) : markBuy(i + 1, v, px);
+  /* 金额必填：留空会让「未填」变成常态，统计长期缺数，而这一格正是所有钱口径的来源 */
+  if(!(cny > 0)){ toast("请填本次" + (sell ? "到账" : "实付") + "金额（¥）"); return; }
+  var ok = sell ? markSell(i + 1, v, px, cny) : markBuy(i + 1, v, px, cny);
   if(!ok) return;                       // 校验没过：markSell 已 toast，面板留着让用户改
   closeMarkSheet();
-  toast((sell ? "已卖出 " : "已买入 ") + gnum(v) + " g");
+  toast((sell ? "已卖出 " : "已买入 ") + gnum(v) + " g · ¥" + money(cny, 0));
 }
 
 function renderGearSrc(){
@@ -8186,7 +8398,7 @@ function saveSell(){
       unallotSell(s0.allot || null, Number(s0.gram) || 0);
       var hadAllot = !!s0.allot;
       s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note;
-      var r2 = allotSell(gram, cnyToUsd(priceCny));
+      var r2 = allotSell(gram, cnyToUsd(priceCny), gram * priceCny);
       if(r2){ s0.allot = r2.lot; hit = r2.hit; }
       else if(hadAllot) delete s0.allot;
     }
@@ -8197,7 +8409,7 @@ function saveSell(){
     /* P16/P20：卖出不指定档位，按各档净持占比自动摊到标记上 —— 释放的额度就这样
        重新回到配额，各档待补随之变大。账本里的记录仍然只有一个总克重。
        P21：把这次实际摊到哪几档记进 allot，改克重 / 删记录时按它精确退回。 */
-    var r1 = allotSell(gram, cnyToUsd(priceCny));
+    var r1 = allotSell(gram, cnyToUsd(priceCny), gram * priceCny);
     if(r1){ rec.allot = r1.lot; hit = r1.hit; }
     pushFeed("cut", name + " 减仓 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 回笼 " + money(gram*priceCny,2) + " 元");
   }
@@ -8310,7 +8522,9 @@ function recalcGears(){
     mk[String(g.idx)] = {
       g: Math.round((Number(g.plan) || 0) * 10) / 10,
       cost: Number(old.cost) > 0 ? Number(old.cost) : Math.round(gramToUsd(Number(g.plan) || 0, g.price) * 100) / 100,
-      sold: 0, proceeds: 0, at: now, fromReset: true
+      /* P27：重排不改变「历史上花了多少钱」，人民币成本原样沿用；没有就是 0（未填） */
+      costCny: Number(old.costCny) > 0 ? Number(old.costCny) : 0,
+      sold: 0, proceeds: 0, proceedsCny: 0, at: now, fromReset: true
     };
   });
   S.cfg.gearMarks = mk;
@@ -8646,8 +8860,10 @@ function bindUI(){
       b.onclick = function(){ switchMarkTab(b.getAttribute("data-mk")); };
     });
   }
-  if($("markGram")) $("markGram").oninput = updateMarkAmt;
-  if($("markPx")) $("markPx").oninput = updateMarkAmt;
+  if($("markGram")) $("markGram").oninput = syncMarkAmt;
+  if($("markPx")) $("markPx").oninput = function(){ renderImpliedFx(); };
+  /* 手改金额：置脏 + 重跑建议值（只改提示文案，不回写金额）+ 隐含汇率 */
+  if($("markAmt")) $("markAmt").oninput = function(){ S.markAmtDirty = true; syncMarkAmt(); };
   if($("markClear")) $("markClear").onclick = function(){
     if(S.markName) unmarkGearByName(S.markName);
     closeMarkSheet();
@@ -8850,7 +9066,7 @@ if(/[?&]xt=1/.test(location.search)){
     wCenter:wCenter,
     resetW:resetW,
     syncMarksFromBuys:syncMarksFromBuys,
-    migrateMarksV7:migrateMarksV7,
+    migrateMarksV7:migrateMarksV7, migrateMarksV8:migrateMarksV8,
     SCHEMA:SCHEMA, runMigrations:runMigrations, migrateAll:migrateAll,
     mergeRemote:mergeRemote,
     cnyToUsd:cnyToUsd,
@@ -8901,7 +9117,7 @@ if(/[?&]xt=1/.test(location.search)){
     saveMarkGear:saveMarkGear,
     renderMarkSheet:renderMarkSheet,
     switchMarkTab:switchMarkTab,
-    updateMarkAmt:updateMarkAmt,
+    syncMarkAmt:syncMarkAmt, renderImpliedFx:renderImpliedFx,
     renderSwingGrid:renderSwingGrid,
     toggleSwing:toggleSwing,
     /* === P7 深档兜底 === */

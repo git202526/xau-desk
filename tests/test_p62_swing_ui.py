@@ -15,6 +15,13 @@ from conftest import CFG_EMPTY, PRICE
 
 H = 4700.0
 W = 200.0
+OZ = 31.1035
+FX = 7.10
+
+
+def cny(gram, oz):
+    """克重 × $/oz → 人民币。P27 起已实现差价是 ¥，用固定 7.10 记账让数值可读。"""
+    return round(gram / OZ * oz * FX, 2)
 
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
@@ -131,40 +138,45 @@ def test_u6_sell_price_defaults_to_live(env):
     px = float(p.input_value("#markPx"))
     live = p.evaluate("() => window.__xt.state().price")
     assert abs(px - live) < 0.01
-    # 金额随输入实时算：16g @现价
-    assert p.evaluate("() => document.getElementById('markAmt').value").startswith("$")
+    # P27：金额不再是「克重 × 现价」推出来的 $ 值，而是用户填的 ¥。
+    # 本档没填过人民币成本 → 建议值为空，等用户填（或按克重输入后带出）。
+    assert p.evaluate("() => document.getElementById('markAmt').value") == ""
+    assert p.evaluate("() => document.getElementById('markAmtUnit').textContent") == "到账"
 
 
 def test_u7_sell_leaves_realized_tag(env):
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
     plan_tab(p)
     p.click('#ladder [data-sell="第1档"]')
     p.wait_for_timeout(240)
     p.fill("#markGram", "16")
     p.fill("#markPx", "4170")
+    p.fill("#markAmt", "%.2f" % cny(16, 4170))
     p.click("#markSave")
     p.wait_for_timeout(360)
     plan_tab(p)
     r = row(p, "第1档")
-    assert r["swing"] == "+42 / 1.0 轮", r
+    # P27：差价改人民币并带币种（原来是一个没有符号的裸数字，会被读成人民币）
+    assert r["swing"] == "+¥%d / 1.0 轮" % round(cny(16, 4170) - cny(16, 4089)), r
 
 
 def test_u8_after_full_sell_only_buy_left(env):
     p = env().page
-    p.evaluate("() => window.__xt.markBuy(1, 16, 4089)")
+    p.evaluate("() => window.__xt.markBuy(1, 16, 4089, %f)" % cny(16, 4089))
     plan_tab(p)
     p.click('#ladder [data-sell="第1档"]')
     p.wait_for_timeout(240)
     p.fill("#markGram", "16")
     p.fill("#markPx", "4170")
+    p.fill("#markAmt", "%.2f" % cny(16, 4170))
     p.click("#markSave")
     p.wait_for_timeout(360)
     plan_tab(p)
     r = row(p, "第1档")
     assert r["buy"] is True and r["sell"] is False      # 没有可卖的了
     assert r["g"] == "待补 16g"                          # 额度已释放
-    assert r["swing"] == "+42 / 1.0 轮"                  # 历史差价仍留着
+    assert r["swing"] == "+¥%d / 1.0 轮" % round(cny(16, 4170) - cny(16, 4089))  # 历史差价仍留着
 
 
 # ---------------------------------------------------------------- 设置页

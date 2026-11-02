@@ -6,9 +6,9 @@ P20 的迁移只有一个布尔 `migratedV7`，调用点被复制到 4 个「数
 本期加 `schemaVersion` 并把入口收敛成 `migrateAll()`：
     版本推进的前提是**迁移真的跑完**（汇率门没过多半途而废，版本不能动）
 
-    v1 新配置 → 版本 1
-    v2 老数据（带档记录、无标记）→ 折标记 + 版本 1
-    v3 汇率没到 → 版本不推进；汇率到位补跑 → 1
+    v1 新配置 → 版本 2（P27 起多了 v2：给标记补人民币成本）
+    v2 老数据（带档记录、无标记）→ 折标记 + 版本 2
+    v3 汇率没到 → 版本不推进；汇率到位补跑 → 2
     v4 已迁移过（migratedV7=true，无 schemaVersion）→ 标记一个不改，只升版本
     v5 幂等：连跑三次，标记与版本完全不变
     v6 mergeRemote 版本取 max（设备来回切换不会把版本带回去）
@@ -44,18 +44,19 @@ def _marks(p):
 
 
 def test_v1_new_cfg_gets_version(make_env):
-    """新配置加载完就是 v1（将来加 v2 时，这里会变成「至少 1」）。"""
+    """新配置加载完就是当前版本（v2 = P27 加的「标记补人民币成本」）。"""
     p = make_env(cfg=_cfg()).page
-    assert _ver(p) == 1
+    assert _ver(p) == 2
+    assert p.evaluate("() => window.__xt.SCHEMA") == 2
     assert p.evaluate("() => window.__xt.runMigrations()") is False
 
 
 def test_v2_legacy_buys_fold_into_marks(make_env):
-    """老数据：只有带档买入记录，没有标记 → 折成标记，版本升到 1。"""
+    """老数据：只有带档买入记录，没有标记 → 折成标记，版本升到 2。"""
     cfg = _cfg(buys=[{"id": "b1", "name": "老记录", "gram": 20, "priceCny": CX,
                       "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第2档"}])
     p = make_env(cfg=cfg, price=4030.0).page
-    assert _ver(p) == 1
+    assert _ver(p) == 2
     assert p.evaluate("() => window.__xt.boughtOf(2)") == pytest.approx(20, abs=0.05)
     mk = _marks(p)
     assert mk["2"]["g"] == pytest.approx(20, abs=0.05)
@@ -88,7 +89,7 @@ def test_v3_fx_gate_holds_version(make_env):
       window.__xt.migrateAll();
     }""")
     p.wait_for_timeout(150)
-    assert _ver(p) == 1
+    assert _ver(p) == 2
     assert p.evaluate("() => window.__xt.boughtOf(2)") == pytest.approx(20, abs=0.05)
 
 
@@ -99,7 +100,7 @@ def test_v4_already_migrated_keeps_marks(make_env):
                buys=[{"id": "b1", "name": "老记录", "gram": 20, "priceCny": CX,
                       "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第2档"}])
     p = make_env(cfg=cfg, price=4030.0).page
-    assert _ver(p) == 1
+    assert _ver(p) == 2
     mk = _marks(p)
     assert list(mk.keys()) == ["1"], "迁移本已完成，不该再补第 2 档"
     assert mk["1"]["g"] == 16
@@ -112,20 +113,20 @@ def test_v5_idempotent(make_env):
     before = json.dumps(_marks(p), sort_keys=True, ensure_ascii=False)
     for _ in range(3):
         assert p.evaluate("() => window.__xt.migrateAll()") is False
-    assert _ver(p) == 1
+    assert _ver(p) == 2
     assert json.dumps(_marks(p), sort_keys=True, ensure_ascii=False) == before
 
 
 def test_v6_merge_takes_max_version(make_env):
-    """并集合并时版本取 max：本机 0 + 远端 1 → 1，不会被带回去重跑。"""
+    """并集合并时版本取 max：本机 0 + 远端 2 → 2，不会被带回去重跑。"""
     p = make_env(cfg=_cfg()).page
     out = p.evaluate("""() => {
       var S = window.__xt.state();
       S.cfg.schemaVersion = 0;
-      var merged = window.__xt.mergeRemote({schemaVersion: 1, buys: [], sells: []}, false);
+      var merged = window.__xt.mergeRemote({schemaVersion: 2, buys: [], sells: []}, false);
       return merged.schemaVersion;
     }""")
-    assert out == 1, out
+    assert out == 2, out
 
 
 def test_v7_future_version_untouched(make_env):

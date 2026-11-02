@@ -30,15 +30,22 @@ def usd(gram, oz):
     return round(gram * oz / OZ, 2)
 
 
-def mkmarks(items):
-    """items: {档号: (g, sold, 成本$/oz, 卖出$/oz)}，缺省项按 0 处理。"""
+def mkmarks(items, fx=0.0):
+    """items: {档号: (g, sold, 成本$/oz, 卖出$/oz)}，缺省项按 0 处理。
+
+    P27：传 fx 时同时写 costCny / proceedsCny（按该汇率记账）。
+    不传则只写美元字段 —— 「人民币未填」也是要测的一种状态。
+    """
     out = {}
     for k, v in items.items():
         g, sold, cost_oz, sell_oz = (list(v) + [0, 0, 0, 0])[:4]
+        cost = usd(g, cost_oz) if cost_oz else 0
+        proc = usd(sold, sell_oz) if sell_oz else 0
         out[str(k)] = {
             "g": g, "sold": sold, "at": 1,
-            "cost": usd(g, cost_oz) if cost_oz else 0,
-            "proceeds": usd(sold, sell_oz) if sell_oz else 0,
+            "cost": cost, "proceeds": proc,
+            "costCny": round(cost * fx, 2) if fx else 0,
+            "proceedsCny": round(proc * fx, 2) if fx else 0,
         }
     return out
 
@@ -208,24 +215,28 @@ def test_b9_touch_uses_scaled_series(env):
     assert same is True
 
 
-def test_b10_per_oz_lowering(env):
-    """每克拉低 = Σrealized / 净持 × OZ_PER_G，$/g 与 $/oz 两个数都对。"""
-    p = env(mk=mkmarks({1: (16, 8, 4000, 4600), 2: (16, 8, 4000, 4600)})).page
+def test_b10_per_gram_lowering(env):
+    """每克拉低 = Σrealized(¥) / 净持，单位 ¥/g。
+
+    P27 契约变更：原来是「再折回 $/oz」，人民币口径下这一圈没必要 ——
+    直接 ¥/g 更好读。数值上 = 600 × 7.10 / 31.1035。
+    """
+    p = env(mk=mkmarks({1: (16, 8, 4000, 4600), 2: (16, 8, 4000, 4600)}, fx=7.10)).page
     s = rsum(p)
     assert s["net"] == pytest.approx(16, abs=0.01)
-    # 两档各卖 8g，每克赚 600 美元/盎司 → 摊到 16g 净持上还是 600
-    assert s["realized"] == pytest.approx(usd(16, 600), abs=0.05)
-    assert s["perOz"] == pytest.approx(600, abs=0.1)
-    assert s["perOz"] / OZ == pytest.approx(600 / OZ, abs=0.01)
+    # 两档各卖 8g，每克赚 600 美元/盎司 → 摊到 16g 净持上还是每克 600 美元
+    assert s["realized"] == pytest.approx(usd(16, 600) * 7.10, abs=0.5)
+    assert s["perGram"] == pytest.approx(600 * 7.10 / OZ, abs=0.5)
+    assert s["cnyKnown"] is True
     assert s["turns"] > 0
 
 
-def test_b11_no_net_no_per_oz(env):
+def test_b11_no_net_no_per_gram(env):
     """净持为 0 → 每克拉低为空，不出现 Infinity。"""
-    p = env(mk=mkmarks({1: (8, 8, 4000, 4600), 2: (8, 8, 4000, 4600)})).page
+    p = env(mk=mkmarks({1: (8, 8, 4000, 4600), 2: (8, 8, 4000, 4600)}, fx=7.10)).page
     s = rsum(p)
     assert s["net"] == pytest.approx(0, abs=0.01)
-    assert s["perOz"] is None
+    assert s["perGram"] is None
     assert s["realized"] > 0
 
 

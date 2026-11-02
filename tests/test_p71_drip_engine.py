@@ -283,13 +283,18 @@ def test_d19_not_next_gear(env):
 # ---------------------------------------------------------------- 6 克重与金额
 
 def test_d20_gram_is_half_of_pending(env):
-    """待补 16g × 0.5 = 8g；金额按克换算成美元。"""
+    """待补 16g × 0.5 = 8g。
+
+    P27 契约变更：`amt` 从「现价 × 汇率折出来的美元」改成「本档已填的人民币单价 × 克重」。
+    本档从没填过金额时是 None（界面「—」），不按汇率编一个像事实的数字。
+    人民币金额的正例在 `test_p27_dual_cny.py::c5`。
+    """
     p = env().page
     backdate(p, 1, 40)
     info = p.evaluate("() => window.__xt.dripInfo(1)")
     assert info["pending"] == pytest.approx(16, abs=0.01)
     assert info["gram"] == pytest.approx(8, abs=0.01)
-    assert info["amt"] == pytest.approx(8 / OZ * PRICE, abs=0.02)
+    assert info["amt"] is None
 
 
 def test_d21_tail_protection(env):

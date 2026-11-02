@@ -324,6 +324,7 @@ def test_b19_mark_sheet_still_light(env):
     p.click('#ladder [data-mark="第4档"]')
     p.wait_for_timeout(280)
     p.fill("#markGram", "20")
+    p.fill("#markAmt", "18000")      # P27：金额必填（人民币实付）
     p.click("#markSave")
     p.wait_for_timeout(380)
     assert marks(p)["4"]["g"] == 20
