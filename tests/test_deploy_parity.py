@@ -100,11 +100,20 @@ def test_d2_pushed_to_origin():
         "→ git push origin main，再等 Pages 构建（约 1~2 分钟）。" % ahead
     )
 
-    # 第二级：远端 main 的真实 SHA 与 HEAD 一致（抓远端被别人改过）
-    try:
-        out = _git("ls-remote", "origin", "refs/heads/main", timeout=60)
-    except subprocess.TimeoutExpired:
-        pytest.skip("ls-remote 超时，未核对远端真实状态（本地引用已确认不领先，但网络不稳）")
+    # 第二级：远端 main 的真实 SHA 与 HEAD 一致（抓远端被别人改过）。
+    # 这台机器到 github.com:443 时通时断，单次 60 秒常超时，改为 25 秒 × 2 次。
+    out = None
+    for i in range(2):
+        try:
+            out = _git("ls-remote", "origin", "refs/heads/main", timeout=25)
+            if out.returncode == 0 and out.stdout.strip():
+                break
+        except subprocess.TimeoutExpired:
+            out = None
+        if i == 0:
+            time.sleep(2)
+    if out is None:
+        pytest.skip("ls-remote 两次均超时，未核对远端真实状态（本地引用已确认不领先，d4 另证线上字节一致）")
     if out.returncode != 0 or not out.stdout.strip():
         pytest.skip("ls-remote 不通，未核对远端真实状态：%s" % out.stderr.strip()[:200])
 
