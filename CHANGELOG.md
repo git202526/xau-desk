@@ -4,6 +4,65 @@
 
 ---
 
+## v6.41 · 2026-11-02（P24 数据版本与迁移入口）
+
+P20 的迁移用一个布尔 `migratedV7` 记「做没做过」，并且被复制到 **4 个**「数据到达」时机上：
+
+| 时机 | 为什么在那里 |
+|---|---|
+| `applyRemote()` | 云端数据落库 + `compute()` 之后，`planOf()` 才有数 |
+| `doPull()` 合并分支 | 本机抢先记账、云端未载入 |
+| `doPull()` 断网快照 | 只读查看也要能看到折好的标记 |
+| `fetchFx()` 回调 | 带档记录的 `priceCny` 折美元要用汇率 |
+
+三个问题：加一次迁移要再复制 4 遍；布尔说不清「现在是第几版」；更麻烦的是
+**表达不了「这次只做了一半」**——汇率没到时 v7 确实只做了 `gearsDone` 那部分。
+
+### 1）`schemaVersion` + 单一入口
+
+```js
+var SCHEMA = 1;
+function runMigrations(){
+  var from = Number(S.cfg.schemaVersion) || 0;
+  if(from >= SCHEMA) return false;          // 已最新，或读到未来版本（不降级）
+  if(from < 1){
+    migrateMarksV7();
+    if(!S.cfg.migratedV7) return false;     // 没跑完 → 版本停住，等汇率到位补跑
+    S.cfg.schemaVersion = 1;
+  }
+  ...
+}
+function migrateAll(){ return runMigrations(); }
+```
+
+**完成判据是 `migratedV7`，不是 `migrateMarksV7()` 的返回值**。返回值表示「这次有没有改动」：
+老用户早迁移过时它返回 `false`，但那确实是「已完成」。用返回值判断会让版本永远停在 0。
+
+四个调用点全部改成 `migrateAll()`，`migrateMarksV7();` 的独立调用点从 5 处降到 **1 处**。
+下一期加 v2 迁移，只改 `runMigrations()` 一个地方。
+
+### 2）`mergeRemote` 版本取 max
+
+并集合并后 `out = Object.assign({}, remote, S.cfg)`，`preferLocal` 时本机覆盖远端。
+本机 0 + 远端 1 会被带回去重跑一次迁移（幂等，无害但多余）。
+版本号单调，取 `Math.max` 永远正确。
+
+### 3）`test_p24_schema.py`：8 条
+
+- v1 新配置 → v1，且再跑返回 false
+- v2 老数据（带档记录、无标记）→ 折标记、版本 1、`cost` 按人民币折美元非 0
+- **v3 汇率门**：`fx=0` 时版本停 0、`migratedV7` 未置、标记为空；`fx=7.10` 补跑后版本 1
+- v4 已迁移过（`migratedV7=true` 无版本号）→ 标记一个不改，只升版本
+- v5 幂等：连跑三次，标记 JSON 完全不变
+- v6 合并取 max
+- v7 `schemaVersion=99` → 不降级、不清标记
+- **v8 源码断言**：`migrateMarksV7();` 独立调用点只剩 1 处
+
+v8 锁的是结构不是行为。没有它，下一期很容易又在某个 `if` 里补一个直调，
+四个入口慢慢又长回来——这才是这次重构真正要防的事。
+
+---
+
 ## v6.40 · 2026-11-02（P26 测试分层）
 
 `index.html` 一行没改。改的是「改完之后多久知道有没有坏」：全量 781 条要跑 16 分钟，

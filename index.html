@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.40 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 803 条 / strict-markers） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.41 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -802,7 +802,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.40 · 11/02</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.41 · 11/02</span></div>
       </div>
     </div>
     <div class="stat">
@@ -3802,6 +3802,35 @@ function migrateMarksV7(){
   return changed;
 }
 
+/* ===== 数据版本与迁移入口（P24）=====
+   为什么不是「再加一个 migratedV8 布尔」：
+   布尔表达不了「现在是第几版」，也表达不了「这次只做了一半」。汇率没到时 v7 迁移确实只做了
+   名单那部分 —— 这种情况必须能被识别，否则版本一推进，带档记录就永远折不成标记了。
+
+   四个「数据到达」时机（applyRemote / doPull 合并 / 断网快照 / fetchFx 回调）只调 migrateAll()，
+   不直接调具体迁移。这样下一期加 v2，只改 runMigrations 一处。 */
+var SCHEMA = 1;
+function runMigrations(){
+  var cfg = S.cfg || (S.cfg = {});
+  var from = Number(cfg.schemaVersion) || 0;
+  if(from >= SCHEMA) return false;              // 已是最新，或读到未来版本（不降级）
+
+  if(from < 1){
+    migrateMarksV7();
+    /* 完成判据是 migratedV7，不是 migrateMarksV7 的返回值：
+       老用户早迁移过时它返回 false（这次没改动），但那确实是「已完成」。
+       反过来，汇率没到它也不置 migratedV7 —— 此时版本必须停住，等补跑。 */
+    if(!cfg.migratedV7) return false;
+    cfg.schemaVersion = 1;
+  }
+
+  if(Number(cfg.schemaVersion) > from) saveCfg();
+  return Number(cfg.schemaVersion) > from;
+}
+
+/* 唯一入口。迁移函数内部自己会 compute / refreshAll / saveCfg，这里不重复做 */
+function migrateAll(){ return runMigrations(); }
+
 /* ===== 深档兜底（P7）=====
    问题：建仓档等太久就永远不成交，钱趴在账上。
    做法：从「成为下一个待买档」那天开始计时，超过 dripDays 天且价格在溢价容忍内，
@@ -5187,6 +5216,9 @@ function mergeRemote(remote, preferLocal){
   });
   out.gearCleared = cleared;
   out.gearResetAt = resetAt;
+  /* 版本号单调：并集合并时取 max，否则本机 0 + 远端 1 会被带回去重跑一次迁移 */
+  out.schemaVersion = Math.max(Number(remote.schemaVersion) || 0,
+                               Number(S.cfg.schemaVersion) || 0);
   out.marks = marks;
   out.alerts = alerts;
   out.takePlan = Object.assign({}, remote.takePlan || {}, S.cfg.takePlan || {});
@@ -5256,7 +5288,7 @@ function applyRemote(remote){
   compute();
   refreshAll();
   syncParamInputs();
-  migrateMarksV7();          // P20：云端数据到位后再迁移，planOf 此时才有数
+  migrateAll();              // P20：云端数据到位后再迁移，planOf 此时才有数
   return true;
 }
 
@@ -5280,7 +5312,7 @@ function doPull(manual){
       normCfg();
       cloudReady = true;
       compute(); refreshAll(); syncParamInputs();
-      migrateMarksV7();
+      migrateAll();
       setSync("busy", "合并中");
       doPush();
       if(manual) toast("已合并云端与本机记录");
@@ -5301,7 +5333,7 @@ function doPull(manual){
       normCfg();
       cloudReady = false;
       compute(); refreshAll(); syncParamInputs();
-      migrateMarksV7();
+      migrateAll();
       setSync("err", "离线只读 · " + hhmm(snap.at));
       if(manual) toast("网络不通，显示的是离线快照（只读）");
     }else if(manual){
@@ -7834,7 +7866,7 @@ function refreshPrice(){
   // 汇率只是折算用，慢也不能挡住价格显示；到了再补算一次
   fetchFx().then(function(){
     if(S.price !== null){ compute(); refreshAll(); }
-    migrateMarksV7();          // 汇率到位后补跑（迁移要按人民币成交价折美元）
+    migrateAll();              // 汇率到位后补跑（迁移要按人民币成交价折美元）
   }, function(){});
   // 与现货价并行取一次逐笔，让锚点（现货 - PAXG）尽量来自同一时刻
   var tickP = fetchJson(API_TICK, 6000).then(function(d){
@@ -8771,6 +8803,8 @@ if(/[?&]xt=1/.test(location.search)){
     resetW:resetW,
     syncMarksFromBuys:syncMarksFromBuys,
     migrateMarksV7:migrateMarksV7,
+    SCHEMA:SCHEMA, runMigrations:runMigrations, migrateAll:migrateAll,
+    mergeRemote:mergeRemote,
     cnyToUsd:cnyToUsd,
     normalizeW:normalizeW,
     wLiveText:wLiveText,
