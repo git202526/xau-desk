@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.41 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.42 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -286,6 +286,18 @@ body.tab-ov .tpx{display:none}
 .btseg.sel{stroke:#E8EEF6;stroke-width:1.5;stroke-opacity:.85}
 .btpick{margin-top:8px;font-size:11.5px;color:var(--tx2);background:var(--card2);border-radius:8px;padding:7px 9px;line-height:1.55}
 .btpick b{color:var(--tx);font-weight:650}
+.btpk-list{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+/* 悬挂缩进：✓ 绝对定位在左侧，整行留出 18px 内边距。
+   320 宽时数值会换行，靠父容器的 padding 让它自动与条件名左对齐，
+   不会顶格变成看起来像新的一条。 */
+.btpk-row{position:relative;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;
+          padding-left:18px;font-size:11px;line-height:1.55}
+.btpk-row i{position:absolute;left:0;top:0;width:12px;text-align:center;font-style:normal}
+.btpk-row.ok i{color:var(--up)}
+.btpk-row.no i,.btpk-row.no .k{color:var(--tx3)}
+.btpk-row .k{flex:0 0 auto}
+.btpk-row .d{flex:1 1 auto;min-width:0;color:var(--tx3);word-break:break-word}
+.btpk-meta{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);color:var(--tx3);font-size:11px;line-height:1.5}
 .btdist{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:11px;font-size:11.5px;color:var(--tx2)}
 .btdist span{display:flex;align-items:center;gap:5px}
 .btdist i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
@@ -802,7 +814,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.41 · 11/02</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.42 · 11/02</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2068,16 +2080,52 @@ function renderBt(){
     : "四周期共振的回溯受 1 小时数据限制，最多 33 天。想看更长的方向轨迹，请用日线。";
 }
 
-/* 点某一天：三态 + 命中条数 + 命中条件名（最多列 3 个） */
+/* 逐条依据：点击时现算一次 judgeOne。
+   不把每条的 d 塞进 btRun 的 seq —— 800 天 × 10 条字符串会把缓存从几十 KB 撑到 MB 级，
+   而 99% 的格子一辈子不会被点。单次约 10ms，比常驻内存划算。 */
+function btDetail(idx){
+  var k = S.btPeriod || "1d";
+  var bars = (S.kl || {})[k];
+  var seq = btRun(k);
+  if(!bars || !seq || !(idx >= 0) || idx >= seq.length) return null;
+  var i = seq[idx].i;
+  if(!(i >= BT_WARM) || i >= bars.length) return null;
+  return judgeOne(bars.slice(0, i + 1));
+}
+
+/* 详情块：摘要 + 五条逐条 + 指标行。d 为空（数据不足）时只出摘要，不假装有结论。
+   显示哪一侧与 btRun 的取舍保持一致：上行 / 下行 / 震荡取命中较多的那一侧。 */
+function btPickHtml(p, d){
+  var head = "<b>" + btDate(p.t) + "</b> · " + btName(p.state) + " · 命中 <b>"
+           + p.hits + "/5</b>";
+  if(!d) return head;
+
+  var side = p.state === "up" ? d.upC : p.state === "dn" ? d.dnC
+           : (d.upN >= d.dnN ? d.upC : d.dnC);
+  var other = (side === d.upC) ? d.dnN : d.upN;
+
+  var rows = side.map(function(c){
+    return '<div class="btpk-row ' + (c.v ? "ok" : "no") + '">'
+      + "<i>" + (c.v ? "✓" : "✗") + "</i>"
+      + '<span class="k">' + c.k + "</span>"
+      + '<span class="d">' + (c.d || "--") + "</span>"
+      + "</div>";
+  }).join("");
+
+  return head
+    + '<div class="btpk-list">' + rows + "</div>"
+    + '<div class="btpk-meta">另一侧 ' + other + "/5 ｜ RSI "
+    + num(d.rsi, 1) + " " + (d.rsiState || "--") + " · ATR " + num(d.atr, 1) + "</div>";
+}
+
+/* 点某一天：三态 + 命中条数 + 五条逐条 */
 function btShowPick(idx){
   var k = S.btPeriod || "1d";
   var seq = btRun(k);
   if(!seq || !(idx >= 0) || idx >= seq.length) return;
   var p = seq[idx], pk = $("btPick");
   if(!pk) return;
-  var more = p.hits > p.names.length ? "，共 " + p.hits + " 条" : "";
-  pk.innerHTML = "<b>" + btDate(p.t) + "</b> · " + btName(p.state) + " · 命中 <b>"
-    + p.hits + "/5</b>（" + (p.names.join("、") || "—") + more + "）";
+  pk.innerHTML = btPickHtml(p, btDetail(idx));
   pk.hidden = false;
   _btView.pick = idx;
   var svg = $("btStrip").querySelector("svg");
@@ -8758,7 +8806,7 @@ if(/[?&]xt=1/.test(location.search)){
     btSeq:btSeq,
     btClear:btClear,
     renderBt:renderBt,
-    btShowPick:btShowPick,
+    btShowPick:btShowPick, btDetail:btDetail, btPickHtml:btPickHtml,
     setBtPeriod:function(k){ S.btPeriod = k; renderBt(); },
     levelWindow:levelWindow,
     volumeProfile:volumeProfile,
