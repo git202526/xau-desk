@@ -92,7 +92,7 @@ def test_u1_prompt_appears_when_due(env):
     assert drip_count(p) == 1
     txt = p.inner_text("#ladder .drip")
     assert "已等" in txt and "40" in txt
-    assert "24g" in txt                     # 48 × 0.5
+    assert "24.0000g" in txt                     # 48 × 0.5
     assert "按现价买" in txt
 
 
@@ -229,7 +229,7 @@ def test_u13_settings_change_ratio(env):
     to_plan(p)
     backdate(p, 3, 40)
     txt = p.inner_text("#ladder .drip")
-    assert "12g" in txt
+    assert "12.0000g" in txt
 
 
 def test_u14_disable_only_affects_prompt(env):

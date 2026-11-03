@@ -202,7 +202,7 @@ def test_m10_avg_card_shows_cost(env):
     txt = p.eval_on_selector("#avgCard", "e => e.innerText")
     assert "满仓成本" in txt
     assert "$" in txt
-    assert "200 g" in txt or "200g" in txt, txt
+    assert "200.0000 g" in txt or "200.0000g" in txt, txt
 
 
 def test_m11_ladder_row_shows_cum(env):

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.49 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.50 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 五个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报 / 克重 4 位 / 建仓角标看过即消） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -315,11 +315,14 @@ body.tab-ov .tpx{display:none}
 
 /* 关键位 */
 .klfilter{display:flex;align-items:center;gap:8px;margin:0 0 10px}
-.klfilter .fchips{display:flex;gap:6px;flex:1 1 auto;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-.klfilter button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap}
-.klfilter button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
+/* v6.50：#btChips 原先只有 class="fchips" 却没有样式规则 —— .fchips 的布局只挂在
+   .klfilter 后代下，于是判定回溯的周期按钮一直是浏览器原生样式（灰底黑边方角）。
+   这里把两条选择器并列，让它们共用同一套胶囊 chips。 */
+.klfilter .fchips,#btChips{display:flex;gap:6px;flex:1 1 auto;min-width:0;flex-wrap:wrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.klfilter button,#btChips button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.klfilter button.on,#btChips button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
 .klfilter button.rng{color:var(--tx2);min-width:64px}
-.klfilter button:active{transform:scale(.97)}
+.klfilter button:active,#btChips button:active{transform:scale(.97)}
 .kl{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
 .kl:first-child{border-top:none}
 .kl .p{width:76px;flex:0 0 auto;font-weight:650;font-size:13.5px}
@@ -707,17 +710,20 @@ body.tab-ov .tpx{display:none}
 
 /* 价格跳动：涨红跌绿，只做颜色与位移，不用重绘大范围 */
 .hprice{transition:color .25s ease}
+/* v6.50：大价格按当日涨跌持续着色。
+   原来看只是「跳动瞬间闪一下红/绿，560ms 后回到 --tx 白」，看着像没生效；
+   现在颜色交给 .up/.dn，动画只负责位移，跳动结束后仍保持涨跌色。 */
+.hprice.up{color:var(--up)}
+.hprice.dn{color:var(--dn)}
 .hprice.flash-up{animation:pfUp .52s cubic-bezier(.2,.7,.3,1)}
 .hprice.flash-dn{animation:pfDn .52s cubic-bezier(.2,.7,.3,1)}
 @keyframes pfUp{
-  0%{color:var(--up);transform:translateY(-3px) scale(1.012)}
-  55%{color:var(--up)}
-  100%{color:var(--tx);transform:none}
+  0%{transform:translateY(-3px) scale(1.012)}
+  100%{transform:none}
 }
 @keyframes pfDn{
-  0%{color:var(--dn);transform:translateY(3px) scale(.994)}
-  55%{color:var(--dn)}
-  100%{color:var(--tx);transform:none}
+  0%{transform:translateY(3px) scale(.994)}
+  100%{transform:none}
 }
 .hdelta.pop{animation:popIn .34s cubic-bezier(.2,.8,.3,1)}
 @keyframes popIn{0%{opacity:.2;transform:translateY(4px)}100%{opacity:1;transform:none}}
@@ -776,7 +782,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.49 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.50 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -3033,9 +3039,12 @@ function planSummary(){
 }
 
 /* 克重显示：整数不带小数点，小数留一位 */
+/* v6.50：克重统一 4 位小数。
+   原来是 1 位且去掉末尾的 .0（8.5 → "8.5"、8 → "8"），用户按克核对时精度不够，
+   0.1g × 930 元/克 ≈ 93 元，四舍五入看不出来。金额不受影响，只改克重。 */
 function gnum(x){
   var v = Number(x) || 0;
-  return num(v, 1).replace(/\.0$/, "");
+  return num(v, 4);
 }
 
 /* 实测：1000 根 PAXG 日线，从任意一天出发、N 日内最低价相对当日收盘跌 ≥X% 的概率。
@@ -3205,7 +3214,7 @@ function markGear(i, g){
 function unmarkGear(i){
   var p = gearState(Number(i));
   markGear(i, 0);
-  toast(num(p.pending, 1).replace(/\.0$/, "") + " g 恢复待补");
+  toast(gnum(p.pending).replace(/\.0$/, "") + " g 恢复待补");
 }
 
 /* ===== 减仓摊派（P16）=====
@@ -3991,8 +4000,8 @@ function rvFoot(sum){
   }
   var diff = sum.gross - sum.book;
   var recon = Math.abs(diff) > 0.05
-    ? '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 差 <b>' + num(diff, 1) + 'g</b>（手动标记不写账本）'
-    : '档位累计 ' + num(sum.gross, 1) + 'g · 账本累计 ' + num(sum.book, 1) + 'g · 一致';
+    ? '档位累计 ' + gnum(sum.gross) + 'g · 账本累计 ' + gnum(sum.book) + 'g · 差 <b>' + gnum(diff) + 'g</b>（手动标记不写账本）'
+    : '档位累计 ' + gnum(sum.gross) + 'g · 账本累计 ' + gnum(sum.book) + 'g · 一致';
   /* P27：钱一律人民币。有档位没填成本时整条标「—」，
      不拿 0 冒充 —— 「不知道」和「不赚不亏」在复盘里是两个结论。 */
   var rvTxt = sum.cnyKnown ? ('¥' + money(sum.realized, 0)) : '¥ —';
@@ -4002,7 +4011,7 @@ function rvFoot(sum){
   else                     pgTxt = '每克拉低 <b>¥' + num(sum.perGram, 2) + '/g</b>';
   return '<div class="rv-f">' +
     '<div>' + lg + '</div>' +
-    '<div class="dim">累计买入 <b>' + num(sum.gross, 1) + 'g</b> · 卖出 <b>' + num(sum.sold, 1) + 'g</b>' +
+    '<div class="dim">累计买入 <b>' + gnum(sum.gross) + 'g</b> · 卖出 <b>' + gnum(sum.sold) + 'g</b>' +
     ' · 已实现 <b>' + rvTxt + '</b> · 周转 <b>' + num(sum.turns, 1) + '</b> 轮</div>' +
     '<div class="dim">' + pgTxt + '</div>' +
     '<div class="dim">' + recon + '</div>' +
@@ -4029,8 +4038,8 @@ function renderReview(){
   var head = '<div class="rv-h" data-rv="h">' +
     '<span>执行复盘</span>' +
     '<span class="rv-sum num">' +
-      (sm.pending > 0.05 ? "待补 " + num(sm.pending, 1) + "g"
-       : (sm.overBudget > 0.05 ? "超 " + num(sm.overBudget, 1) + "g" : "已建满")) +
+      (sm.pending > 0.05 ? "待补 " + gnum(sm.pending) + "g"
+       : (sm.overBudget > 0.05 ? "超 " + gnum(sm.overBudget) + "g" : "已建满")) +
       ' <i class="rv-arw' + (RV_OPEN ? " on" : "") + '"></i>' +
     '</span></div>';
 
@@ -4121,6 +4130,9 @@ function computedKeep(g){
     if(isNaN(r)) r = 70;
     v = g * (1 - r/100);
   }
+  /* v6.50：没有持仓时不夹到 0。原来 min(0, 20) = 0，输入框却按用户填的 20 显示，
+     脏值判定永远差一条，保存后刷新还提示「1 项未保存」。 */
+  if(!(g > 0)) return Math.round(Math.max(0, v) * 10) / 10;
   return Math.round(Math.max(0, Math.min(g, v)) * 10) / 10;
 }
 
@@ -4323,7 +4335,7 @@ function computeTakes(){
     out.stop = { grams:0, amount:0, avg:0, gain:0, n:0 };
     out.avgSell = 0;
     out.expGain = 0;
-    out.summary = "底仓保留 " + num(keepG,1) + " 克已等于全部持仓，本轮不减仓；把底仓调小才会生成减仓计划。";
+    out.summary = "底仓保留 " + gnum(keepG) + " 克已等于全部持仓，本轮不减仓；把底仓调小才会生成减仓计划。";
     return out;
   }
 
@@ -4343,7 +4355,7 @@ function computeTakes(){
     g = Math.max(0.1, g);
     used += g;
     m.cut = Math.round(g*10)/10;
-    m.action = "减 " + num(m.cut,1) + "g";
+    m.action = "减 " + gnum(m.cut) + "g";
     m.price = m.cnyVal;
     m.hit = nowCny >= m.cnyVal*0.999;
   });
@@ -4394,7 +4406,7 @@ function computeTakes(){
       name:nm, cnyVal:p.price, cut:p.cut, role:"hit",
       dist:(p.price/nowCny - 1)*100, isCost:false,
       strength:0, score:0, prob:100, needD:0, hit:true, seq:"!",
-      action:"到价 · 减 " + num(p.cut,1) + "g",
+      action:"到价 · 减 " + gnum(p.cut) + "g",
       alias:[], reason:"现价已越过此位，按原计划减仓"
     });
   });
@@ -4491,15 +4503,15 @@ function takeSummary(picked, all, ctx, grams, meta){
   var dirTxt = ctx.dir === "dn" ? "空头环境" : ctx.dir === "up" ? "多头环境" : "震荡环境";
   var total = picked.reduce(function(a,m){ return a + m.cut; }, 0);
   var first = picked[0], last = picked[picked.length-1];
-  var s = dirTxt + "下分 " + picked.length + " 次减仓，计划减 " + num(total,1) + " 克（占持仓 "
-        + Math.round(total/grams*100) + "%）。首单 " + num(first.cut,1) + "g @ " + num(first.cnyVal,0)
-        + " 元/克，末单 " + num(last.cut,1) + "g @ " + num(last.cnyVal,0) + " 元/克。";
+  var s = dirTxt + "下分 " + picked.length + " 次减仓，计划减 " + gnum(total) + " 克（占持仓 "
+        + Math.round(total/grams*100) + "%）。首单 " + gnum(first.cut) + "g @ " + num(first.cnyVal,0)
+        + " 元/克，末单 " + gnum(last.cut) + "g @ " + num(last.cnyVal,0) + " 元/克。";
   var pg = meta.profit, sg = meta.stop;
   if(pg && pg.grams > 0.05){
-    s += "其中成本上方 " + num(pg.grams,1) + " 克，均价 " + num(pg.avg,0) + " 元/克（" + pct(pg.gain,1) + "）";
+    s += "其中成本上方 " + gnum(pg.grams) + " 克，均价 " + num(pg.avg,0) + " 元/克（" + pct(pg.gain,1) + "）";
   }
   if(sg && sg.grams > 0.05){
-    s += (pg && pg.grams > 0.05 ? "；" : "其中") + "成本下方 " + num(sg.grams,1) + " 克，均价 "
+    s += (pg && pg.grams > 0.05 ? "；" : "其中") + "成本下方 " + gnum(sg.grams) + " 克，均价 "
        + num(sg.avg,0) + " 元/克（" + pct(sg.gain,1) + "），卖出即亏，属止损不是止盈";
   }
   s += "。";
@@ -5314,6 +5326,8 @@ function gotoTab(name, opts){
   /* 面板从隐藏变可见后宽度才算得准：首屏渲染时 panel-struct 是 display:none，
      色带 scrollWidth 为 0，会导致「可拖动」提示被误判成不需要 */
   if(name === "struct") renderBt();
+  /* 进入建仓页 = 这些「到价待买」已经看过了，角标该消（v6.50） */
+  if(name === "plan") markBuysSeen();
 }
 
 function initTabFromHash(){
@@ -5482,11 +5496,22 @@ function renderHero(){
 
   // 涨跌 = 现价 - 昨收；涨跌幅 = 涨跌 / 昨收（与行情软件同一口径）
   var d = $("pDelta");
-  if(p===null || !ref){ d.textContent="--"; d.className="hdelta flat num"; }
+  var now = $("pNow");
+  if(p===null || !ref){
+    d.textContent="--"; d.className="hdelta flat num";
+    if(now){ now.classList.remove("up"); now.classList.remove("dn"); }
+  }
   else {
     var diff = p - ref, pc = diff/ref*100;
     d.textContent = (diff>0?"+":"") + num(diff,2) + " (" + (diff>0?"+":"") + pc.toFixed(2) + "%)";
-    d.className = "hdelta num " + (diff>0?"up":diff<0?"dn":"flat");
+    var tone = diff>0 ? "up" : diff<0 ? "dn" : "flat";
+    d.className = "hdelta num " + tone;
+    // 大价格跟涨跌幅同一套红涨绿跌，别再是白色（v6.50）。
+    // 用 classList 增删而不是整体赋值 —— 上面 flashPrice 刚加的 flash-up/dn 不能被冲掉。
+    if(now){
+      now.classList.toggle("up", tone === "up");
+      now.classList.toggle("dn", tone === "dn");
+    }
   }
 
   $("pOpen").textContent = st.open===null?"--":num(st.open,2);
@@ -5532,7 +5557,7 @@ function renderOv(){
     }
     return;
   }
-  g.innerHTML = num(hs.grams,1) + "<small>g</small>";
+  g.innerHTML = gnum(hs.grams) + "<small>g</small>";
   a.innerHTML = num(hs.avg,1) + "<small>元/g</small>";
   var now = nowCnyPrice();
   if(now === null || !hs.avg){
@@ -6216,7 +6241,7 @@ function renderLadder(){
     var inf = reallocInfo();
     rePool = inf.pool;
   }
-  var amTxt = gnum(bt) + " / " + total + " 克";
+  var amTxt = gnum(bt) + " / " + gnum(total) + " 克";
   if(rePool > 0.05) amTxt += " · 下沉 " + gnum(rePool) + "g";
   $("ammoTxt").textContent = amTxt;
   $("ammoFill").style.width = Math.max(0, Math.min(100, total > 0 ? bt / total * 100 : 0)) + "%";
@@ -6697,8 +6722,8 @@ function renderSetSummary(){
   if(sp){
     var hs = holdStats();
     var tg = totalGrams();
-    sp.textContent = "目标 " + num(tg, 0) + "g" +
-      (hs.grams > 0.05 ? " · 已持 " + num(hs.grams, 1) + "g" : "");
+    sp.textContent = "目标 " + gnum(tg) + "g" +
+      (hs.grams > 0.05 ? " · 已持 " + gnum(hs.grams) + "g" : "");
   }
 
   var ss = $("sumShape");
@@ -7192,13 +7217,13 @@ function renderGauge(){
   else if(!(pct > 0)) cls = "";
   else cls = "p" + Math.min(4, Math.floor((Math.max(on, 1) - 1) / 4));
   var rest = lim - cur, tail;
-  if(rest > 0.05)       tail = "还能买 " + num(rest, 1) + " g";
-  else if(rest < -0.05) tail = "超上限 " + num(-rest, 1) + " g";
+  if(rest > 0.05)       tail = "还能买 " + gnum(rest) + " g";
+  else if(rest < -0.05) tail = "超上限 " + gnum(-rest) + " g";
   else                  tail = "刚好到上限";
   box.innerHTML = sanitizeHtml(
     '<div class="gg-h"><span>仓位进度</span><b class="num ' + cls + '">' + pct.toFixed(1) + '%</b></div>' +
     '<div class="gbar">' + bars + '</div>' +
-    '<div class="gg-f"><span class="num">' + num(cur, 1) + ' g / ' + num(lim, 1) + ' g</span>' +
+    '<div class="gg-f"><span class="num">' + gnum(cur) + ' g / ' + gnum(lim) + ' g</span>' +
     '<span class="num' + (rest < -0.05 ? ' warn' : '') + '">' + tail + '</span></div>'
   );
   box.onclick = function(){ gotoTab("set", { anchor:"cardPos" }); };
@@ -7212,7 +7237,7 @@ function renderPos(){
     return;
   }
   if(!hs.grams){
-    box.innerHTML = '<div class="muted">已全部减仓（累计减 ' + num(hs.sold,1) + ' 克，实现盈亏 '
+    box.innerHTML = '<div class="muted">已全部减仓（累计减 ' + gnum(hs.sold) + ' 克，实现盈亏 '
       + (hs.realized>=0?"+":"") + money(hs.realized,0) + ' 元）。重新买入后这里会继续汇总。</div>';
     return;
   }
@@ -7226,12 +7251,12 @@ function renderPos(){
     '<div class="pnlbig '+cls+'">' +
       (pnl===null?"--":((pnl>0?"+":"")+money(pnl,2))) + '</div>' +
     '<div class="posmini">' +
-      '<div class="it"><span>持仓克重</span><b class="num">'+num(hs.grams,1)+' g</b></div>' +
+      '<div class="it"><span>持仓克重</span><b class="num">'+gnum(hs.grams)+' g</b></div>' +
       '<div class="it"><span>持仓成本</span><b class="num">'+money(costLeft,0)+'</b></div>' +
       '<div class="it"><span>均价成本</span><b class="num">'+num(hs.avg,2)+'</b></div>' +
       '<div class="it"><span>现价</span><b class="num">'+(nowCny?num(nowCny,2):"--")+'</b></div>' +
       '<div class="it"><span>收益率</span><b class="num '+cls+'">'+(pctv===null?"--":pctv.toFixed(2)+"%")+'</b></div>' +
-      (hs.sold > 0 ? '<div class="it"><span>已减 '+num(hs.sold,1)+' g 实现</span><b class="num '+(hs.realized>=0?"red":"green")+'">'+(hs.realized>=0?"+":"")+money(hs.realized,0)+'</b></div>' : '') +
+      (hs.sold > 0 ? '<div class="it"><span>已减 '+gnum(hs.sold)+' g 实现</span><b class="num '+(hs.realized>=0?"red":"green")+'">'+(hs.realized>=0?"+":"")+money(hs.realized,0)+'</b></div>' : '') +
     '</div>';
   box.innerHTML = sanitizeHtml(html);
 }
@@ -7273,7 +7298,7 @@ function renderBuys(){
     var tm = d && !isNaN(d.getTime()) ? ((d.getMonth()+1)+"-"+pad(d.getDate())+" "+hhmm(d.getTime())) : "--";
     html += '<div class="tk" data-'+(isSell?"sellid":"buy")+'="'+escapeHtml(b.id)+'">' +
       '<div class="l1">' +
-        '<span class="v num">'+(isSell?"−":"")+num(gg,1)+'</span><span class="u">g</span>' +
+        '<span class="v num">'+(isSell?"−":"")+gnum(gg)+'</span><span class="u">g</span>' +
         '<span class="nm">× '+num(pp,2)+' 元/克</span>' +
         '<span class="a '+(isSell?"cut":"")+' num">'+(isSell?"+":"")+money(amt,2)+'</span>' +
       '</div>' +
@@ -7282,7 +7307,7 @@ function renderBuys(){
     '</div>';
   });
   list.innerHTML = sanitizeHtml(html);
-  $("buyMeta").textContent = hs.buys.length + " 买 / " + hs.sells.length + " 减 · 剩 " + num(hs.grams,1) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
+  $("buyMeta").textContent = hs.buys.length + " 买 / " + hs.sells.length + " 减 · 剩 " + gnum(hs.grams) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
 
   Array.prototype.forEach.call(list.querySelectorAll("[data-buy]"), function(node){
     node.onclick = function(){ openBuyEdit(node.getAttribute("data-buy")); };
@@ -7306,25 +7331,25 @@ function renderTake(){
     var hasProfit = (pg.grams||0) > 0.05;
     var hasStop = (sg.grams||0) > 0.05;
     html = '<div class="tplan">' +
-      '<div class="bi"><span>本轮计划减</span><b class="num">'+num(ts.planGrams,1)+'<i>g</i></b></div>' +
+      '<div class="bi"><span>本轮计划减</span><b class="num">'+gnum(ts.planGrams)+'<i>g</i></b></div>' +
       '<div class="bi"><span>分几次</span><b class="num">'+ts.cutCount+'<i>次</i></b></div>' +
       '<div class="bi"><span>'+(hasProfit ? "止盈均价" : "加权均价")+'</span><b class="num gold">'+num(hasProfit ? pg.avg : ts.avgSell,0)+'</b></div>' +
       '</div>';
     if(hasProfit || hasStop){
       html += '<div class="tsplit">';
       if(hasProfit){
-        html += '<div class="sp"><em class="p"></em>止盈 '+num(pg.grams,1)+'g · 均价 '+num(pg.avg,0)
+        html += '<div class="sp"><em class="p"></em>止盈 '+gnum(pg.grams)+'g · 均价 '+num(pg.avg,0)
              +' · <b class="'+(pg.gain>=0?"red":"green")+'">'+pct(pg.gain,1)+'</b></div>';
       }
       if(hasStop){
-        html += '<div class="sp"><em class="s"></em>止损 '+num(sg.grams,1)+'g · 均价 '+num(sg.avg,0)
+        html += '<div class="sp"><em class="s"></em>止损 '+gnum(sg.grams)+'g · 均价 '+num(sg.avg,0)
              +' · <b class="'+(sg.gain>=0?"red":"green")+'">'+pct(sg.gain,1)+'</b></div>';
       }
       html += '</div>';
     }
   } else {
     html = '<div class="tplan">' +
-      '<div class="bi"><span>底仓保留</span><b class="num">'+num(ts.keepGrams||0,1)+'<i>g</i></b></div>' +
+      '<div class="bi"><span>底仓保留</span><b class="num">'+gnum(ts.keepGrams||0)+'<i>g</i></b></div>' +
       '<div class="bi"><span>本轮计划减</span><b class="num">0<i>g</i></b></div>' +
       '</div>';
   }
@@ -7363,7 +7388,7 @@ function renderTake(){
         (t.isCost || isHit ? "" : " · 强度 "+t.strength+"/4") + alias +
       '</div>' +
       (t.isCost ? "" : (isHit
-        ? '<div class="pr"><span class="hitnow">现价已站上此位 · 按计划减 '+num(t.cut,1)+' 克</span></div>'
+        ? '<div class="pr"><span class="hitnow">现价已站上此位 · 按计划减 '+gnum(t.cut)+' 克</span></div>'
         : '<div class="pr"><div class="prb">'+bars+'</div>'+
           '<span>触及 '+t.prob+'% · 约 '+t.needD+' 日行程 · 评分 '+t.score+'</span></div>')) +
       (t.reason && !isHit ? '<div class="rs">'+escapeHtml(t.reason)+'</div>' : '') +
@@ -7372,8 +7397,8 @@ function renderTake(){
 
   box.innerHTML = sanitizeHtml(html);
   $("takeMeta").textContent = ts.cutCount
-    ? (ts.cutCount + " 次 · 减 " + num(ts.execGrams,1) + "g / 持仓 " + num(ts.holdGrams,1) + "g")
-    : ("底仓 " + num(ts.keepGrams||0,1) + "g · 本轮不减");
+    ? (ts.cutCount + " 次 · 减 " + gnum(ts.execGrams) + "g / 持仓 " + gnum(ts.holdGrams) + "g")
+    : ("底仓 " + gnum(ts.keepGrams||0) + "g · 本轮不减");
 
   Array.prototype.forEach.call(box.querySelectorAll("[data-sell]"), function(node){
     node.onclick = function(){ openSell(node.getAttribute("data-sell")); };
@@ -7459,7 +7484,7 @@ function todoItems(){
   if(p!==null && !allBroken){
     gs.forEach(function(g){
       if(g.done || g.warn) return;
-      if(p <= g.price) items.push({ kind:"buy", t:g.name+" 到价", d:"可买 "+g.gram+" 克 · 触发价 "+num(g.price,2), btn:"已买入", act:"buy:"+g.name });
+      if(p <= g.price) items.push({ kind:"buy", key:buyKey(g), t:g.name+" 到价", d:"可买 "+g.gram+" 克 · 触发价 "+num(g.price,2), btn:"已买入", act:"buy:"+g.name });
     });
     gs.forEach(function(g){
       if(!g.warn || g.done) return;
@@ -7470,7 +7495,7 @@ function todoItems(){
   (S.takes||[]).forEach(function(t){
     if((t.role === "cut" || t.role === "hit") && t.hit && t.cut > 0){
       items.push({ kind:"take", t:"止盈 "+t.name+" 触发",
-        d:"现价已到 " + num(t.price || t.cnyVal,2) + " 元/克 · 计划减 " + num(t.cut,1) + " 克",
+        d:"现价已到 " + num(t.price || t.cnyVal,2) + " 元/克 · 计划减 " + gnum(t.cut) + " 克",
         btn:"记减仓", act:"take" });
     }
   });
@@ -7514,6 +7539,35 @@ function renderTodo(){
   });
 }
 
+/* v6.50 建仓角标：角标算的是「还没看过的到价档」，不是「到价档总数」。
+   原来 todoItems 每刷新一次就把全部到价档数进 bdPlan，所以进过建仓页、切走、
+   甚至买完，只要价格还在档位下方就一直亮着，像个关不掉的提醒。
+
+   口径：进建仓页 = 把当前到价档记入 seenBuys，角标只数「不在 seenBuys 里的」。
+   键带档位价 —— 高点重排后同名档位的价变了，算新档，该重新提醒。 */
+function buyKey(g){
+  return String(g.name) + "@" + Math.round(Number(g.price) * 10) / 10;
+}
+
+function seenBuys(){
+  /* 只存内存，不写云端 —— 「切 Tab 不产生云端写入」是既有约束（t11 / m3 有断言守着）。
+     刷新后重亮是刻意的：角标是「到价了」的提醒，不是跨会话的已读回执。 */
+  if(!Array.isArray(S.seenBuys)) S.seenBuys = [];
+  return S.seenBuys;
+}
+
+function markBuysSeen(){
+  var seen = seenBuys();
+  (S.gears || []).forEach(function(g){
+    if(g.done || g.warn) return;
+    if(S.price === null || S.price === undefined || S.price > g.price) return;
+    var k = buyKey(g);
+    if(seen.indexOf(k) < 0) seen.push(k);
+  });
+  if(seen.length > 80) seen.splice(0, seen.length - 80);
+  renderBadges();
+}
+
 /* 底栏角标：到价待买挂建仓，止盈待减挂持仓，基准脱锚挂设置 */
 function setBadge(id, n){
   var el = $(id);
@@ -7528,9 +7582,9 @@ function setBadge(id, n){
 }
 
 function renderBadges(){
-  var items = todoItems(), c = { plan:0, pos:0, set:0, struct:0 };
+  var items = todoItems(), seen = seenBuys(), c = { plan:0, pos:0, set:0, struct:0 };
   items.forEach(function(it){
-    if(it.kind === "buy") c.plan++;
+    if(it.kind === "buy"){ if(seen.indexOf(it.key) < 0) c.plan++; }
     else if(it.kind === "take") c.pos++;
     else if(it.kind === "fatal") c.set++;
     else if(it.kind === "alert") c.struct++;
@@ -7549,15 +7603,15 @@ function syncKeep(){
   var keepG = computedKeep(g);
   if(inp.value === "") inp.value = keepG;
   var cut = g - keepG;
-  out.value = num(cut,1) + " g（" + Math.round(cut/g*100) + "%）";
+  out.value = gnum(cut) + " g（" + Math.round(cut/g*100) + "%）";
 }
 
 function renderStat(){
   var he = computeHEff();
   var hs0 = holdStats();
   if($("holdNote")) $("holdNote").textContent = hs0.grams
-    ? ("当前持仓 " + num(hs0.grams,1) + " 克 · 均价 " + num(hs0.avg,2) + " 元/克 · 持仓成本 "
-       + money(hs0.grams*hs0.avg,0) + " 元" + (hs0.sold>0 ? ("（已减 " + num(hs0.sold,1) + " 克）") : "")
+    ? ("当前持仓 " + gnum(hs0.grams) + " 克 · 均价 " + num(hs0.avg,2) + " 元/克 · 持仓成本 "
+       + money(hs0.grams*hs0.avg,0) + " 元" + (hs0.sold>0 ? ("（已减 " + gnum(hs0.sold) + " 克）") : "")
        + "，全部由流水自动计算")
     : "持仓由「买入记录」自动汇总，无需手填。";
   syncKeep();
@@ -7929,7 +7983,7 @@ function saveBuy(){
     if(b){
       b.name = name; b.gram = gram; b.priceCny = priceCny; b.time = iso; b.note = note;
     }
-    pushFeed("gear", "修改买入：" + name, num(gram,1) + " g × " + num(priceCny,2) + " 元/克");
+    pushFeed("gear", "修改买入：" + name, gnum(gram) + " g × " + num(priceCny,2) + " 元/克");
   } else {
     S.cfg.buys.push({ id:"b"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note, gear:S.linkGear||null });
     if(S.linkGear){
@@ -7938,7 +7992,7 @@ function saveBuy(){
       S.cfg.gearHit = S.cfg.gearHit || {};
       S.cfg.gearHit[S.linkGear] = 1;
     }
-    pushFeed("gear", name + " 买入 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 合计 " + money(gram*priceCny,2) + " 元");
+    pushFeed("gear", name + " 买入 " + gnum(gram) + " 克", num(priceCny,2) + " 元/克 · 合计 " + money(gram*priceCny,2) + " 元");
   }
 
   /* 计划模式：记账后立刻对账，档位表、待补、下沉都跟着这笔记录走（P15） */
@@ -7948,7 +8002,7 @@ function saveBuy(){
   compute();
   refreshAll();
   closeSheet();
-  toast(S.editing ? "已修改" : ("已记入 " + num(gram,1) + " 克" + (synced ? " · 档位已同步" : "")));
+  toast(S.editing ? "已修改" : ("已记入 " + gnum(gram) + " 克" + (synced ? " · 档位已同步" : "")));
 }
 
 function saveSell(){
@@ -7968,7 +8022,7 @@ function saveSell(){
     back = cur ? (Number(cur.gram)||0) : 0;
   }
   if(gram > hs.grams + back + 0.001){
-    toast("超过剩余持仓 " + num(hs.grams + back,1) + " 克");
+    toast("超过剩余持仓 " + gnum(hs.grams + back) + " 克");
     return;
   }
 
@@ -7986,7 +8040,7 @@ function saveSell(){
       if(r2){ s0.allot = r2.lot; hit = r2.hit; }
       else if(hadAllot) delete s0.allot;
     }
-    pushFeed("cut", "修改减仓：" + name, num(gram,1) + " g × " + num(priceCny,2) + " 元/克");
+    pushFeed("cut", "修改减仓：" + name, gnum(gram) + " g × " + num(priceCny,2) + " 元/克");
   } else {
     var rec = { id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note };
     S.cfg.sells.push(rec);
@@ -7995,7 +8049,7 @@ function saveSell(){
        P21：把这次实际摊到哪几档记进 allot，改克重 / 删记录时按它精确退回。 */
     var r1 = allotSell(gram, cnyToUsd(priceCny), gram * priceCny);
     if(r1){ rec.allot = r1.lot; hit = r1.hit; }
-    pushFeed("cut", name + " 减仓 " + num(gram,1) + " 克", num(priceCny,2) + " 元/克 · 回笼 " + money(gram*priceCny,2) + " 元");
+    pushFeed("cut", name + " 减仓 " + gnum(gram) + " 克", num(priceCny,2) + " 元/克 · 回笼 " + money(gram*priceCny,2) + " 元");
   }
 
   saveCfg();
@@ -8003,7 +8057,7 @@ function saveSell(){
   refreshAll();
   closeSheet();
   var tail = hit ? " · 已摊到 " + hit + " 档" : "";
-  toast((S.editing ? "已修改" : ("已减 " + num(gram,1) + " 克")) + tail);
+  toast((S.editing ? "已修改" : ("已减 " + gnum(gram) + " 克")) + tail);
 }
 
 function delBuy(){
@@ -8057,7 +8111,7 @@ function undoGear(name){
   var g = (S.gears||[]).filter(function(x){ return x.name===name; })[0];
   if(!g || !g.done) return;
   var msg = "取消「" + name + "」的已买入标记？\n\n" +
-    "· 该档回到待买，推荐克重按计划重算（计划 " + num(g.plan,1) + "g）\n" +
+    "· 该档回到待买，推荐克重按计划重算（计划 " + gnum(g.plan) + "g）\n" +
     "· 价格再回到 " + num(g.price,2) + " 时会重新提示买入\n" +
     "· 买卖记录与持仓不变";
   if(!window.confirm(msg)) return;
@@ -8078,7 +8132,7 @@ function undoGear(name){
 function recalcGears(){
   var held = holdStats().grams || 0;
   var total = Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100;
-  if(!window.confirm("按当前持仓 " + num(held,1) + " 克重排已买入标记？\n\n" +
+  if(!window.confirm("按当前持仓 " + gnum(held) + " 克重排已买入标记？\n\n" +
       "· 从第1档往上填，填满一档算一档\n" +
       "· 之前手动取消的记录会被清掉（都按持仓重算）\n" +
       "· 买卖记录与持仓不变")) return;
@@ -8114,7 +8168,7 @@ function recalcGears(){
   S.cfg.gearMarks = mk;
   saveCfg(); compute(); refreshAll();
   toast(held > total + 0.05
-    ? ("已按持仓重排（" + num(held,1) + " 克，超出目标 " + num(total,0) + " 克）")
+    ? ("已按持仓重排（" + gnum(held) + " 克，超出目标 " + num(total,0) + " 克）")
     : ("已按持仓重排，" + done.length + " 档视为已买"));
 }
 
@@ -8166,12 +8220,10 @@ function saveItemVal(it){
 
 function saveCfgVal(it){
   var v = S.cfg ? S.cfg[it.key] : null;
-  /* 底仓没设时输入框里显示的是自动值（computedKeep），拿它比，别把自动值当成用户改过 */
-  if(it.key === "keepGram"){
-    if(v === null || v === undefined || v === "" || isNaN(Number(v)))
-      return Number(computedKeep(holdStats().grams));
-    return Number(v);
-  }
+  /* 底仓的基准一律取「现在能不能落地」的那个值（computedKeep 会夹到持仓上限）。
+     若拿 cfg 原值比，用户设 20 而持仓只有 15 时，输入框显示 15、基准是 20，
+     这条永远判脏 —— 存完刷新还是「1 项未保存」。 */
+  if(it.key === "keepGram") return Number(computedKeep(holdStats().grams));
   if(it.key === "avgBand") return (v === null || v === undefined || v === "") ? 20 : Number(v);
   if(v === null || v === undefined || v === "") return null;
   return Number(v);
@@ -8317,7 +8369,7 @@ function bindUI(){
     if(b && (Number(b) < 1000 || Number(b) > 9000)){ toast("建仓高点看起来不对（1000-9000）"); return; }
     if(!t || t <= 0){ toast("总克重要大于 0"); return; }
     if(hs.grams && (isNaN(keep) || keep < 0 || keep > hs.grams)){
-      toast("底仓保留要在 0 到持仓 " + num(hs.grams,1) + " 克之间"); return;
+      toast("底仓保留要在 0 到持仓 " + gnum(hs.grams) + " 克之间"); return;
     }
     var atv = $("setAvgT").value.trim(), abv = $("setAvgB").value.trim();
     var at = atv ? Number(atv) : null, ab = abv ? Number(abv) : 20;
@@ -8358,7 +8410,9 @@ function bindUI(){
     }
     // 目标均价被清空时：没有目标就按波动率排，避免出现没有基准的空档位
     if(!at && !S.cfg.H_BASE && S.cfg.spanMode === "target") S.cfg.spanMode = "alpha";
-    if(hs.grams) S.cfg.keepGram = keep;
+    /* v6.50：原来包了 if(hs.grams) —— 没有持仓记录时底仓永远存不进去，
+       输入框填了 20 也一直判脏，点保存没反应。改成有值就落库。 */
+    if(!isNaN(keep) && keep > 0) S.cfg.keepGram = keep;
     // 同步一份百分比，方便旧逻辑与导出文件对照
     if(hs.grams) S.cfg.cutRatio = Math.round((hs.grams - keep)/hs.grams*100);
 

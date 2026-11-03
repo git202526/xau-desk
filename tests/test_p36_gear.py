@@ -73,10 +73,10 @@ def test_g1_done_gear_shows_bought_gram(make_env):
     rows = gears(page)
     first = g(rows, "第1档")
     assert "已买满" in first["pills"], first
-    assert "16 / 16g" in first["gpill"], first
+    assert "16.0000 / 16.0000g" in first["gpill"], first
     second = g(rows, "第2档")
     assert "已买满" in second["pills"]
-    assert "24 / 24g" in second["gpill"]
+    assert "24.0000 / 24.0000g" in second["gpill"]
     # 两档都带撤销入口
     assert first["undo"] and second["undo"]
 
@@ -100,7 +100,7 @@ def test_g2_sell_keeps_done_mark(make_env):
     rows = gears(page)
     second = g(rows, "第2档")
     assert "已买满" in second["pills"], second
-    assert "24 / 24g" in second["gpill"]
+    assert "24.0000 / 24.0000g" in second["gpill"]
     assert page.evaluate("() => window.__xt.holdStats().grams") == 16
 
 
@@ -205,7 +205,7 @@ def test_g6_rebuy_after_undo_marks_again(make_env):
 
     row = g(gears(page), "第2档")
     assert "已买满" in row["pills"], row
-    assert row["gpill"] == "24 / 24g", row
+    assert row["gpill"] == "24.0000 / 24.0000g", row
     assert marks_grams(page, "第2档") > 0
 
 

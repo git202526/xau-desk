@@ -177,7 +177,7 @@ def test_b7_pos_summary(env):
     record(p)
     after = p.inner_text("#posBox")
     assert "还没有买入记录" not in after
-    assert "24.0 g" in after
+    assert "24.0000 g" in after
 
 
 def test_b8_buy_list(env):

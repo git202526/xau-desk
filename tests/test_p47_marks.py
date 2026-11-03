@@ -96,8 +96,8 @@ def test_marks_available_without_mode(env):
     before = p.evaluate("() => window.__xt.gearRows()")
     r4 = row_text(p, "第4档")
     assert r4["mark"] is True, r4
-    assert r4["plan"] == "计划 72g"
-    assert r4["g"] == "待补 72g"
+    assert r4["plan"] == "计划 72.0000g"
+    assert r4["g"] == "待补 72.0000g"
 
     p.evaluate("() => window.__xt.openMarkSheet('第4档','buy')")
     p.wait_for_timeout(220)
@@ -117,13 +117,13 @@ def test_mark_prefills_plan_then_shows_pending(env):
     p.click('#ladder [data-mark="第4档"]')
     p.wait_for_timeout(220)
     assert p.evaluate("() => document.getElementById('sheetMark').classList.contains('on')")
-    assert p.input_value("#markGram") == "72"
+    assert p.input_value("#markGram") == "72.0000"
 
     p.fill("#markGram", "20")
     save_mark(p)
     p.wait_for_timeout(300)
     r4 = row_text(p, "第4档")
-    assert r4["g"] == "20 / 72g", r4
+    assert r4["g"] == "20.0000 / 72.0000g", r4
     assert r4["dim"] is True
     assert r4["unmark"] is True
 
@@ -141,10 +141,10 @@ def test_mark_does_not_touch_neighbors(env):
     p.wait_for_timeout(300)
 
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "10 / 48g", r3
+    assert r3["g"] == "10.0000 / 48.0000g", r3
     r4 = row_text(p, "第4档")
-    assert r4["plan"] == "计划 72g"
-    assert r4["g"] == "待补 72g"
+    assert r4["plan"] == "计划 72.0000g"
+    assert r4["g"] == "待补 72.0000g"
     assert r4["price"].replace(",", "") == "3945.00"      # 默认 α=1：4089 − 3×48
 
 
@@ -165,7 +165,7 @@ def test_unmark_restores_and_toasts(env):
     p.wait_for_timeout(320)
     assert "恢复待补" in toast_text(p)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "待补 48g", r3
+    assert r3["g"] == "待补 48.0000g", r3
     assert r3["mark"] is True and r3["unmark"] is False
 
     after = {r["name"]: r["pending"] for r in p.evaluate("() => window.__xt.gearRows()") if not r["warn"]}
@@ -190,12 +190,12 @@ def test_second_buy_accumulates(env):
     # 已标记的档再点行（不点撤销）→ 面板带出待补克重，可改
     p.click('#ladder [data-gear="第3档"] .price')
     p.wait_for_timeout(260)
-    assert p.input_value("#markGram") == "38"
+    assert p.input_value("#markGram") == "38.0000"
     p.fill("#markGram", "30")
     save_mark(p)
     p.wait_for_timeout(320)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "40 / 48g", r3
+    assert r3["g"] == "40.0000 / 48.0000g", r3
     assert p.evaluate("() => window.__xt.gearState(3).bought") == 40
 
 
@@ -236,7 +236,7 @@ def test_marks_survive_reload(env):
     p.wait_for_function("() => window.__xt.planSummary().bought > 11", timeout=6000)
     assert p.evaluate("() => window.__xt.planSummary().bought") == pytest.approx(12, abs=0.01)
     open_tab(p, "plan")
-    assert row_text(p, "第3档")["g"] == "12 / 48g"
+    assert row_text(p, "第3档")["g"] == "12.0000 / 48.0000g"
 
 
 # ---------------------------------------------------------------- 8 保存设置后标记不动
@@ -264,7 +264,7 @@ def test_marks_survive_settings_save(env):
     assert row_text(p, "第4档")["mark"] is False
     assert p.evaluate("() => Object.keys(window.__xt.state().cfg.gearMarks || {}).length") == 1
     assert p.evaluate("() => window.__xt.gearState(4).bought") == 20
-    assert row_text(p, "第4档")["g"] == "20 / 72g"
+    assert row_text(p, "第4档")["g"] == "20.0000 / 72.0000g"
 
 
 # ---------------------------------------------------------------- 9 弹药进度
@@ -278,7 +278,7 @@ def test_ammo_uses_plan_not_ledger(env):
     p.fill("#markGram", "10")
     save_mark(p)
     p.wait_for_timeout(300)
-    assert p.evaluate("() => document.getElementById('ammoTxt').textContent.trim()") == "10 / 200 克"
+    assert p.evaluate("() => document.getElementById('ammoTxt').textContent.trim()") == "10.0000 / 200.0000 克"
     assert p.evaluate("() => window.__xt.holdStats().grams") == 0
     # P22 起标题行不再报待补（与「档位执行 10 / 200 克」是同一个数），也不报高点
     # （与下一行「档位来源」重复）。数没丢，只是搬到该在的位置。
@@ -299,7 +299,7 @@ def test_overbuy_is_flagged(env):
     save_mark(p)
     p.wait_for_timeout(300)
     r3 = row_text(p, "第3档")
-    assert r3["g"] == "58 / 48g", r3
+    assert r3["g"] == "58.0000 / 48.0000g", r3
     assert "已超预算 10" in p.evaluate("() => document.getElementById('ladderMeta').textContent")
     assert p.evaluate("() => window.__xt.planSummary().overBudget") == pytest.approx(10, abs=0.01)
 
@@ -366,7 +366,7 @@ def test_settings_alpha_and_grid(env):
     assert p.input_value("#setAlpha") == "1.00"
     assert p.evaluate("() => [...document.querySelectorAll('#setWGrid [data-w]')].map(i => i.value)") \
         == ["8", "12", "24", "36", "12", "8"]
-    assert "16 / 24 / 48 / 72 / 24 / 16" in p.evaluate(
+    assert "16.0000 / 24.0000 / 48.0000 / 72.0000 / 24.0000 / 16.0000" in p.evaluate(
         "() => document.getElementById('setWLive').textContent")
 
     p.fill("#setAlpha", "1.5")

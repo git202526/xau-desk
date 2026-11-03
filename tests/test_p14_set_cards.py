@@ -138,7 +138,7 @@ def test_l7_pos_summary(env):
     p = env(TOTAL=310).page
     open_set(p)
     s = body(p)["sums"]["pos"]
-    assert "310g" in s, s
+    assert "310.0000g" in s, s
     assert "已持" not in s, s
 
 

@@ -186,7 +186,7 @@ def test_h3_over_budget_is_the_only_title_alert(env):
     p.click("#markSave")
     p.wait_for_timeout(320)
     h = head(p)
-    assert "已超预算 10g" in h["tagTxt"], h
+    assert "已超预算 10.0000g" in h["tagTxt"], h
     assert h["tagWarn"] is True, h
 
 
@@ -277,7 +277,7 @@ def test_g4_over_limit_keeps_danger_class(env):
     g = gauge(p)
     assert "over" in g["cls"], g
     assert g["on"] == 20, g
-    assert "超上限 50.0 g" in g["text"], g
+    assert "超上限 50.0000 g" in g["text"], g
 
 
 def test_g5_zero_is_plain(env):

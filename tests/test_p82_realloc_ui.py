@@ -86,12 +86,12 @@ def shifts(p):
 # ---------------------------------------------------------------- 1 行内标签
 
 def test_v1_tags_on_donor_and_receiver(env):
-    """第 1 档 −16 下沉出，第 2 档 +16 下沉入。"""
+    """第 1 档 −16.0000 下沉出，第 2 档 +16.0000 下沉入。"""
     p = env().page
     to_plan(p)
     got = shifts(p)
-    assert got == [{"gear": "第1档", "txt": "−16 下沉出"},
-                   {"gear": "第2档", "txt": "+16 下沉入"}], got
+    assert got == [{"gear": "第1档", "txt": "−16.0000 下沉出"},
+                   {"gear": "第2档", "txt": "+16.0000 下沉入"}], got
 
 
 def test_v2_no_tags_when_off(env):
@@ -113,7 +113,7 @@ def test_v4_ammo_line_reports_pool(env):
     p = env().page
     to_plan(p)
     txt = p.inner_text("#ammoTxt")
-    assert "下沉 16g" in txt, txt
+    assert "下沉 16.0000g" in txt, txt
 
 
 def test_v5_ammo_line_clean_when_off(env):
@@ -131,8 +131,8 @@ def test_v6_plan_text_reflects_shift(env):
         .find(x => x.dataset.gear === '第1档').querySelector('.plan').textContent""")
     row2 = p.evaluate("""() => [...document.querySelectorAll('#ladder .body')]
         .find(x => x.dataset.gear === '第2档').querySelector('.plan').textContent""")
-    assert row1 == "计划 0g"
-    assert row2 == "计划 40g"
+    assert row1 == "计划 0.0000g"
+    assert row2 == "计划 40.0000g"
 
 
 # ---------------------------------------------------------------- 2 点标签

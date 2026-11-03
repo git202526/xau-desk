@@ -102,7 +102,7 @@ def test_add_buy_via_sheet_writes_cloud(make_env):
     assert page.eval_on_selector("#mask", "e => e.classList.contains('on')") is False
     page.click('.tabbar button[data-tab="ov"]')
     page.wait_for_timeout(150)
-    assert page.eval_on_selector("#pbGram", "e => e.textContent.trim()") == "70.0g"
+    assert page.eval_on_selector("#pbGram", "e => e.textContent.trim()") == "70.0000g"
 
 
 def test_sell_reduces_holdings(make_env):
@@ -121,7 +121,7 @@ def test_sell_reduces_holdings(make_env):
     page.click('.tabbar button[data-tab="ov"]')
     page.wait_for_timeout(150)
     grams = page.eval_on_selector("#pbGram", "e => e.textContent.trim()")
-    assert grams != "60.0g", grams
+    assert grams != "60.0000g", grams
 
 
 def test_delete_buy_writes_tombstone_and_persists(make_env):
