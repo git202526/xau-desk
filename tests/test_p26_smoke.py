@@ -5,7 +5,7 @@
     t2  pytest.ini 注册了 smoke / slow
     t3  冒烟不 import 其它 test_* 模块（否则两层会一起坏）
     t4  覆盖域 ≥ 8（按 `# ==== 域名 ====` 分区计数）
-    t5  `pytest -m smoke --collect-only` 真的能收到 22 条（marker 名没写错）
+    t5  `pytest -m smoke --collect-only` 真的能收到 19 条（marker 名没写错）
 """
 import re
 import subprocess
@@ -49,7 +49,9 @@ def test_t4_domain_coverage():
 
 
 def test_t5_marker_collects():
-    """子进程跑 `-m smoke --collect-only`，确认 22 条都能被 marker 选中。
+    """子进程跑 `-m smoke --collect-only`，确认 19 条都能被 marker 选中。
+
+    v6.49 策略回测下线带走 3 条（s13/s14/s15），22 → 19。
 
     不真正执行用例（--collect-only），约 2 秒。
     addopts 被清空，避免 -q 叠加成 -qq 后连 nodeid 都不打印。
@@ -62,5 +64,5 @@ def test_t5_marker_collects():
     m = re.search(r"(\d+)/(\d+) tests collected", out.stdout)
     assert m, out.stdout[-400:]
     picked, total = int(m.group(1)), int(m.group(2))
-    assert picked == 22, "marker 只选中 %d 条（应为 22）" % picked
+    assert picked == 19, "marker 只选中 %d 条（应为 19）" % picked
     assert total > picked, "全量没被排除，marker 可能没生效"

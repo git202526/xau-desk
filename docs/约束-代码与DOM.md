@@ -145,7 +145,7 @@ GitHub Pages 是 **push 即发布**，所以「提交」不等于「上线」。
 
 | 步 | 命令 | 通过判据 |
 |---|---|---|
-| 1 | `python3 -m pytest -m smoke` | 22 条全绿 |
+| 1 | `python3 -m pytest -m smoke` | 19 条全绿 |
 | 2 | `git push origin main` | `git rev-list --count HEAD...origin/main` 输出 `0	0` |
 | 3 | `python3 -m pytest -m deploy` | 5 条全绿（含线上字节 sha256 比对） |
 

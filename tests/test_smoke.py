@@ -1,4 +1,4 @@
-"""P26 · 冒烟集：22 条，覆盖 10 个核心域，目标 2 分钟内跑完。
+"""P26 · 冒烟集：19 条，覆盖 10 个核心域，目标 2 分钟内跑完。
 
 定位：**不是**全量的随机抽样，而是按链路挑——每条回答「这个功能还活着吗」，
 不回答「这个功能的第 7 个边界还对吗」。边界留给全量。
@@ -221,38 +221,6 @@ def test_s12_review_expands_six_rows(page_of):
     txt = p.eval_on_selector("#posReview", "e => e.innerText")
     for bad in ("NaN", "undefined", "Infinity"):
         assert bad not in txt, bad
-
-
-# ==== 策略回测 ====
-
-def test_s13_backtest_scan_five_rows(page_of):
-    """P31：5 组档距扫描，首档价五组相同（档距不影响第 1 档）。
-
-    用「从 5000 跌到 4030」的行情，档位会被跌破，各组才会真的成交。
-    """
-    p = page_of(tab="struct", bars=_bars(start=5000.0))
-    rows = p.eval_on_selector_all("#bbPeers .sr", """els => els.map(e =>
-      Array.from(e.children).map(c => c.innerText.trim()))""")
-    assert len(rows) == 5, rows
-    assert len(set(r[1] for r in rows)) == 1, rows
-
-
-def test_s14_backtest_no_trade_is_zero(page_of):
-    """一档没触发：净现金流与持仓都是 0，收益率是 null（不是 0）。"""
-    p = page_of(tab="struct", bars=_bars(px=4600.0, amp=8.0))
-    s = p.evaluate("() => window.__xt.btBack('1d',{loop:false,realloc:false,fee:0}).stats")
-    assert s["trigGears"] == 0, s
-    assert s["pnl"] == pytest.approx(0, abs=0.05), s
-    assert s["pnlPct"] is None, s
-
-
-def test_s15_backtest_no_nan(page_of):
-    """回测卡文本里不出现 NaN / undefined / Infinity。"""
-    p = page_of(tab="struct")
-    txt = p.eval_on_selector("#btBackCard", "e => e.innerText")
-    for bad in ("NaN", "undefined", "Infinity"):
-        assert bad not in txt, bad
-    assert "触发档位" in txt and "无预算上限" in txt, txt[:160]
 
 
 # ==== 判定回溯 ====

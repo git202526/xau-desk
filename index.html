@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.48 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P28 回测与设置联动（参数快照条 / 高点默认跟随设置 / 逐档对照表 / 修 31.1 倍量纲错误 / planBase 隔离实盘状态） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.49 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -312,107 +312,6 @@ body.tab-ov .tpx{display:none}
 .btsw .more{width:100%;margin-top:6px;background:none;border:1px solid var(--line);color:var(--tx2);border-radius:9px;min-height:36px;font-size:11.5px;font-family:inherit}
 .btnote{margin-top:10px;font-size:10.5px;color:var(--tx3);line-height:1.55}
 .btempty{font-size:12px;color:var(--tx3);padding:12px 0;line-height:1.6}
-
-/* P19-2 策略回测：指标两列、曲线满宽、对照表五列、触及 chip 横滚 */
-/* P28 参数快照条：只读展示「这次用的哪套参数」，改参数去设置页。
-   两个高点 chip 是唯一可点项 —— 切换本轮回测锚定哪套档位。 */
-.bbparam{display:flex;flex-wrap:wrap;gap:5px 10px;margin-top:9px;font-size:11px;color:var(--tx3)}
-.bbparam .bpp-src{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
-.bbparam .bpp-src>i{font-style:normal;flex:0 0 auto}
-.bbparam .bpp-src>i.bpp-warn{color:var(--warn);font-size:10.5px}
-.bbparam button{border:1px solid var(--line);background:transparent;color:var(--tx2);
-                border-radius:5px;padding:2px 7px;font-size:10.5px;font-family:inherit;
-                min-height:24px;white-space:nowrap}
-.bbparam button.on{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.08)}
-.bbparam button:disabled{opacity:.45}
-.bbparam .bpp-i{white-space:nowrap}
-/* 区间 5 枚 chip 在 320 宽放不下一行，允许换行，不横向滚 */
-.bbparam .bpp-rg{flex-wrap:wrap}
-.bbparam .bpp-i b{color:var(--tx);font-weight:650}
-.bbwin{margin-top:9px;font-size:11.5px;color:var(--tx3)}
-.bbwin b{color:var(--tx);font-weight:650}
-.bbstats{margin-top:10px}
-.bbstats .bs{display:grid;grid-template-columns:1fr auto 1fr auto;gap:4px 8px;align-items:baseline;
-             padding:5px 0;border-top:1px solid rgba(255,255,255,.05);font-size:11.5px}
-.bbstats .bs:first-child{border-top:none}
-.bbstats .bs span{color:var(--tx3)}
-.bbstats .bs b{color:var(--tx);font-weight:650;text-align:right;white-space:nowrap}
-.bbstats .bs b.up{color:var(--up)}
-.bbstats .bs b.dn{color:var(--dn)}
-/* 主值下方的副值（如最大回撤的「金价 −18.0%」）：参与解释、不参与主读，
-   独立成行后主值不再和括号挤在一格里，窄屏也不会把括号拆成两半 */
-.bbstats .bs b i.bsub{display:block;font-style:normal;font-weight:400;font-size:10.5px;
-                      line-height:1.3;margin-top:1px;color:var(--tx3);white-space:nowrap}
-/* P29 统计行窄屏：≤359 改「指标竖排 × 两列」。
-   320 宽时容器内宽仅约 262px，一行塞两个指标必然爆：实测「投入 / 预算使用」
-   被压到 62px 折成两行（行高 28→46），「最大回撤」的值 126px 把「已实现」
-   压到 42px。竖排后每个指标独占一格，长值只在自己格内折行，不再挤邻居。 */
-@media(max-width:359px){
-  .bbstats .bs{grid-template-columns:1fr 1fr;gap:1px 10px;padding:7px 0}
-  .bbstats .bs > span:nth-of-type(1){grid-area:1/1}
-  .bbstats .bs > b:nth-of-type(1){grid-area:2/1}
-  .bbstats .bs > span:nth-of-type(2){grid-area:1/2}
-  .bbstats .bs > b:nth-of-type(2){grid-area:2/2}
-  .bbstats .bs > span{font-size:10.5px;line-height:1.35}
-  .bbstats .bs > b{font-size:12.5px;line-height:1.4;text-align:left;white-space:normal}
-}
-#bbEquip{display:block;width:100%;height:120px;margin-top:10px;background:rgba(255,255,255,.02);
-         border-radius:8px}
-.bb-l1{fill:none;stroke:var(--gold);stroke-width:1.6;vector-effect:non-scaling-stroke}
-.bb-l2{fill:none;stroke:var(--tx3);stroke-width:1.2;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
-.bbleg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:11px;color:var(--tx2)}
-.bbleg span{display:flex;align-items:center;gap:5px;min-width:0}
-.bbleg i{width:12px;height:2px;border-radius:1px;flex:0 0 auto}
-.bbleg i.l1{background:var(--gold)}
-.bbleg i.l2{background:var(--tx3)}
-.bbleg .dim{color:var(--tx3)}
-/* P31 档距扫描表：5 行 × 5 列，点行切到那一组的明细。
-   原「三组同本金对照」在取消预算上限后无法成立（本策略买满要多花钱），
-   换成这一个表 —— 每行少 2 列，多出来的信息是「触发几个档」。 */
-.bbscan{margin-top:11px;font-size:11.5px}
-.bbscan .srh,.bbscan .sr{display:grid;grid-template-columns:.95fr 1.05fr .75fr 1.15fr 1.1fr;
-                         gap:4px;align-items:baseline;padding:6px 0}
-.bbscan .srh{color:var(--tx3);font-size:10.5px;border-bottom:1px solid var(--line)}
-.bbscan .sr{border-top:1px solid rgba(255,255,255,.05);cursor:pointer}
-.bbscan .sr.cur{background:rgba(212,162,76,.07);border-radius:7px;
-                padding-left:5px;padding-right:5px;margin-left:-5px;margin-right:-5px}
-.bbscan .sr span{color:var(--tx2);font-variant-numeric:tabular-nums}
-.bbscan .sr .sc{color:var(--tx);font-weight:600}
-.bbscan .sr .sc b{display:inline-block;margin-left:3px;font-size:9.5px;font-weight:500;
-                  color:var(--gold);border:1px solid rgba(212,162,76,.45);border-radius:4px;
-                  padding:0 3px;vertical-align:1px}
-.bbscan .sr .tg2{text-align:center}
-.bbscan .sr .cs,.bbscan .sr .pm{text-align:right}
-.bbscan .sr .tg{display:block;font-style:normal;font-size:9.5px;margin-top:1px}
-.bbscan .sr .tg.low{color:#5FBF8F}
-.bbscan .sr .tg.full{color:var(--gold)}
-.bbscan .srn{margin-top:8px;font-size:10.5px;color:var(--tx3);line-height:1.55}
-/* 0 轴：百分比曲线必须有一条「不赚不亏」的参考线，否则看不出正负 */
-#bbEquip .bb-zero{stroke:rgba(255,255,255,.18);stroke-width:1;stroke-dasharray:2 2}
-/* P28 逐档对照表：价格 / 克重 / 触及次数并排，可与建仓阶梯页逐行核对。
-   旧版是一行横滚 chip，只能看到「档1 0 次」，看不到这一档到底挂在哪个价、配多少克。 */
-.bbgears{display:flex;flex-direction:column;gap:0;margin-top:11px}
-.bbg{display:grid;grid-template-columns:30px 1fr 1fr auto;gap:8px;align-items:baseline;
-     padding:4px 0;border-bottom:1px solid rgba(255,255,255,.045);font-size:11px}
-.bbg:last-child{border-bottom:none}
-.bbg .gn{color:var(--tx3);font-size:10.5px}
-.bbg .gp{color:var(--tx);font-weight:650;white-space:nowrap}
-.bbg .gg{color:var(--tx2);white-space:nowrap}
-.bbg .gh{color:var(--tx3);white-space:nowrap;text-align:right}
-.bbg.on .gn{color:var(--gold)}
-.bbg.on .gp{color:var(--gold)}
-.bbg.on .gh{color:var(--tx2)}
-.bbopts{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
-.bbopts .bbk{margin-top:0}
-.bbopts .bbk+.bbk{margin-top:8px}
-.bbfee{display:flex;align-items:center;gap:8px;margin-top:9px}
-.bbfee .lb{font-size:11.5px;color:var(--tx3);flex:0 0 auto}
-.bbfee .wgrid{flex:1 1 auto;min-width:0;display:grid;grid-template-columns:repeat(3,1fr)!important;gap:5px}
-.bbnote{margin-top:10px}
-.bbnote .bbn{font-size:10.5px;color:var(--tx3);line-height:1.6}
-.bbnote .bbn.dim{color:var(--tx3);opacity:.85}
-.bbnote .bbn.caveat{color:var(--amber);opacity:.95;margin:2px 0}
-.bbnote .bbhint{font-size:11px;color:var(--amber);line-height:1.6;margin-bottom:4px}
 
 /* 关键位 */
 .klfilter{display:flex;align-items:center;gap:8px;margin:0 0 10px}
@@ -877,7 +776,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.48 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.49 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -974,26 +873,6 @@ body.tab-ov .tpx{display:none}
       <div class="btdist" id="btDist"></div>
       <div class="btsw" id="btSw"></div>
       <div class="btnote" id="btNote"></div>
-    </div>
-
-    <div class="sech" style="margin-top:18px"><h2>策略回测 <span class="cnt" id="bbMeta">—</span></h2></div>
-    <div class="card" id="btBackCard">
-      <div class="fchips" id="bbChips">
-        <button data-b="1w">周线</button>
-        <button data-b="1d" class="on">日线</button>
-        <button data-b="4h">4小时</button>
-        <button data-b="1h">1小时</button>
-      </div>
-      <div class="bbparam" id="bbParam"></div>
-      <div class="bbwin" id="bbBudget">—</div>
-      <div class="bbstats" id="bbStats"></div>
-      <svg id="bbEquip" viewBox="0 0 360 120" preserveAspectRatio="none" role="img"
-           aria-label="策略权益曲线"></svg>
-      <div class="bbleg" id="bbLeg"></div>
-      <div class="bbscan" id="bbPeers"></div>
-      <div class="bbgears" id="bbGears"></div>
-      <div class="bbopts" id="bbOpts"></div>
-      <div class="bbnote" id="bbNote"></div>
     </div>
 
     <div class="sech" style="margin-top:18px">
@@ -1449,6 +1328,12 @@ function money(v,dp){
   s[0]=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
   return (v<0?"-":"")+s.join(".");
 }
+/* 美元金额：千分位 + 负号在货币符号外侧（−$4,831，不能是 $-4,831）。
+   原为回测卡的 bbUsd，随策略回测下线搬进 UTIL —— 均价卡的满仓成本还在用。 */
+function usdTxt(v){
+  var n = Number(v) || 0;
+  return (n < 0 ? "\u2212$" : "$") + money(Math.abs(n), 0);
+}
 function toast(m){
   var t=$("toast"); t.textContent=m; t.className="toast on";
   clearTimeout(t._t); t._t=setTimeout(function(){ t.className="toast"; },2400);
@@ -1829,309 +1714,9 @@ function btSeq(k){
 /* 清缓存：只给测试用，验证「重算结果与缓存一致」 */
 function btClear(){ _btCache = {}; }
 
-/* ===== P19-2 策略回测（D1 主策略 + D2 逐档触及） =====
-
-   固定档位、逐根推进、不猜盘中路径：每根只用 close 计权益，用 low 判触发，
-   用 high 判循环档卖出 —— 三者都来自同一根 K 线，不假设日内先后顺序。
-
-   与 P19-1 同一个原则：**用原始 S.kl[k]，不 scaled()**。回测里所有比较都是
-   「价格 vs 价格」（档位价 vs 当根 low/high），线性缩放不改真假；用原始序列
-   能保证回测结果不随汇率开关变化。P18 的 touchScan 用 scaled 是因为它要和
-   computeHEff 的 H 对齐 —— 两个方向各自正确，别「统一」。 */
-var BTB_WARM = 60;          // 前 60 根只用来算 H
-var BTB_MIN = 70;           // 少于 70 根不做回测
-
-/* H 取「起点前 60 根收盘最高」，与 computeHEff 同口径（都是 60 根收盘最高），
-   只是窗口位置不同：那边是最近 60 根，这边是起点前 60 根。
-   降级：起点价已经远离高点（< H × 0.82）时，用起点前 20 根 + 起点那根重算，
-   否则回测一开始就是 "全档已跌破" 的状态，看不出策略差异。 */
-/* P28：价格统一从 $/oz 转成 $/g 再参与「克 × 价格」。
-   不转的话 300g × $2756/oz 会算出 $826,800（真实值 $26,583，差 31.1 倍）。 */
-function btPxG(usdOz){
-  var v = Number(usdOz) || 0;
-  return v > 0 ? v / OZ_PER_G : 0;
-}
-
-/* P28：回测的基准高点取哪一套。
-   "set"（默认）—— 跟随设置页：gearBase().he（手动高点优先，否则自动高点）。
-                    含义是「按我现在这套档位，回看这段行情会怎样」，存在前视偏差。
-   "then"        —— 回测起点之前的最高收盘价，不偷看未来，但档位与阶梯页对不上。
-   设置里取不到高点时回退 then，并用 fell 标记，避免整卡空白。 */
-function btHeight(bars, i0, o){
-  var setHe = Number((gearBase() || {}).he) || 0;
-  var thenHe = btbHigh(bars, i0);
-  var want = (o && o.height === "then") ? "then" : "set";
-  if(want === "then") return { he:thenHe, src:"then", setHe:setHe, thenHe:thenHe, fell:false };
-  if(setHe > 0)       return { he:setHe, src:"set", setHe:setHe, thenHe:thenHe, fell:false };
-  return { he:thenHe, src:"fallback", setHe:setHe, thenHe:thenHe, fell:true };
-}
-
-function btbHigh(bars, i0){
-  var he = 0, i, c;
-  for(i = 0; i < i0; i++){ c = Number(bars[i].c); if(c > he) he = c; }
-  if(he > 0 && Number(bars[i0].c) < he * 0.82){
-    var h2 = Number(bars[i0].c) || 0;
-    for(i = Math.max(0, i0 - 20); i < i0; i++){ c = Number(bars[i].c); if(c > h2) h2 = c; }
-    if(h2 > 0) he = h2;
-  }
-  return he;
-}
-
-/* 最大回撤：只用权益序列，不依赖时间间隔 */
-function btbMaxDD(eq){
-  var peak = 0, dd = 0;
-  for(var i = 0; i < eq.length; i++){
-    var v = Number(eq[i].v);
-    if(!isFinite(v)) continue;
-    if(v > peak) peak = v;
-    if(peak > 0){
-      var d = (peak - v) / peak;
-      if(d > dd) dd = d;
-    }
-  }
-  return dd;
-}
-
-/* 逐日推进。opts = { loop, reallocOverride, fee, height }（缺省从 S.cfg.btOpts 取）。
-   reallocOverride：null/undefined = 跟随设置页的下沉开关；true/false = 本次回测覆盖。
-   height："set" 档位跟随设置高点（默认）；"then" 用回测起点的历史高点。
-   返回 { err } 或完整结果，字段见计划书 §1.1。 */
-/* P31：区间只决定「从哪根开始交易」，不改高点的计算窗口（btHeight 仍用 bars[0, i0)）。
-   只有日线给选：1 根 = 1 天。周线 220 根 = 220 周，「90 天」在这里是 90 周，
-   标签会误导；小时线 1000 根只有 42 天，按天设更没有意义 —— 两者固定全量。 */
-function btRangeOf(bars, k, o){
-  var n = bars.length, warm = Math.max(0, n - BTB_WARM);
-  if(k !== "1d")
-    return { i0:BTB_WARM, kind:"all", roots:warm, note:(k === "1w" ? "周线固定全量" : "小时线固定全量") };
-  var r = (o && o.range) || "all";
-  var i0 = BTB_WARM, note = "";
-  if(r === "90d")       i0 = Math.max(BTB_WARM, n - 90);
-  else if(r === "180d") i0 = Math.max(BTB_WARM, n - 180);
-  else if(r === "365d") i0 = Math.max(BTB_WARM, n - 365);
-  else if(r === "auto"){
-    i0 = Math.max(BTB_WARM, firstBuyIdx(bars));
-    if(i0 <= BTB_WARM) note = "没有买入记录，已改为全部";
-  } else { r = "all"; }
-  return { i0:i0, kind:r, roots:Math.max(0, n - i0), note:note };
-}
-
-/* 首次建仓日对应的 K 线下标。buys 存的是 ISO 字符串，解析失败一律回落 BTB_WARM
-   —— 宁可退成「全部」，也不要抛错把整张卡打掉。 */
-function firstBuyIdx(bars){
-  var bs = (S.cfg && S.cfg.buys) || [];
-  var ts = Infinity;
-  for(var i = 0; i < bs.length; i++){
-    var t = new Date((bs[i] && bs[i].time) || "").getTime();
-    if(isFinite(t) && t < ts) ts = t;
-  }
-  if(!isFinite(ts)) return BTB_WARM;
-  for(var j = 0; j < bars.length; j++){
-    if(Number(bars[j].t) >= ts) return j;
-  }
-  return BTB_WARM;
-}
-
-function btBack(k, opts){
-  var o = opts || (S.cfg && S.cfg.btOpts) || {};
-  var fee = Number(o.fee) || 0;
-  if(!(fee >= 0 && fee <= 0.01)) fee = 0;
-
-  var bars = (S.kl || {})[k] || [];
-  if(bars.length < BTB_MIN) return { err:"no-data", n:bars.length };
-
-  /* P31：档距系数。btScan 用它跑 5 组（0.6/0.8/1.0/1.2/1.4），单跑缺省 1。
-     越界一律回落 —— 手改过的 opts 不能让档位价算成负数或重叠。 */
-  var scale = Number(o.pitchScale);
-  if(!isFinite(scale) || !(scale > 0)) scale = 1;
-  scale = Math.min(2, Math.max(0.5, scale));
-
-  var rg = btRangeOf(bars, k, o);
-  var i0 = rg.i0, n = bars.length, i, j;
-  var gb = gearBase() || {};
-  var hp = btHeight(bars, i0, o);
-  var he = hp.he;
-  if(!(he > 0)) return { err:"no-data", n:n };
-
-  /* P28：计划只用 planBase（纯权重），不碰实盘的下沉状态。
-     旧代码用 planOf() —— 它会读 S.price / S.reallocDead 并写回，等于把今天的状态
-     塞进两年前的起点，还会和下面的 realloc 叠加成双重下沉。 */
-  var pr = gearPrices(he, (Number(gb.d) || 0) * scale);
-  var plan = planBase();
-  var gears = gearCount();
-  var useRealloc = (o.reallocOverride === undefined || o.reallocOverride === null)
-    ? !!(S.cfg && S.cfg.realloc && S.cfg.realloc.on)
-    : !!o.reallocOverride;
-  /* P31：预算不再是约束，两个金额各归各位 ——
-       fullCost = Σ(档克重 × 档位价) ÷ 31.1035，这套档位真的买满要花多少（与阶梯页同义）
-       budget   = 同样克重按**起点价**买的钱，即「一次性买入」的成本，只作对照基准
-     旧版把后者当上限，钱花完就跳过 —— 740 天里跳过 949 次，期末只买到 216g 而不是 300g。 */
-  var fullCost = 0;
-  for(i = 0; i < gears; i++) fullCost += (Number(plan[i]) || 0) * (Number(pr[i]) || 0) / OZ_PER_G;
-  var budget = totalGrams() * btPxG(bars[i0].c);
-
-  /* flow = 净现金流（卖出回款 − 买入成本），初值 0。
-     不能叫 cash：没有预算之后它不再是「余额」，留着这个名字会让人以为还有钱没花。 */
-  var flow = 0, hold = 0, realized = 0, invest = 0;
-  var trig = [], hits = [], lastHit = [];
-  for(i = 0; i < gears; i++){
-    trig.push({ done:false, sold:false, gram:0, cost:0 });
-    hits.push(0); lastHit.push(0);
-  }
-  var eq = [], tot = [], dead = {}, def = [];
-
-  for(i = i0; i < n; i++){
-    var bar = bars[i];
-    var lo = Number(bar.l), hi = Number(bar.h), cl = Number(bar.c);
-
-    /* ① 下沉：按当日收盘价判，注入 buyOf / dead / price / prices，
-       不读真实标记（回测里没有持仓），也不污染实盘的下沉状态 S.reallocDead */
-    var eff = plan;
-    if(useRealloc){
-      eff = reallocPlan(plan, {
-        buyOf: function(gi){ return trig[gi - 1].done ? trig[gi - 1].gram : 0; },
-        dead: dead,
-        price: cl,
-        prices: pr
-      });
-    }
-
-    /* ② 逐档：先记触及（无论是否已买、是否已买满），再判触发 */
-    for(j = 0; j < gears; j++){
-      var p = Number(pr[j]);
-      if(!(p > 0)) continue;                       // 无效档不计入分母
-      if(lo <= p){ hits[j]++; lastHit[j] = bar.t; }
-      var t = trig[j];
-      if(t.done) continue;
-      if(!(lo <= p)) continue;
-      var gram = Number(eff[j]) || 0;
-      if(!(gram > 0)) continue;
-      var amt = gram * btPxG(p), out = amt * (1 + fee);
-      /* P31：直接买，不判余额。买满不是「有钱才买」，是「到价就买」。 */
-      flow -= out; hold += gram; invest += out;
-      t.done = true; t.gram = gram; t.cost = out; t.t = bar.t;
-      def.push({ t:bar.t, i:j + 1, gram:gram, px:p });
-    }
-
-    /* ③ 循环档：当日最高价摸到「上一档档位价」就卖掉该档全部持仓。
-       一轮只卖一次（sold 置真后当日不再判），避免同一根里反复买卖。 */
-    if(o.loop){
-      for(j = 1; j < gears; j++){
-        var tj = trig[j];
-        if(!tj.done || tj.sold) continue;
-        if(!isSwingGear(j + 1)) continue;
-        var tp = Number(pr[j - 1]);
-        if(!(tp > 0) || !(hi >= tp)) continue;
-        var rec = tj.gram * btPxG(tp), net = rec * (1 - fee);
-        flow += net; hold -= tj.gram;
-        realized += net - tj.cost;
-        tj.sold = true;
-      }
-    }
-
-    eq.push({ t:bar.t, v: flow + hold * btPxG(cl) });
-    /* 回撤要拿「总资产」算，不能拿「净盈亏」：按档位价买入时市值低于成本，
-       净盈亏曲线一大段是负的，峰值只是 0 附近的小正数，分母一小回撤就炸成几千个百分点。
-       总资产 = 累计投入 + 净盈亏，恒为正，回撤才有意义。 */
-    tot.push({ t:bar.t, v: invest + flow + hold * btPxG(cl) });
-  }
-
-  /* 持仓克重 = 各档实际买入 − 已卖出 */
-  var heldGram = 0, soldGram = 0;
-  for(i = 0; i < gears; i++){
-    heldGram += trig[i].gram;
-    if(trig[i].sold) soldGram += trig[i].gram;
-  }
-  var endClose = Number(bars[n - 1].c) || 0;
-  var endMV = (heldGram - soldGram) * btPxG(endClose);
-  /* P31：flow 初值 0，所以 endV 本身就是「卖出回款 − 买入成本 + 持仓市值」= 净盈亏。
-     旧版 pnl = endV − budget，那是「相对预算赚了多少」；预算去掉后两者等价。
-     也没有对照组了 —— 同本金对照在取消预算后无法成立（本策略买满要多花钱），
-     由 btScan 的 5 组同配额对比取代。 */
-  var endV = flow + endMV;
-  var pnl = endV;
-
-  var days = n - i0;
-
-  var trigGears = 0;
-  for(i = 0; i < gears; i++) if(trig[i].done) trigGears++;
-  var validGears = 0;
-  for(i = 0; i < gears; i++) if(Number(pr[i]) > 0) validGears++;
-
-  var goldEq = [];
-  for(i = i0; i < n; i++) goldEq.push({ t:bars[i].t, v:Number(bars[i].c) || 0 });
-
-  /* P31：两条曲线都换成百分比，但分母用**最终投入**而不是「当时的累计投入」。
-     用当时的累计投入会在每次买入时把分母抬高，曲线凭空掉一截 —— 那只是记账口径变了，
-     不是亏钱。分母固定后，末点就等于 pnlPct，图上能直接读收益率。
-     回撤不受影响：整体乘常数不改变 (1 − v/peak) 的比值。 */
-  /* 回撤必须在转换前用**金额**算：百分比曲线的峰值可能只是 0 附近的一个小数，
-     拿它当分母会放大成几千个百分点（实测 −6197%）。 */
-  var maxDD = btbMaxDD(tot), goldDD = btbMaxDD(goldEq);
-  if(invest > 0){
-    for(i = 0; i < eq.length; i++) eq[i].v = eq[i].v / invest * 100;
-  } else {
-    for(i = 0; i < eq.length; i++) eq[i].v = 0;
-  }
-  var g0 = Number(bars[i0].c) || 0;
-  for(i = 0; i < goldEq.length; i++)
-    goldEq[i].v = g0 > 0 ? (goldEq[i].v / g0 - 1) * 100 : 0;
-
-  var gearRows = [];
-  for(i = 0; i < gears; i++){
-    gearRows.push({
-      name: gearSeq()[i], price:Number(pr[i]) || 0, plan:Number(plan[i]) || 0,
-      hits:hits[i], lastHit:lastHit[i] || null, done:trig[i].done
-    });
-  }
-
-  return {
-    meta: { from:bars[i0].t, to:bars[n - 1].t, n:days,
-            /* budget = 同克重按起点价买的成本（一次性基准）；fullCost = 按档位价买满的成本。
-               两者不相等，差的就是「这套档位相对一次性贵/便宜多少」。 */
-            budget:budget, fullCost:fullCost, he:he, unit:btUnit(k),
-            heightSrc:hp.src, heSet:hp.setHe, heThen:hp.thenHe, heFell:hp.fell,
-            gears:gears, pitch:(Number(gb.d) || 0) * scale, pitchScale:scale,
-            pitchBase:Number(gb.d) || 0, planGrams:plan.slice(),
-            realloc:useRealloc,
-            /* firstClose / gear0 给扫描表用：溢价率的分母要「本组成交克重 × 首日价」，
-               首档价要能看出 5 组的第 1 档完全相同（p1Of 不含档距） */
-            firstClose:Number(bars[i0].c) || 0, gear0:Number(pr[0]) || 0,
-            range:{ kind:rg.kind, roots:rg.roots, note:rg.note } },
-    gear: gearRows,
-    stats: {
-      trigGears:trigGears, validGears:validGears, trigCount:def.length,
-      invest:invest, holdGram:heldGram - soldGram, soldGram:soldGram,
-      avgCost: heldGram > 0 ? invest / heldGram : null,
-      endMV:endMV, pnl:pnl,
-      /* 收益率分母改用投入成本：没有预算之后，「相对预算」没有意义 */
-      pnlPct: invest > 0 ? pnl / invest * 100 : null,
-      realized:realized, endV:endV,
-      maxDD:maxDD, goldDD:goldDD
-    },
-    equip: eq, gold: goldEq,
-    flags: { loop:!!o.loop, realloc:useRealloc, fee:fee, pitchScale:scale }
-  };
-}
-
-/* P31 扫描：同一条行情、同一份权重，只把档距乘 0.6/0.8/1.0/1.2/1.4 各跑一遍。
-   不扫档数 —— curW() 读的是用户自定义的 6 个权重，扫到 10 档必须人为造扩展规则，
-   那是假设不是参数。扫档距只动一个维度，k=1.0 就是设置里那一套。
-   5 × 740 根 × 10 档 ≈ 3.7 万次循环，毫秒级，不需要异步或缓存。 */
-var BT_SCALES = [0.6, 0.8, 1.0, 1.2, 1.4];
-
-function btScan(k, opts){
-  var o = opts || (S.cfg && S.cfg.btOpts) || {};
-  var rows = [];
-  for(var i = 0; i < BT_SCALES.length; i++){
-    var oo = {};
-    for(var key in o){ if(Object.prototype.hasOwnProperty.call(o, key)) oo[key] = o[key]; }
-    oo.pitchScale = BT_SCALES[i];
-    rows.push({ scale:BT_SCALES[i], r:btBack(k, oo) });
-  }
-  return { rows:rows, base:rows[2] };
-}
-
-/* ---- P19-1 渲染 ---- */
+/* 判定回溯的视图状态与色带宽度。原先紧挨在策略回测代码后面（P19-2 那一段），
+   v6.49 下线回测时被一起删掉，导致 renderBt 抛 «_btView is not defined» —— 
+   删区间不能只看函数边界，夹在中间的共享变量也得逐个确认。 */
 var BT_PX = 1.5, BT_PX_WEEK = 8;
 var _btView = { dom:"", scroll:{}, pick:null, open:false };
 
@@ -2356,394 +1941,6 @@ function bindBt(){
       _btView.open = !_btView.open;
       renderBt();
     }
-  });
-}
-
-/* ---- P19-2 渲染：策略回测卡片 ---- */
-
-function bbPeriod(){ return S.bbPeriod || "1d"; }
-
-/* 三位分节：368400 → 368,400。回测的数字都上万，不分节读不出量级 */
-function bbThou(v){
-  var x = Number(v);
-  if(!isFinite(x)) return "—";
-  var s = String(Math.round(Math.abs(x))), out = "";
-  for(var i = 0; i < s.length; i++){
-    if(i && (s.length - i) % 3 === 0) out += ",";
-    out += s[i];
-  }
-  return (x < 0 ? "−" : "") + out;
-}
-/* P28：负数写成 −$4,831，不能是 $-4,831（负号必须在货币符号外侧） */
-function bbUsd(v){
-  var n = Number(v) || 0;
-  return (n < 0 ? "\u2212$" : "$") + bbThou(Math.abs(n));
-}
-function bbPct(v, dp){
-  if(v === null || v === undefined || !isFinite(v)) return "—";
-  return (v < 0 ? "−" : "+") + num(Math.abs(v), dp === undefined ? 2 : dp) + "%";
-}
-
-/* 收益率曲线：两条折线（本策略 / 金价），降采样到 200 点以内（740 个节点在移动端会卡）。
-   P31：v 已经是百分比（见 btBack 换算），y 轴是 %，并画一条 0 轴 ——
-   这张图要回答的是「有没有跑赢金价」，没有 0 轴就看不出赚还是亏。 */
-function bbCurve(equip, gold){
-  var n = equip ? equip.length : 0;
-  if(n < 2) return null;
-  var step = Math.ceil(n / 200), i, idx = [];
-  for(i = 0; i < n; i += step) idx.push(i);
-  if(idx[idx.length - 1] !== n - 1) idx.push(n - 1);
-
-  var lo = Infinity, hi = -Infinity;
-  function scan(arr){
-    if(!arr) return;
-    for(var j = 0; j < arr.length; j++){
-      var v = Number(arr[j].v);
-      if(!isFinite(v)) continue;
-      if(v < lo) lo = v;
-      if(v > hi) hi = v;
-    }
-  }
-  scan(equip); scan(gold);
-  if(!isFinite(lo) || !isFinite(hi)) return null;
-  if(hi - lo < 1){ hi = lo + 1; }
-
-  var W = 360, H = 120, pad = 4;
-  function line(arr){
-    if(!arr || arr.length < 2) return "";
-    return idx.map(function(k){
-      var v = Number(arr[k].v);
-      if(!isFinite(v)) v = lo;
-      var x = k / (n - 1) * W;
-      var y = H - pad - (v - lo) / (hi - lo) * (H - pad * 2);
-      return num(x, 1) + "," + num(y, 1);
-    }).join(" ");
-  }
-  /* 0 轴的位置：只有 0 落在可视区间内才画（全赚或全亏时它是边框，画了反而脏） */
-  var y0 = (lo <= 0 && hi >= 0)
-    ? H - pad - (0 - lo) / (hi - lo) * (H - pad * 2) : null;
-  return { lo:lo, hi:hi, p1:line(equip), p2:line(gold), y0:y0, pts:idx.length };
-}
-
-function bbStatRow(a, b){
-  return '<div class="bs">' +
-    '<span>' + a[0] + '</span><b>' + a[1] + '</b>' +
-    '<span>' + b[0] + '</span><b>' + b[1] + '</b></div>';
-}
-
-function renderBtBack(){
-  var box = $("btBackCard");
-  if(!box) return;
-  var k = bbPeriod();
-  Array.prototype.forEach.call(document.querySelectorAll("#bbChips button"), function(b){
-    b.className = b.getAttribute("data-b") === k ? "on" : "";
-  });
-
-  var o = (S.cfg && S.cfg.btOpts) || {};
-  /* P31：一次跑 5 组，r 取当前选中的那一组。原来这里单独跑一次 btBack，
-     再在对照表处另算两组 —— 现在 5 组同源，选哪组看哪组。 */
-  var scan = btScan(k, o);
-  var sel = Number(S.btSel);
-  var pick = scan.base;
-  if(isFinite(sel) && sel > 0){
-    for(var qi = 0; qi < scan.rows.length; qi++)
-      if(Math.abs(scan.rows[qi].scale - sel) < 1e-9) pick = scan.rows[qi];
-  }
-  var r = pick.r;
-  var meta = $("bbMeta"), budget = $("bbBudget"), stats = $("bbStats"), param = $("bbParam");
-  var svg = $("bbEquip"), leg = $("bbLeg"), peers = $("bbPeers");
-  var gears = $("bbGears"), opts = $("bbOpts"), note = $("bbNote");
-
-  if(r.err){
-    if(meta) meta.textContent = "—";
-    if(param) param.innerHTML = "";
-    if(budget) budget.innerHTML = "回测需要至少 " + BTB_MIN + " 根历史数据，当前只有 <b>" + (r.n || 0) + "</b> 根。";
-    if(stats) stats.innerHTML = "";
-    if(svg) svg.innerHTML = "";
-    if(leg) leg.innerHTML = "";
-    if(peers) peers.innerHTML = "";
-    if(gears) gears.innerHTML = "";
-    if(opts) opts.innerHTML = bbOptsHtml(o);
-    if(note) note.innerHTML = '<div class="bbhint">数据不足，无法回测</div>' + bbNoteHtml(r);
-    bindBbOpts();
-    return;
-  }
-
-  var s = r.stats, m = r.meta, unit = m.unit;
-  if(meta) meta.textContent = m.n + " " + unit + " · " + btDate(m.from) + " → " + btDate(m.to);
-  if(param) param.innerHTML = bbParamHtml(r, o);
-  if(budget){
-    budget.innerHTML = "实际花费 <b>" + bbUsd(s.invest) + "</b> · 满仓成本 <b>" + bbUsd(m.fullCost) + "</b>"
-      + " · 档位高点 H <b>" + bbUsd(m.he) + "</b> · 区间 " + m.n + " " + unit
-      + (m.range && m.range.note ? ' <i class="bbsub">' + m.range.note + '</i>' : "");
-  }
-
-  if(stats){
-    var avgOz = s.avgCost !== null ? s.avgCost * OZ_PER_G : null;
-    stats.innerHTML =
-      bbStatRow(["触发档位", s.trigGears + " / " + s.validGears], ["建仓笔数", String(s.trigCount)]) +
-      bbStatRow(["实际花费", bbUsd(s.invest)],
-                ["建仓均价", avgOz === null ? "—" : bbUsd(avgOz)]) +
-      bbStatRow(["期末持仓", gnum(s.holdGram) + " g"], ["期末市值", bbUsd(s.endMV)]) +
-      bbStatRow(["总收益", '<b class="' + (s.pnl >= 0 ? "up" : "dn") + '">' + bbUsd(s.pnl) +
-                 " · " + bbPct(s.pnlPct) + "</b>"],
-                ["最大回撤", "−" + num(s.maxDD * 100, 1) + "%" +
-                 '<i class="bsub">金价 −' + num(s.goldDD * 100, 1) + "%</i>"]) +
-      bbStatRow(["档距", bbUsd(m.pitchBase) + " ×" + num(m.pitchScale, 1)],
-                ["满仓成本", bbUsd(m.fullCost)]);
-  }
-
-  var cv = bbCurve(r.equip, r.gold);
-  if(svg){
-    svg.innerHTML = cv
-      ? (cv.y0 !== null ? '<line class="bb-zero" x1="0" y1="' + num(cv.y0, 1) +
-                           '" x2="360" y2="' + num(cv.y0, 1) + '"></line>' : "") +
-        '<polyline class="bb-l2" points="' + cv.p2 + '"></polyline>' +
-        '<polyline class="bb-l1" points="' + cv.p1 + '"></polyline>'
-      : "";
-    svg.setAttribute("viewBox", "0 0 360 120");
-  }
-  if(leg){
-    var gv = (r.gold && r.gold.length) ? Number(r.gold[r.gold.length - 1].v) : null;
-    leg.innerHTML = cv
-      ? '<span><i class="l1"></i>本策略 ' + bbPct(s.pnlPct) + '</span>' +
-        '<span><i class="l2"></i>金价 ' + bbPct(gv) + '</span>' +
-        '<span class="dim">y 轴 ' + bbPct(cv.lo, 1) + " ~ " + bbPct(cv.hi, 1) + '</span>'
-      : "";
-  }
-
-  /* P31：三组同本金对照换成 5 组档距扫描。同本金在取消预算后无法成立，
-     「相对一次性贵还是便宜」由溢价列回答。 */
-  if(peers) peers.innerHTML = bbScanHtml(scan);
-
-  if(gears) gears.innerHTML = bbGearsHtml(r);
-
-  if(opts) opts.innerHTML = bbOptsHtml(o);
-  bindBbOpts();
-
-  if(note){
-    var h = "";
-    if(s.trigGears === 0){
-      h += '<div class="bbhint">区间内未触及任何档位 —— 可能是档位设得比历史波动更浅，或区间内金价单边上涨</div>';
-    }
-    note.innerHTML = h + bbNoteHtml(r);
-  }
-}
-
-/* P28 说明三段：这张卡回答什么 / 档位从哪来（含前视偏差）/ 口径与假设。
-   档位来源不同，中间那段必须换 —— 用「设置」时是假设，用「当时」时才是真回测。 */
-function bbNoteHtml(r){
-  var m = (r && r.meta) || {};
-  var he = num(m.he, 0);
-  var h = '<div class="bbn">这张卡回答：同一个档位、换 <b>5 种档距</b>，哪种买得便宜、哪种买得到。'
-        + "点任意一行，下面切到那一组的逐档明细。</div>";
-  if(m.heightSrc === "set"){
-    h += '<div class="bbn caveat">档位取自<b>当前设置</b>（$' + he + "），存在<b>前视偏差</b> —— "
-       + "相当于假设这套档位当时就在用，不是严格意义上的历史回测。</div>";
-  } else if(m.heightSrc === "fallback"){
-    h += '<div class="bbn caveat">设置里没有可用高点，已回退为<b>当时高点</b>（$' + he + "）。</div>";
-  } else {
-    h += '<div class="bbn dim">档位锚定<b>当时高点</b>（$' + he + "），不偷看未来；"
-       + "但与设置页的档位价不同，因为高点不一样。</div>";
-  }
-  h += '<div class="bbn dim"><b>无预算上限</b> · 按档位价成交 · 美元口径不折算汇率 · '
-     + "固定档位 · 不含盘中路径 · 数据为 PAXG。循环档卖出与配额下沉是<b>回测假设</b>，不是系统给的买卖点。</div>";
-  return h;
-}
-
-/* P28 参数快照条（A 方案：只读，改参数去设置页）。
-   唯一可点的是两个高点 chip —— 切「设置高点」还是「当时高点」，只影响档位锚点，
-   档数 / 档距 / 配额 / 下沉一律跟随设置，避免出现两套半参数。 */
-function bbParamHtml(r, o){
-  var m = r.meta || {};
-  var then = (m.heightSrc === "then" || m.heightSrc === "fallback");
-  var setOk = Number(m.heSet) > 0;
-  var q = 0;
-  (m.planGrams || []).forEach(function(v){ q += Number(v) || 0; });
-  var pitch = Number(m.pitch) || 0;
-  return '<span class="bpp-src"><i>档位来源</i>'
-    + '<button type="button" data-h="set"' + (then ? "" : ' class="on"')
-    + (setOk ? "" : " disabled") + '>设置 ' + (setOk ? bbUsd(m.heSet) : "无高点") + "</button>"
-    + '<button type="button" data-h="then"' + (then ? ' class="on"' : "") + ">当时 "
-    + bbUsd(m.heThen) + "</button>"
-    + (m.heightSrc === "fallback" ? '<i class="bpp-warn">设置无高点，已回退</i>' : "")
-    + "</span>"
-    + '<span class="bpp-i">' + (m.gears || 0) + " 档</span>"
-    + '<span class="bpp-i">档距 <b>' + (pitch > 0 ? "$" + num(pitch, pitch < 100 ? 1 : 0) : "—") + "</b></span>"
-    + '<span class="bpp-i">配额 <b>' + gnum(q) + " g</b></span>"
-    + '<span class="bpp-i">下沉 <b>' + (m.realloc ? "开" : "关") + "</b></span>"
-    + bbRangeHtml(r, o);
-}
-
-/* P31 区间 chips：只有日线给选。周线 220 根是 220 周、小时线 1000 根只有 42 天，
-   「90 天」在那种尺度上是骗人的，干脆不显示。 */
-var BT_RANGES = [["90d","90天"], ["180d","180天"], ["365d","365天"], ["all","全部"], ["auto","自动"]];
-
-function bbRangeHtml(r, o){
-  var k = bbPeriod();
-  if(k !== "1d") return "";
-  var cur = (o && o.range) || "all";
-  var chips = BT_RANGES.map(function(x){
-    return '<button type="button" data-rg="' + x[0] + '"' +
-      (x[0] === cur ? ' class="on"' : "") + ">" + x[1] + "</button>";
-  }).join("");
-  var note = (r && r.meta && r.meta.range && r.meta.range.note) || "";
-  return '<span class="bpp-src bpp-rg"><i>区间</i>' + chips +
-    (note ? '<i class="bpp-warn">' + note + "</i>" : "") + "</span>";
-}
-
-/* 下沉的三态：未覆盖（null）= 跟随设置页；true/false = 本次回测明确覆盖。
-   旧字段 o.realloc 不再读取，避免「设置开着、回测不勾也照样下沉」的隐性叠加。 */
-function bbReallocState(o){
-  if(!o || o.reallocOverride === undefined || o.reallocOverride === null){
-    return { checked: !!(S.cfg && S.cfg.realloc && S.cfg.realloc.on), follow: true };
-  }
-  return { checked: !!o.reallocOverride, follow: false };
-}
-
-/* P31 溢价率：同样买这么多克，本组比「区间首日一次性买入」贵还是便宜。
-   分母必须用**本组成交克重**，不能用总配额 —— 只买 5 档的那组按 300g 折算，
-   会算出一个不存在的低价。 */
-function bbPrem(r){
-  var s = (r && r.stats) || {}, fc = Number(r && r.meta && r.meta.firstClose) || 0;
-  if(!(s.holdGram > 0) || !(fc > 0)) return null;
-  var base = s.holdGram * fc / OZ_PER_G;
-  return base > 0 ? (s.invest / base - 1) * 100 : null;
-}
-
-/* P31 扫描表：同一条行情、同一份权重，只把档距乘 0.6/0.8/1.0/1.2/1.4。
-   **不给「最优」** —— 档距越大，档位价越低，成本越低，但触发档数也越少。
-   只看溢价率永远推荐 ×1.4，可它可能只买到 5 档，另外 5 档的钱一直没花出去。
-   所以并排给「触发」和「溢价」，只标两个方向的极端，把权衡留给用户。 */
-function bbScanHtml(scan){
-  var rows = ((scan && scan.rows) || []).filter(function(x){ return x.r && !x.r.err; });
-  if(!rows.length) return '<div class="bbhint">数据不足，无法扫描</div>';
-
-  var cheap = null, full = null;
-  rows.forEach(function(x){
-    var sv = x.r.stats;
-    if(!(sv.holdGram > 0)) return;
-    var pm = bbPrem(x.r);
-    if(cheap === null || (pm !== null && pm < bbPrem(cheap.r))) cheap = x;
-    if(full === null || sv.trigGears > full.r.stats.trigGears) full = x;
-  });
-
-  var body = rows.map(function(x){
-    var sv = x.r.stats, m = x.r.meta;
-    var cur = Math.abs(x.scale - 1) < 1e-9;
-    var pm = bbPrem(x.r);
-    var tags = "";
-    if(cheap === x && pm !== null) tags += '<i class="tg low">成本最低</i>';
-    if(full === x) tags += '<i class="tg full">触发最全</i>';
-    return '<div class="sr' + (cur ? " cur" : "") + '" data-s="' + x.scale + '">' +
-      '<span class="sc">' + num(x.scale, 1) + '×' + (cur ? '<b>当前</b>' : '') + '</span>' +
-      '<span class="g0">' + bbUsd(m.gear0) + '</span>' +
-      '<span class="tg2">' + sv.trigGears + "/" + sv.validGears + '</span>' +
-      '<span class="cs">' + bbUsd(sv.invest) + '</span>' +
-      '<span class="pm">' + (pm === null ? "—" : bbPct(pm, 1)) + tags + '</span></div>';
-  }).join("");
-
-  return '<div class="srh"><span>系数</span><span>首档</span><span>触发</span>' +
-         '<span>花费</span><span>溢价</span></div>' + body +
-         '<div class="srn">溢价 = 同样这些克，比区间首日一次性买入贵（正）或便宜（负）多少。' +
-         '系数越大档位越疏、买得越便宜，但也越可能一档都碰不到。</div>';
-}
-
-/* P28 逐档对照表：每档都写清「挂在哪个价、配多少克、被触及几次」。
-   价格与阶梯页同源（pr），克重与配额同源（plan），所以能逐行对上。 */
-function bbGearsHtml(r){
-  return (r.gear || []).map(function(g){
-    var px = Number(g.price) || 0;
-    var gm = Number(g.plan) || 0;
-    var t = g.hits > 0 ? (g.hits + " 次 · " + btDate(g.lastHit).slice(5)) : "0 次 · —";
-    return '<div class="bbg' + (g.done ? " on" : "") + '">'
-      + '<span class="gn">' + g.name + "</span>"
-      + '<span class="gp">' + (px > 0 ? bbUsd(px) : "—") + "</span>"
-      + '<span class="gg">' + (gm > 0 ? gnum(gm) + " g" : "—") + "</span>"
-      + '<span class="gh">' + t + "</span></div>";
-  }).join("");
-}
-
-function bbOptsHtml(o){
-  var fee = Number(o.fee) || 0;
-  var rs = bbReallocState(o);
-  function fbtn(v, t){
-    return '<button type="button" class="swg' + (Math.abs(fee - v) < 1e-9 ? " on" : "") +
-      '" data-f="' + v + '">' + t + "</button>";
-  }
-  return '<label class="chkline bbk"><input type="checkbox" id="bbLoop"' + (o.loop ? " checked" : "") +
-      '><span>循环档卖出<em>当日最高价摸到上一档档位价就卖掉该档全部持仓，一轮只卖一次</em></span></label>' +
-    '<label class="chkline bbk"><input type="checkbox" id="bbRealloc"' + (rs.checked ? " checked" : "") +
-      '><span>配额下沉<em>' + (rs.follow ? "跟随设置页（当前" + (rs.checked ? "开" : "关") + "），改动只影响本次回测"
-        : "本轮回测已单独设为" + (rs.checked ? "开" : "关")) +
-      ' · 跌破的档位把待补额度让给同角色、还没跌穿的档</em></span></label>' +
-    '<div class="bbfee"><span class="lb">手续费</span><div class="wgrid" style="grid-template-columns:repeat(3,1fr)">' +
-      fbtn(0, "0") + fbtn(0.0002, "0.02%") + fbtn(0.0005, "0.05%") + "</div></div>";
-}
-
-/* 开关只重算这张卡，不跑 refreshAll —— 回测结果不进任何其它卡片 */
-function bindBbOpts(){
-  var lp = $("bbLoop"), re = $("bbRealloc");
-  function save(){
-    var cur = (S.cfg && S.cfg.btOpts) || {};
-    S.cfg = S.cfg || {};
-    S.cfg.btOpts = { loop: !!(lp && lp.checked),
-                     reallocOverride: re ? !!re.checked : null,
-                     fee: Number(cur.fee) || 0,
-                     height: cur.height || "set" };
-    saveCfg(); renderBtBack();
-  }
-  if(lp) lp.onchange = save;
-  if(re) re.onchange = save;
-}
-
-function bindBtBack(){
-  var chips = $("bbChips");
-  if(chips) chips.addEventListener("click", function(e){
-    var b = e.target.closest("button");
-    if(!b) return;
-    var k = b.getAttribute("data-b");
-    if(!k || k === bbPeriod()) return;
-    S.bbPeriod = k;
-    renderBtBack();
-  });
-  var box = $("btBackCard");
-  if(box) box.addEventListener("click", function(e){
-    /* P31：区间。只改 cfg.btOpts.range，不动其他开关 */
-    var rb = e.target.closest("button[data-rg]");
-    if(rb){
-      var cur0 = (S.cfg && S.cfg.btOpts) || {};
-      S.cfg = S.cfg || {};
-      S.cfg.btOpts = { loop: !!cur0.loop,
-                       reallocOverride: (cur0.reallocOverride === undefined ? null : cur0.reallocOverride),
-                       fee: Number(cur0.fee) || 0, height: cur0.height || "set",
-                       range: rb.getAttribute("data-rg") };
-      saveCfg(); renderBtBack();
-      return;
-    }
-    /* P31：点扫描表的某一行 → 下方详情切到那一组 */
-    var sr = e.target.closest("[data-s]");
-    if(sr){
-      S.btSel = Number(sr.getAttribute("data-s")) || null;
-      renderBtBack();
-      return;
-    }
-    var hb = e.target.closest("button[data-h]");
-    if(hb && !hb.disabled){
-      var cur = (S.cfg && S.cfg.btOpts) || {};
-      S.cfg = S.cfg || {};
-      S.cfg.btOpts = { loop: !!cur.loop, reallocOverride: (cur.reallocOverride === undefined ? null : cur.reallocOverride),
-                       fee: Number(cur.fee) || 0, height: hb.getAttribute("data-h") === "then" ? "then" : "set" };
-      saveCfg(); renderBtBack();
-      return;
-    }
-    var b = e.target.closest("button[data-f]");
-    if(!b) return;
-    var o2 = (S.cfg && S.cfg.btOpts) || {};
-    S.cfg = S.cfg || {};
-    S.cfg.btOpts = { loop: !!o2.loop, reallocOverride: (o2.reallocOverride === undefined ? null : o2.reallocOverride),
-                     fee: Number(b.getAttribute("data-f")) || 0, height: o2.height || "set" };
-    saveCfg(); renderBtBack();
   });
 }
 
@@ -5487,22 +4684,9 @@ function normCfg(){
     ratio: (Number(rl.ratio) >= 0.1 && Number(rl.ratio) <= 1) ? Number(rl.ratio) : 1,
     maxDrop: (Number(rl.maxDrop) >= 0.5 && Number(rl.maxDrop) <= 20) ? Number(rl.maxDrop) : REALLOC_MAXDROP_DEF
   };
-  /* 策略回测开关（P19-2）：三个都默认关/零，非法值一律回落，
-     不让一个手改过的 cfg 把回测算成莫名其妙的结果。
-     P28：realloc 改为 reallocOverride 三态（null = 跟随设置页），旧字段直接丢弃；
-     height 记住「档位来源」，切过一次之后刷新不丢。 */
-  var bo = S.cfg.btOpts;
-  if(!bo || typeof bo !== "object" || Array.isArray(bo)) bo = {};
-  S.cfg.btOpts = {
-    loop: !!bo.loop,
-    reallocOverride: (bo.reallocOverride === true || bo.reallocOverride === false) ? bo.reallocOverride : null,
-    fee: (Number(bo.fee) === 0.0002 || Number(bo.fee) === 0.0005) ? Number(bo.fee) : 0,
-    height: bo.height === "then" ? "then" : "set",
-    /* P31：区间只在日线生效，其他周期由 btRangeOf 强制回落 all。
-       未知值一律当 all —— 与改前行为一致，不升 schemaVersion。 */
-    range: (bo.range === "90d" || bo.range === "180d" || bo.range === "365d" ||
-            bo.range === "auto") ? bo.range : "all"
-  };
+  /* v6.49：策略回测整块下线，btOpts 不再读取。
+     老数据里的 btOpts 字段原样保留不迁移 —— 删字段要动 schemaVersion，
+     收益为零，而且会让「回滚到 v6.48」变成一个会丢配置的操作。 */
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
@@ -7388,7 +6572,7 @@ function renderAvgCardStruct(box, m){
   if(Number(m.fullCost) > 0){
     var fcG = (m.cumGram && m.cumGram.length) ? m.cumGram[m.cumGram.length - 1] : totalGrams();
     costRow = '<div class="a2 cost"><span>满仓成本 · ' + gnum(fcG) + ' g</span>' +
-      '<span class="vv"><b>' + bbUsd(m.fullCost) + '</b>' +
+      '<span class="vv"><b>' + usdTxt(m.fullCost) + '</b>' +
       '<i>' + (m.fullCostCny !== null && m.fullCostCny !== undefined
         ? "≈¥" + money(m.fullCostCny, 0) : "≈¥ —") + '</i></span></div>';
   }
@@ -8390,7 +7574,6 @@ function refreshAll(){
   renderStruct();
   renderChart();
   renderBt();
-  renderBtBack();
   renderKL();
   renderMarks();
   renderLadder();
@@ -9119,7 +8302,6 @@ function bindUI(){
   bindSync();
   bindDirtyWatch();
   bindBt();
-  bindBtBack();
 
   var sub = function(){ updateSubtotal(); };
   var gi = document.querySelector('[name="g_gram"]');
@@ -9489,9 +8671,6 @@ if(/[?&]xt=1/.test(location.search)){
     touchScan:touchScan, touchScanIn:touchScanIn,
     rvRows:rvRows, rvSum:rvSum,
     rvScans:function(){ return RV_SCANS; },
-    /* === P19-2 策略回测 === */
-    btBack:btBack, btScan:btScan, btRangeOf:btRangeOf, firstBuyIdx:firstBuyIdx, btPrem:bbPrem,
-    btbHigh:btbHigh, btbMaxDD:btbMaxDD,
     reallocPlan:reallocPlan,
     markGear:markGear,
     unmarkGear:unmarkGear,

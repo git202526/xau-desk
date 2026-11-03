@@ -9,9 +9,49 @@
 """
 import pytest
 
-from test_p19_2_back import cfg, make_bars
+from conftest import CFG_EMPTY
 
 OZ = 31.1035
+
+# 下面两个 helper 原先从 test_p19_2_back 导入；策略回测下线后那个文件删了，
+# 但 P30 的满仓成本仍要一份「会跌破档位」的行情来验算，故在此就地保留。
+H = 5000.0
+TOTAL = 200.0
+
+
+def cfg(**kw):
+    c = dict(CFG_EMPTY, H_BASE=H, TOTAL=TOTAL, gearMarks={}, swingGears=[2, 3],
+             spanMode="range", startDrop=13, endDrop=25)
+    c.update(kw)
+    return c
+
+
+def make_bars(n=260, peak=H, trough=4100.0, rally=None, i0=60, amp=12.0, flat=False):
+    """前 i0 根爬升到 peak（决定 H），之后跌到 trough，可选再反弹到 rally。"""
+    step = 24 * 3600 * 1000
+    now = 1761696000000
+    closes = []
+    for i in range(i0):
+        closes.append(4200 + (peak - 4200) * i / (i0 - 1))
+    rest = n - i0
+    m = rest if rally is None else rest // 2
+    if flat:
+        closes.extend([trough] * rest)
+        rest = 0
+    for k in range(rest):
+        if rally is None or k < m:
+            t = k / max(1, m - 1)
+            closes.append(peak + (trough - peak) * t)
+        else:
+            t = (k - m) / max(1, rest - m - 1)
+            closes.append(trough + (rally - trough) * t)
+    out = []
+    for i, c in enumerate(closes):
+        t = int(now - (n - 1 - i) * step)
+        o = closes[i - 1] if i else c
+        out.append([t, "%.2f" % o, "%.2f" % (c + amp), "%.2f" % (c - amp),
+                    "%.2f" % c, "12.5", t + step - 1, "0", 0, "0", "0", "0"])
+    return out
 
 
 @pytest.fixture
