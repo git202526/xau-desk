@@ -146,7 +146,7 @@ def test_l7_ammo_pool(env):
     """弹药进度行标出下沉克重。"""
     p = env().page
     to_plan(p)
-    assert "下沉 16.0000g" in p.inner_text("#ammoTxt")
+    assert "下沉 16g" in p.inner_text("#ammoTxt")
 
 
 def test_l8_set_live(env):
@@ -155,7 +155,7 @@ def test_l8_set_live(env):
     to_set(p)
     live = p.inner_text("#setReLive")
     assert "不生效" not in live
-    assert "已下沉 16.0000 g" in live
+    assert "已下沉 16 g" in live
     assert "第1档" in live and "第2档" in live
 
 

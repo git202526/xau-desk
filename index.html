@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.50 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 五个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报 / 克重 4 位 / 建仓角标看过即消） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.51 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -782,7 +782,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.50 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.51 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -3042,9 +3042,15 @@ function planSummary(){
 /* v6.50：克重统一 4 位小数。
    原来是 1 位且去掉末尾的 .0（8.5 → "8.5"、8 → "8"），用户按克核对时精度不够，
    0.1g × 930 元/克 ≈ 93 元，四舍五入看不出来。金额不受影响，只改克重。 */
+/* 克重显示：最多 4 位小数，后导零一律去掉 —— 8.4573 → 8.4573、8.457 → 8.457、
+   8.0000 → 8。整数不带小数点。按克对账最多到 0.1 mg，4 位够用；
+   强补 4 位会让「100.0000 克」这种整数看着像精度过剩（v6.51）。 */
 function gnum(x){
-  var v = Number(x) || 0;
-  return num(v, 4);
+  var v = Number(x);
+  if(!isFinite(v)) return "--";
+  var s = v.toFixed(4);
+  if(s.indexOf(".") > -1) s = s.replace(/\.?0+$/, "");
+  return s === "-0" ? "0" : s;
 }
 
 /* 实测：1000 根 PAXG 日线，从任意一天出发、N 日内最低价相对当日收盘跌 ≥X% 的概率。
@@ -5326,8 +5332,6 @@ function gotoTab(name, opts){
   /* 面板从隐藏变可见后宽度才算得准：首屏渲染时 panel-struct 是 display:none，
      色带 scrollWidth 为 0，会导致「可拖动」提示被误判成不需要 */
   if(name === "struct") renderBt();
-  /* 进入建仓页 = 这些「到价待买」已经看过了，角标该消（v6.50） */
-  if(name === "plan") markBuysSeen();
 }
 
 function initTabFromHash(){
@@ -7484,7 +7488,7 @@ function todoItems(){
   if(p!==null && !allBroken){
     gs.forEach(function(g){
       if(g.done || g.warn) return;
-      if(p <= g.price) items.push({ kind:"buy", key:buyKey(g), t:g.name+" 到价", d:"可买 "+g.gram+" 克 · 触发价 "+num(g.price,2), btn:"已买入", act:"buy:"+g.name });
+      if(p <= g.price) items.push({ kind:"buy", t:g.name+" 到价", d:"可买 "+gnum(g.gram)+" 克 · 触发价 "+num(g.price,2), btn:"已买入", act:"buy:"+g.name });
     });
     gs.forEach(function(g){
       if(!g.warn || g.done) return;
@@ -7539,36 +7543,9 @@ function renderTodo(){
   });
 }
 
-/* v6.50 建仓角标：角标算的是「还没看过的到价档」，不是「到价档总数」。
-   原来 todoItems 每刷新一次就把全部到价档数进 bdPlan，所以进过建仓页、切走、
-   甚至买完，只要价格还在档位下方就一直亮着，像个关不掉的提醒。
-
-   口径：进建仓页 = 把当前到价档记入 seenBuys，角标只数「不在 seenBuys 里的」。
-   键带档位价 —— 高点重排后同名档位的价变了，算新档，该重新提醒。 */
-function buyKey(g){
-  return String(g.name) + "@" + Math.round(Number(g.price) * 10) / 10;
-}
-
-function seenBuys(){
-  /* 只存内存，不写云端 —— 「切 Tab 不产生云端写入」是既有约束（t11 / m3 有断言守着）。
-     刷新后重亮是刻意的：角标是「到价了」的提醒，不是跨会话的已读回执。 */
-  if(!Array.isArray(S.seenBuys)) S.seenBuys = [];
-  return S.seenBuys;
-}
-
-function markBuysSeen(){
-  var seen = seenBuys();
-  (S.gears || []).forEach(function(g){
-    if(g.done || g.warn) return;
-    if(S.price === null || S.price === undefined || S.price > g.price) return;
-    var k = buyKey(g);
-    if(seen.indexOf(k) < 0) seen.push(k);
-  });
-  if(seen.length > 80) seen.splice(0, seen.length - 80);
-  renderBadges();
-}
-
-/* 底栏角标：到价待买挂建仓，止盈待减挂持仓，基准脱锚挂设置 */
+/* 底栏角标：到价待买挂建仓，止盈待减挂持仓，基准脱锚挂设置。
+   口径是「到价档总数」，不是「没看过的」—— v6.50 曾改成已读制，
+   v6.51 按用户要求复原：角标是常驻提醒，不是一次性回执。 */
 function setBadge(id, n){
   var el = $(id);
   if(!el) return;
@@ -7582,9 +7559,9 @@ function setBadge(id, n){
 }
 
 function renderBadges(){
-  var items = todoItems(), seen = seenBuys(), c = { plan:0, pos:0, set:0, struct:0 };
+  var items = todoItems(), c = { plan:0, pos:0, set:0, struct:0 };
   items.forEach(function(it){
-    if(it.kind === "buy"){ if(seen.indexOf(it.key) < 0) c.plan++; }
+    if(it.kind === "buy") c.plan++;
     else if(it.kind === "take") c.pos++;
     else if(it.kind === "fatal") c.set++;
     else if(it.kind === "alert") c.struct++;

@@ -72,7 +72,7 @@ def test_b1_empty(env):
     assert "0.0%" in g["text"], g
     assert g["segs"] == 20, g
     assert g["on"] == 0, g
-    assert "0.0000 g / 200.0000 g" in g["text"], g
+    assert "0 g / 200 g" in g["text"], g
 
 
 def test_b2_half(env):
@@ -82,7 +82,7 @@ def test_b2_half(env):
     g = gauge(p)
     assert "50.0%" in g["text"], g
     assert g["on"] == 10, g
-    assert "还能买 100.0000 g" in g["text"], g
+    assert "还能买 100 g" in g["text"], g
 
 
 def test_b3_full(env):
@@ -102,7 +102,7 @@ def test_b4_over(env):
     g = gauge(p)
     assert "125.0%" in g["text"], g
     assert g["on"] == 20, g
-    assert "超上限 50.0000 g" in g["text"], g
+    assert "超上限 50 g" in g["text"], g
     assert "over" in g["pctCls"], g
 
 

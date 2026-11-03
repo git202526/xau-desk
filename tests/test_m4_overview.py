@@ -12,7 +12,7 @@ def txt(page, sel):
 def test_posbar_values(make_env):
     env = make_env()
     page = env.page
-    assert txt(page, "#pbGram") == "60.0000g"
+    assert txt(page, "#pbGram") == "60g"
     assert txt(page, "#pbAvg").startswith("919.9")
     pnl = page.eval_on_selector("#pbPnl", "e => e.textContent.trim()")
     assert pnl.startswith("+"), pnl
@@ -70,7 +70,7 @@ def test_refresh_all_updates_posbar(make_env):
       window.__xt.refreshAll();
     }""")
     page.wait_for_timeout(150)
-    assert txt(page, "#pbGram") == "100.0000g"
+    assert txt(page, "#pbGram") == "100g"
     assert txt(page, "#pbAvg").startswith("952.0")
 
 

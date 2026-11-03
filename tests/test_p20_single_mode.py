@@ -265,7 +265,7 @@ def test_n9_over_budget_tag(env):
     p.click('.tabbar button[data-tab="plan"]')
     p.wait_for_timeout(260)
     meta = p.evaluate("() => document.getElementById('ladderMeta').textContent")
-    assert "已超预算 10.0000g" in meta, meta
+    assert "已超预算 10g" in meta, meta
     assert p.evaluate("() => !!document.querySelector('#ladderMeta .mtag.warn')") is True
 
 

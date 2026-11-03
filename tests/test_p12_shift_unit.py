@@ -90,13 +90,13 @@ def shift_info(p, gear):
 
 
 def test_u1_unit_comes_from_css(env):
-    """数字后必须有 g；它由 ::after 提供，所以 textContent 还是「+16.0000 下沉入」。"""
+    """数字后必须有 g；它由 ::after 提供，所以 textContent 还是「+16 下沉入」。"""
     p = env().page
     to_plan(p)
     s = shift_info(p, "第2档")
     assert s is not None, "第 2 档应收到下沉"
-    assert s["txt"] == "+16.0000 下沉入", s        # P8 的文案契约保持不变
-    assert s["bTxt"] == "+16.0000", s
+    assert s["txt"] == "+16 下沉入", s        # P8 的文案契约保持不变
+    assert s["bTxt"] == "+16", s
     assert s["after"] in ('"g"', "'g'"), s
     assert s["inCls"] is True
 
@@ -106,7 +106,7 @@ def test_u2_donor_also_has_unit(env):
     to_plan(p)
     s = shift_info(p, "第1档")
     assert s is not None, "第 1 档应让出额度"
-    assert s["txt"] == "−16.0000 下沉出", s
+    assert s["txt"] == "−16 下沉出", s
     assert s["after"] in ('"g"', "'g'"), s
     assert s["inCls"] is False
 

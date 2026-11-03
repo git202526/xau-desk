@@ -86,7 +86,7 @@ def test_a1_partial_is_bought(env):
     open_plan(p)
     r = row(p, "第3档")
     assert hold_of(r) == "已买", r
-    assert "8.0000 / 48.0000g" in r["gpill"], r
+    assert "8 / 48g" in r["gpill"], r
 
 
 def test_a2_full_is_full(env):
@@ -95,7 +95,7 @@ def test_a2_full_is_full(env):
     open_plan(p)
     r = row(p, "第3档")
     assert hold_of(r) == "已买满", r
-    assert "48.0000 / 48.0000g" in r["gpill"], r
+    assert "48 / 48g" in r["gpill"], r
 
 
 def test_a3_over_is_over(env):
@@ -104,7 +104,7 @@ def test_a3_over_is_over(env):
     open_plan(p)
     r = row(p, "第3档")
     assert hold_of(r) == "已买超", r
-    assert "60.0000 / 48.0000g" in r["gpill"], r
+    assert "60 / 48g" in r["gpill"], r
 
 
 def test_a4_over_has_budget_warning(env):
@@ -113,7 +113,7 @@ def test_a4_over_has_budget_warning(env):
     open_plan(p)
     r = row(p, "第3档")
     assert "超预算" in r["pills"], r
-    assert r["gpill"].startswith("61.0000 / 48"), r
+    assert r["gpill"].startswith("61 / 48"), r
 
 
 def test_a5_price_dimension_survives(env):

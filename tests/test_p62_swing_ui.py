@@ -125,7 +125,7 @@ def test_u5_sell_tab_prefills_net(env):
     p.click('#ladder [data-sell="第1档"]')
     p.wait_for_timeout(240)
     assert p.evaluate("() => (document.querySelector('#mkTabs .on') || {}).textContent") == "卖出"
-    assert p.input_value("#markGram") == "16.0000"
+    assert p.input_value("#markGram") == "16"
     assert p.evaluate("() => document.getElementById('markTitle').textContent") == "标记卖出 · 第1档"
 
 
@@ -175,7 +175,7 @@ def test_u8_after_full_sell_only_buy_left(env):
     plan_tab(p)
     r = row(p, "第1档")
     assert r["buy"] is True and r["sell"] is False      # 没有可卖的了
-    assert r["g"] == "待补 16.0000g"                          # 额度已释放
+    assert r["g"] == "待补 16g"                          # 额度已释放
     assert r["swing"] == "+¥%d / 1.0 轮" % round(cny(16, 4170) - cny(16, 4089))  # 历史差价仍留着
 
 

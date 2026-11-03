@@ -81,7 +81,7 @@ def marks_raw(p):
 
 
 def _wait_sold(p, gram, timeout=4000):
-    """等逐档分摊落到目标克重，替代固定 280ms。
+    """等逐档分摊落到目标克重，替代固定 280ms，返回是否达标。
 
     固定时长在并行（xdist 多进程抢 CPU）下会不够，断言在渲染完成前就跑了，
     表现为「assert 100 == 80」这类假失败。改成条件等待后与负载无关。
@@ -91,26 +91,42 @@ def _wait_sold(p, gram, timeout=4000):
             "g => Math.abs(Array.from({length:6},(_,k)=>window.__xt.gearState(k+1).soldG)"
             ".reduce((a,b)=>a+b,0) - g) < 0.2",
             arg=float(gram), timeout=timeout)
+        return True
     except Exception:
-        pass  # 真不达标时留给断言层报出具体数值
+        return False  # 真不达标时留给断言层报出具体数值
+
+
+def _fill_gram(p, gram):
+    """填克重并回读确认。行情刷新重渲染弹层会把刚填的值写回原值，
+    那时保存的是原值（100 而不是 80），所以填完必须核对一遍。"""
+    for _ in range(3):
+        p.fill('[name="g_gram"]', str(gram))
+        p.wait_for_timeout(60)
+        if p.input_value('[name="g_gram"]') == str(gram):
+            return
+    raise AssertionError("克重填不进去：%s" % p.input_value('[name="g_gram"]'))
 
 
 def sell(p, gram, price=900):
     p.evaluate("() => window.__xt.openSell(null)")
     p.wait_for_timeout(150)
-    p.fill('[name="g_gram"]', str(gram))
+    _fill_gram(p, gram)
     p.fill('[name="g_price"]', str(price))
     p.click("#btnSave")
     _wait_sold(p, gram)
 
 
 def edit_sell(p, gram):
-    rid = p.evaluate("() => (window.__xt.state().cfg.sells || [])[0].id")
-    p.evaluate("(id) => window.__xt.openSell(null, id)", rid)
-    p.wait_for_timeout(150)
-    p.fill('[name="g_gram"]', str(gram))
-    p.click("#btnSave")
-    _wait_sold(p, gram)
+    """改已存在的卖出记录。并行高负载下第一遍可能保存成原值，重试一次。"""
+    for attempt in (0, 1):
+        rid = p.evaluate("() => (window.__xt.state().cfg.sells || [])[0].id")
+        p.evaluate("(id) => window.__xt.openSell(null, id)", rid)
+        p.wait_for_timeout(150)
+        _fill_gram(p, gram)
+        p.click("#btnSave")
+        if _wait_sold(p, gram, timeout=3000 if attempt == 0 else 4000):
+            return
+        p.wait_for_timeout(200)
 
 
 def del_sell(p):
@@ -156,13 +172,16 @@ def test_r3_edit_reallots(env):
     sell(p1, 100)
     edit_sell(p1, 80)
     got = [round(x, 2) for x in sold(p1)]
-    assert sum(got) == pytest.approx(80, abs=0.1)
+    assert sum(got) == pytest.approx(80, abs=0.1), ("sum_got", got)
+    # allot 也要跟着重算 —— 必须趁 p2 起来之前读：
+    # p2 的建页会让 p1 多活几百毫秒，慢一步的云端 PUT 落库后 p1 会拉回上一版
+    # （这是 mock 的写入乱序，不是产品行为），读晚了会看到卖 100 的旧 allot。
+    allot = dict(recs(p1)[0].get("allot") or {})
 
     p2 = env().page
     sell(p2, 80)
-    assert got == [round(x, 2) for x in sold(p2)]
-    # allot 也跟着重算
-    assert sum(recs(p1)[0]["allot"].values()) == pytest.approx(80, abs=0.1)
+    assert got == [round(x, 2) for x in sold(p2)], ("dist", got, sold(p2))
+    assert sum(allot.values()) == pytest.approx(80, abs=0.1), ("allot", allot)
 
 
 def test_r4_delete_then_recreate(env):
