@@ -69,37 +69,45 @@ def test_a3_avg_cost_unit(env):
 
 
 def test_a4_no_trigger_keeps_cash(env):
-    """一档没触发：期末总资产 == 本金（钱一直躺着）。"""
+    """一档没触发：净现金流与持仓都是 0，期末净值 0（P31 起不再有「躺着不动的本金」）。"""
     p = env(bars=make_bars(trough=4500.0)).page
     r = back(p)
     assert r["stats"]["trigGears"] == 0
-    assert r["stats"]["endV"] == pytest.approx(r["meta"]["budget"], rel=0.005)
+    assert r["stats"]["endV"] == pytest.approx(0, abs=0.01)
 
 
-def test_a5_lump_same_dimension(env):
-    """一次性买入：期末 / 本金 = 期末价 / 起点价，比值落在合理区间。"""
+def test_a5_lump_baseline_dimension(env):
+    """一次性基准 budget = 总克重 ÷ 31.1035 × 起点价。
+
+    P31：budget 不再是「本金上限」，而是「同样这些克、在区间首日一次性买」的成本，
+    也就是扫描表里溢价率的分母。量纲必须和 fullCost 一致。
+    """
     p = env().page
-    r = back(p)
-    ratio = r["peers"]["lump"]["endV"] / r["meta"]["budget"]
-    assert 0.5 < ratio < 2.0, ratio
+    m = back(p)["meta"]
+    want = sum(m["planGrams"]) / OZ * m["firstClose"]
+    assert m["budget"] == pytest.approx(want, rel=0.005), (m["budget"], want)
 
 
-def test_a6_peers_same_magnitude(env):
-    """定投与一次性同本金，期末不应差一个数量级。"""
+def test_a6_scan_trigger_monotonic(env):
+    """档距越大档位越疏，触发档数单调不增，且最疏那组确实少买到东西。
+
+    投入金额会差好几倍，那不是 bug —— 档距 ×1.4 的深档挂得更低，行情没跌到就不成交。
+    真正要锁的是方向：档距越大，买到的档越少。
+    """
     p = env().page
-    r = back(p)
-    dca = r["peers"]["dca"]["endV"]
-    lump = r["peers"]["lump"]["endV"]
-    assert 0.5 < dca / lump < 2.0, (dca, lump)
+    scan = p.evaluate("() => window.__xt.btScan('1d')")
+    tr = [x["r"]["stats"]["trigGears"] for x in scan["rows"]]
+    assert all(tr[i] >= tr[i + 1] for i in range(4)), tr
+    assert tr[0] > tr[-1], "本场景应体现档距的区分度：%s" % (tr,)
 
 
-def test_a7_end_mv(env):
-    """期末市值 = 净持仓克 ÷ 31.1035 × 期末价；总资产恒等式成立。"""
+def test_a7_end_v_identity(env):
+    """P31：没有预算之后 pnl 就是 endV（净现金流 + 持仓市值），二者必须相等。"""
     p = env().page
     s = back(p)["stats"]
+    assert s["endV"] == pytest.approx(s["pnl"], rel=1e-9)
     if s["holdGram"] <= 0:
         assert s["endMV"] == 0
-    assert s["cash"] + s["endMV"] == pytest.approx(s["endV"], rel=1e-9)
 
 
 def test_a8_realized_zero_without_sell(env):

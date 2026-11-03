@@ -122,20 +122,22 @@ def test_b3_avg_cost_matches_hand_calc(env):
     assert s["holdGram"] == pytest.approx(sum(PLAN[:3]), abs=0.01)
 
 
-def test_b4_three_peers_same_budget(env):
-    """三组对照的本金完全相等 —— 不相等就不是「同本金比收益」。
+def test_b4_scan_five_pitches(env):
+    """P31：三组同本金对照退役，改成 5 组档距扫描。
 
-    P28 契约变更：本金 = 总克重 ÷ 31.1035 × 起点价（美元）。
-    旧断言 `TOTAL * H` 是「克 × $/oz」，把量纲错误固定成了期望值。
+    五组共用同一份权重与配额，只有档距不同：首档价与档距无关，所以五组完全相同；
+    档距严格递增；配额之和处处相等。
     """
     p = env().page
-    r = back(p)
-    b = r["meta"]["budget"]
-    assert b == pytest.approx(TOTAL * pxg(H), rel=0.02)
-    assert r["peers"]["dca"]["budget"] == pytest.approx(b)
-    assert r["peers"]["lump"]["budget"] == pytest.approx(b)
-    assert r["peers"]["dca"]["invest"] == pytest.approx(b)
-    assert r["peers"]["lump"]["invest"] == pytest.approx(b)
+    scan = p.evaluate("() => window.__xt.btScan('1d')")
+    rows = scan["rows"]
+    assert [r["scale"] for r in rows] == [0.6, 0.8, 1.0, 1.2, 1.4]
+    g0 = [r["r"]["meta"]["gear0"] for r in rows]
+    assert max(g0) == pytest.approx(min(g0), rel=1e-9), g0
+    pit = [r["r"]["meta"]["pitch"] for r in rows]
+    assert all(pit[i] < pit[i + 1] for i in range(4)), pit
+    q = [sum(r["r"]["meta"]["planGrams"]) for r in rows]
+    assert max(q) == pytest.approx(min(q)), q
 
 
 def test_b5_loop_off_no_extra_trades(env):
@@ -158,7 +160,8 @@ def test_b6_loop_on_sells_swing_gears(env):
     assert on["soldGram"] > 0
     assert on["holdGram"] < off["holdGram"]
     assert on["realized"] > 0
-    assert on["cash"] > off["cash"]
+    # P31：cash 已删（没有预算就没有余额）。循环档只影响卖出，买入笔数与投入都不变
+    assert on["invest"] == pytest.approx(off["invest"])
 
 
 def test_b7_nothing_triggered(env):
@@ -169,10 +172,11 @@ def test_b7_nothing_triggered(env):
     assert "err" not in r
     assert r["stats"]["trigGears"] == 0
     assert r["stats"]["invest"] == 0
-    # 一分钱没花：期末总资产 = 预算，收益 0（不是 None —— 分母是预算，永远有值）
-    assert r["stats"]["endV"] == pytest.approx(r["meta"]["budget"])
+    # P31：没有预算之后，期末净值就是净现金流 + 市值 = 0（一分钱没花也没持仓）
+    assert r["stats"]["endV"] == pytest.approx(0, abs=0.01)
     assert r["stats"]["pnl"] == pytest.approx(0, abs=0.01)
-    assert r["stats"]["pnlPct"] == pytest.approx(0, abs=1e-9)
+    # 分母是投入，投入为 0 时收益率是 null 而不是 0 —— 0 会被读成「不赚不亏」
+    assert r["stats"]["pnlPct"] is None
     assert r["stats"]["avgCost"] is None
     assert len(r["equip"]) > 0
 
@@ -185,20 +189,20 @@ def test_b8_too_few_bars(env):
     assert r["n"] == 69
 
 
-def test_b9_budget_shortage(env):
-    """起点已经在档位带之下（gap down）且档距很窄 → 钱不够买满，有跳过、现金不为负。
+def test_b9_no_budget_cap_any_more(env):
+    """P31：预算上限取消。起点已经在档位带下方时，旧版「钱不够」跳过 949 次、
+    期末只买到 216g；现在照买 —— 十档全触发，投入 = 满仓成本。
 
-    预算按「起点收盘价 × 总克重」算，档位价却高于起点价时才会不够 —— 这也是真实会遇到的情形：
-    金价一波急跌后打开回测，前面几档都是「已经跌破但没钱买」。
+    这是本轮最直接的收益：回测不再因为「本金按起点价折算」而半个策略跑不起来。
     """
     bars = make_bars(trough=4150.0, amp=4.0, flat=True)
     p = env(bars=bars, startDrop=5, endDrop=8).page
     r = back(p)
     s = r["stats"]
     assert r["gear"][-1]["price"] > 4150, r["gear"]      # 六档全在起点价之上
-    assert s["skipped"] > 0, s
-    assert s["cash"] >= -1e-6
-    assert s["usage"] <= 1.0 + 1e-6
+    assert s["trigGears"] == s["validGears"], "无预算上限后应全部买满"
+    assert s["invest"] == pytest.approx(r["meta"]["fullCost"], rel=0.005)
+    assert s["holdGram"] > 0
 
 
 def test_b10_deterministic(env):
@@ -206,7 +210,7 @@ def test_b10_deterministic(env):
     p = env().page
     a = back(p)
     b = back(p)
-    for k in ("stats", "meta", "gear", "peers", "flags"):
+    for k in ("stats", "meta", "gear", "flags", "gold"):
         assert a[k] == b[k], k
     assert a["equip"] == b["equip"]
 
@@ -295,13 +299,14 @@ def test_c3_peers_three_rows_same_budget(env):
     """对照表 3 行，本金列三行完全相等。"""
     p = env().page
     goto_struct(p)
-    rows = p.eval_on_selector_all("#bbPeers .pr", """els => els.map(e =>
+    rows = p.eval_on_selector_all("#bbPeers .sr", """els => els.map(e =>
       Array.from(e.children).map(c => c.innerText.trim()))""")
-    assert len(rows) == 3, rows
-    assert [r[0] for r in rows] == ["本策略", "定投", "一次性"]
-    budgets = [r[1] for r in rows]
-    assert budgets[0] == budgets[1] == budgets[2], budgets
-    assert budgets[0].startswith("$")
+    # P31：三组同本金 → 5 组档距扫描。列变成 系数/首档/触发/花费/溢价
+    assert len(rows) == 5, rows
+    assert [r[0] for r in rows] == ["0.6×", "0.8×", "1.0×当前", "1.2×", "1.4×"], rows
+    g0 = [r[1] for r in rows]
+    assert g0[0] == g0[1] == g0[2] == g0[3] == g0[4], g0       # 首档价不随档距变
+    assert g0[0].startswith("$")
 
 
 def test_c4_curve_downsampled(env):
@@ -364,13 +369,13 @@ def test_c6_narrow_screen(env):
 
 
 def test_c7_no_trigger(env):
-    """一档没碰到：给解释文案，对照表只留两行对照组。"""
+    """一档没碰到：给解释文案，扫描表仍是 5 行（每组都算得出结果）。"""
     p = env(bars=make_bars(trough=4500.0)).page
     goto_struct(p)
     txt = p.eval_on_selector("#btBackCard", "e => e.innerText")
     assert "区间内未触及任何档位" in txt, txt
-    rows = p.eval_on_selector_all("#bbPeers .pr", "els => els.length")
-    assert rows == 2
+    rows = p.eval_on_selector_all("#bbPeers .sr", "els => els.length")
+    assert rows == 5
     # 无成交也要有曲线：现金不动，曲线是平的
     assert p.eval_on_selector_all("#bbEquip polyline", "e => e.length") == 2
 
@@ -452,13 +457,15 @@ def test_d4_opts_persist(env):
     assert p.is_checked("#bbLoop") is True
 
 
-def test_d5_budget_hint(env):
-    """预算不足要说出来，不能只把次数藏在一个数字里。"""
+def test_d5_no_budget_cap_stated(env):
+    """P31：「无预算上限」必须写在脸上 —— 这是整张卡最容易误解的地方，
+    旧版「预算 $26,659」让人以为回测在算「这些钱能买多少」。"""
     bars = make_bars(trough=4150.0, amp=4.0, flat=True)
     p = env(bars=bars, startDrop=5, endDrop=8).page
     goto_struct(p)
     txt = p.eval_on_selector("#bbNote", "e => e.innerText")
-    assert "因预算不足" in txt, txt
+    assert "无预算上限" in txt, txt
+    assert "按档位价成交" in txt, txt
 
 
 def test_d6_fixed_note(env):

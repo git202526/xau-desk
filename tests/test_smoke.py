@@ -225,26 +225,25 @@ def test_s12_review_expands_six_rows(page_of):
 
 # ==== 策略回测 ====
 
-def test_s13_backtest_three_peers_same_budget(page_of):
-    """三组对照同本金（所以收益可比）。
+def test_s13_backtest_scan_five_rows(page_of):
+    """P31：5 组档距扫描，首档价五组相同（档距不影响第 1 档）。
 
-    用「从 5000 跌到 4030」的行情：一档在 0.87H 附近，会被跌破，
-    本策略那一行才会出现（未触发时 PRD 规定只留两个对照组）。
+    用「从 5000 跌到 4030」的行情，档位会被跌破，各组才会真的成交。
     """
     p = page_of(tab="struct", bars=_bars(start=5000.0))
-    rows = p.eval_on_selector_all("#bbPeers .pr", """els => els.map(e =>
+    rows = p.eval_on_selector_all("#bbPeers .sr", """els => els.map(e =>
       Array.from(e.children).map(c => c.innerText.trim()))""")
-    assert len(rows) == 3, rows
-    assert rows[0][1] == rows[1][1] == rows[2][1], rows
+    assert len(rows) == 5, rows
+    assert len(set(r[1] for r in rows)) == 1, rows
 
 
-def test_s14_backtest_pnl_vs_budget(page_of):
-    """一档没触发时，收益必须是 0（分母是预算，不是投入）。"""
+def test_s14_backtest_no_trade_is_zero(page_of):
+    """一档没触发：净现金流与持仓都是 0，收益率是 null（不是 0）。"""
     p = page_of(tab="struct", bars=_bars(px=4600.0, amp=8.0))
     s = p.evaluate("() => window.__xt.btBack('1d',{loop:false,realloc:false,fee:0}).stats")
     assert s["trigGears"] == 0, s
     assert s["pnl"] == pytest.approx(0, abs=0.05), s
-    assert s["pnlPct"] == pytest.approx(0, abs=1e-6), s
+    assert s["pnlPct"] is None, s
 
 
 def test_s15_backtest_no_nan(page_of):
@@ -253,7 +252,7 @@ def test_s15_backtest_no_nan(page_of):
     txt = p.eval_on_selector("#btBackCard", "e => e.innerText")
     for bad in ("NaN", "undefined", "Infinity"):
         assert bad not in txt, bad
-    assert "触发档位" in txt and "预算" in txt, txt[:120]
+    assert "触发档位" in txt and "无预算上限" in txt, txt[:160]
 
 
 # ==== 判定回溯 ====
