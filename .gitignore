@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# 测试跑出来的截图（每次重跑字节都不同），只作人工查看，不入库。
+# 入库的视觉基线在 mockups/v62/，不能被测试覆盖，否则 d1 永远红。
+mockups/_latest/

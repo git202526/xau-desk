@@ -3,7 +3,7 @@ import os
 
 TABS = ["ov", "struct", "plan", "pos", "sig", "set"]
 VIEWPORTS = [(360, 780), (390, 844), (430, 932), (768, 1024), (1280, 900)]
-SHOT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mockups", "v62")
+SHOT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mockups", "_latest", "v62")
 
 
 def test_t1_first_screen_is_overview(make_env):
