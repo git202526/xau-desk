@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.46 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P28 回测与设置联动（参数快照条 / 高点默认跟随设置 / 逐档对照表 / 修 31.1 倍量纲错误 / planBase 隔离实盘状态） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.47 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P28 回测与设置联动（参数快照条 / 高点默认跟随设置 / 逐档对照表 / 修 31.1 倍量纲错误 / planBase 隔离实盘状态） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -462,6 +462,11 @@ body.tab-ov .tpx{display:none}
 .lv .nm{font-size:12px;color:var(--tx2)}
 .lv .plan{margin-left:auto;font-size:10.5px;color:var(--tx3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .lv .r2{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+/* P30 买到此档均价：一路买到这里整体落在哪个价位。次级信息，独立成行，
+   不塞进 pill 行 —— 那行在 320 宽已经满了，再加一枚就换行换得难看 */
+.lv .cumavg{display:block;margin-top:4px;font-size:10.5px;color:var(--tx3);
+            font-variant-numeric:tabular-nums}
+.lv .cumavg b{color:var(--tx2);font-weight:600}
 .pill{font-size:10.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);color:var(--tx3)}
 .pill.p-hit{color:#F08A8E;border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.1)}
 .pill.p-near{color:var(--amber);border-color:rgba(232,163,61,.35);background:rgba(232,163,61,.09)}
@@ -856,7 +861,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.46 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.47 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -4282,6 +4287,41 @@ function planAvg(He, names){
   return s > 0 ? a / s : null;
 }
 
+/* P30 档位体检：满仓成本与逐档累计均价。
+   克重取 g.plan（已含配额下沉后的实际克重），不能用 planBase —— 否则和阶梯行
+   显示的克重对不上，两个数会打架。warn 档（高于高点、只有预警价）没有克重，
+   直接跳过，不占累计位。
+   两个自我校验点（测试里锁死）：
+     cumAvg[0]    == 第 1 档价      —— 只买一档时，均价就是这一档的价
+     cumAvg[末]   == avgAll        —— 全买完，应与均价卡的「全部买满」同数
+   第二条若不等，说明 avgAll 与这里的克重来源不一致，要查而不是放宽。 */
+function gearCostOf(rows){
+  var cost = 0, gram = 0, cumAvg = [], cumGram = [], byIdx = {};
+  for(var i = 0; i < rows.length; i++){
+    var g = rows[i];
+    if(!g || g.warn) continue;
+    var gm = Number(g.plan) || 0;
+    var px = Number(g.price) || 0;
+    if(!(gm > 0) || !(px > 0)) continue;
+    cost += gm * px / OZ_PER_G;
+    gram += gm;
+    var avg = Math.round(cost / (gram / OZ_PER_G) * 100) / 100;
+    cumGram.push(Math.round(gram * 100) / 100);
+    cumAvg.push(avg);
+    /* byIdx 是按档号取的索引：阶梯行只知道自己第几档，不知道自己在累计数组里的第几位
+       （warn 档占了头部但是被跳过的，两者不同号）。 */
+    byIdx[g.idx] = avg;
+  }
+  var fx = Number(S.fx);
+  return {
+    fullCost: Math.round(cost * 100) / 100,
+    /* 人民币只做参考：汇率缺失给 null，界面上写「¥ —」，
+       不能写 0 —— 那会被读成「满仓不要钱」 */
+    fullCostCny: fx > 0 ? Math.round(cost * fx * 100) / 100 : null,
+    cumAvg: cumAvg, cumGram: cumGram, cumAvgByIdx: byIdx
+  };
+}
+
 function computeGears(){
   var base = gearBase();
   var he = base.he;
@@ -4404,6 +4444,8 @@ function computeGears(){
     needMain: 0, suggest: null, short: false,
     far: (T && S.price && he) ? Math.abs(he / S.price - 1) : null
   };
+  /* P30：体检数据挂到 meta 上，界面从 S.gearMeta 读，不各算一遍 */
+  Object.assign(meta, gearCostOf(rows));
   try { rows.meta = meta; } catch(e) {}
   S.gearMeta = meta;
   return rows;
@@ -6708,6 +6750,12 @@ function renderLadder(){
     }
     var ui = gearUI(g);
     var gap = p === null ? null : (g.price / p - 1) * 100;
+    /* P30「买到此档均价」：从第 1 档一路买到这里，整体均价落在哪。
+       这一档自己没克重（权重 0 或纯预警）时不显示 —— 那说明它不参与建仓。 */
+    var gm = S.gearMeta;
+    var cum = (!g.warn && gm && gm.cumAvgByIdx && g.plan > 0.05) ? gm.cumAvgByIdx[g.idx] : null;
+    var cumTxt = (cum > 0)
+      ? '<span class="cumavg">买到此档均价 <b>' + num(cum, 0) + '</b></span>' : "";
     var grams = "", planTxt = "", tail = "", circ = "", swingTag = "", shiftTag = "";
 
     if(g.warn){
@@ -6786,7 +6834,7 @@ function renderLadder(){
         '<span class="pill g">' + grams + '</span>' +
         (gap !== null ? '<span class="dist num">' + (gap >= 0 ? "+" : "") + gap.toFixed(1) + '%</span>' : '') +
         circ + swingTag + shiftTag + tail +
-        '</div>' + drip + '</div></div>';
+        '</div>' + cumTxt + drip + '</div></div>';
     if(!g.warn && win.folded && g.idx === win.to && win.to < win.n)
       html += foldBar("bottom", win.to + 1, win.n);
   });
@@ -7152,11 +7200,24 @@ function renderAvgCardStruct(box, m){
       '</span></div>';
   }
 
+  /* P30 满仓成本：这套档位全部买满要多少钱。克重取累计末项（已排除 warn 档），
+     与「选定档位试算均价」同一口径，所以两个数能互相验算（成本 ÷ 克重 × 31.1035 = 均价）。
+     人民币只做参考：不折算历史汇率，就是当前汇率乘一下。 */
+  var costRow = "";
+  if(Number(m.fullCost) > 0){
+    var fcG = (m.cumGram && m.cumGram.length) ? m.cumGram[m.cumGram.length - 1] : totalGrams();
+    costRow = '<div class="a2 cost"><span>满仓成本 · ' + gnum(fcG) + ' g</span>' +
+      '<span class="vv"><b>' + bbUsd(m.fullCost) + '</b>' +
+      '<i>' + (m.fullCostCny !== null && m.fullCostCny !== undefined
+        ? "≈¥" + money(m.fullCostCny, 0) : "≈¥ —") + '</i></span></div>';
+  }
+
   box.innerHTML = '<div class="avgc">' +
     '<div class="hd"><span>高点 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
       '<span class="' + vcls + '">选定档位试算 · ' + gearCount() + ' 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
     bar +
     ancRow +
+    costRow +
     '<div class="ft">' +
       '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span>' +
       '<span>档距 <b>' + (m.d ? num(m.d, 0) : "—") + '</b> · α <b>' +
@@ -9169,6 +9230,9 @@ if(/[?&]xt=1/.test(location.search)){
     playSnd:playSnd,
     holdStats:holdStats,
     renderGauge:renderGauge,
+    /* P30：均价卡单独暴露 —— 测「汇率缺失」这类只影响本卡的状态时，
+       不能走 refreshAll（它会重拉汇率，把构造好的 S.fx=0 覆盖掉） */
+    renderAvgCard:renderAvgCard,
     GAUGE_SEG:GAUGE_SEG,
     gearUI:gearUI,
     buildLevels:buildLevels,
