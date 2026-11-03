@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.45 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P28 回测与设置联动（参数快照条 / 高点默认跟随设置 / 逐档对照表 / 修 31.1 倍量纲错误 / planBase 隔离实盘状态） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.46 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P19-2 策略回测（固定档位逐根推进、三组同本金对照、权益曲线、逐档触及）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P28 回测与设置联动（参数快照条 / 高点默认跟随设置 / 逐档对照表 / 修 31.1 倍量纲错误 / planBase 隔离实盘状态） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -337,6 +337,23 @@ body.tab-ov .tpx{display:none}
 .bbstats .bs b{color:var(--tx);font-weight:650;text-align:right;white-space:nowrap}
 .bbstats .bs b.up{color:var(--up)}
 .bbstats .bs b.dn{color:var(--dn)}
+/* 主值下方的副值（如最大回撤的「金价 −18.0%」）：参与解释、不参与主读，
+   独立成行后主值不再和括号挤在一格里，窄屏也不会把括号拆成两半 */
+.bbstats .bs b i.bsub{display:block;font-style:normal;font-weight:400;font-size:10.5px;
+                      line-height:1.3;margin-top:1px;color:var(--tx3);white-space:nowrap}
+/* P29 统计行窄屏：≤359 改「指标竖排 × 两列」。
+   320 宽时容器内宽仅约 262px，一行塞两个指标必然爆：实测「投入 / 预算使用」
+   被压到 62px 折成两行（行高 28→46），「最大回撤」的值 126px 把「已实现」
+   压到 42px。竖排后每个指标独占一格，长值只在自己格内折行，不再挤邻居。 */
+@media(max-width:359px){
+  .bbstats .bs{grid-template-columns:1fr 1fr;gap:1px 10px;padding:7px 0}
+  .bbstats .bs > span:nth-of-type(1){grid-area:1/1}
+  .bbstats .bs > b:nth-of-type(1){grid-area:2/1}
+  .bbstats .bs > span:nth-of-type(2){grid-area:1/2}
+  .bbstats .bs > b:nth-of-type(2){grid-area:2/2}
+  .bbstats .bs > span{font-size:10.5px;line-height:1.35}
+  .bbstats .bs > b{font-size:12.5px;line-height:1.4;text-align:left;white-space:normal}
+}
 #bbEquip{display:block;width:100%;height:120px;margin-top:10px;background:rgba(255,255,255,.02);
          border-radius:8px}
 .bb-l1{fill:none;stroke:var(--gold);stroke-width:1.6;vector-effect:non-scaling-stroke}
@@ -839,7 +856,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.45 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.46 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2361,7 +2378,8 @@ function renderBtBack(){
       bbStatRow(["期末市值", bbUsd(s.endMV)],
                 ["总收益", '<b class="' + (s.pnl >= 0 ? "up" : "dn") + '">' + bbUsd(s.pnl) +
                  " · " + bbPct(s.pnlPct) + "</b>"]) +
-      bbStatRow(["最大回撤", "−" + num(s.maxDD * 100, 1) + "%（金价 −" + num(s.goldDD * 100, 1) + "%）"],
+      bbStatRow(["最大回撤", "−" + num(s.maxDD * 100, 1) + "%" +
+                 '<i class="bsub">金价 −' + num(s.goldDD * 100, 1) + "%</i>"],
                 ["已实现", bbUsd(s.realized)]) +
       bbStatRow(["跳过（预算不足）", s.skipped + " 次"], ["期末总资产", bbUsd(s.endV)]);
   }
