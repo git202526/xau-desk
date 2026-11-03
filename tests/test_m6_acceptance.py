@@ -44,7 +44,8 @@ def test_t4_reclick_keeps_dom(make_env):
     page.evaluate("window.scrollTo(0, 400); window.__p = document.getElementById('panel-pos')")
     page.wait_for_timeout(100)
     page.click('.tabbar button[data-tab="pos"]')
-    page.wait_for_timeout(400)
+    # 等回顶真正发生，不用固定时长：并行跑时 400ms 会被 CPU 争抢拖穿
+    page.wait_for_function("() => window.scrollY === 0", timeout=4000)
     assert page.evaluate("window.scrollY") == 0
     assert page.evaluate("window.__p === document.getElementById('panel-pos')")
 

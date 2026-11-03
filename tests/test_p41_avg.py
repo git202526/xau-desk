@@ -212,7 +212,9 @@ def test_av11_gram_scales_with_total(make_env):
     pr0 = [r["price"] for r in rows(p)]
     plan0 = p.evaluate("() => window.__xt.planOf()")
     p.evaluate("() => { window.__xt.state().TOTAL = 400; window.__xt.compute(); window.__xt.refreshAll(); }")
-    p.wait_for_timeout(280)
+    # 等重算落地：固定 280ms 在并行下会被 CPU 争抢拖穿，导致读到旧计划
+    p.wait_for_function("x => Math.abs(window.__xt.planOf()[0] - x) < 1e-6",
+                        arg=plan0[0] * 2, timeout=4000)
     plan1 = p.evaluate("() => window.__xt.planOf()")
     assert [round(x, 4) for x in plan1] == [round(x * 2, 4) for x in plan0]
     assert [r["price"] for r in rows(p)] == pr0

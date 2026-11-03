@@ -60,7 +60,8 @@ def test_reclick_current_tab_scrolls_top_without_rebuild(make_env):
     page.wait_for_timeout(80)
     page.evaluate("window.__marker = document.getElementById('panel-struct')")
     page.click('.tabbar button[data-tab="struct"]')
-    page.wait_for_timeout(400)
+    # 等回顶真正发生，不用固定时长：并行跑时 400ms 会被 CPU 争抢拖穿
+    page.wait_for_function("() => window.scrollY === 0", timeout=4000)
     assert page.evaluate("window.scrollY") == 0
     assert page.evaluate("window.__marker === document.getElementById('panel-struct')") is True
 

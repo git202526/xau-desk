@@ -80,13 +80,28 @@ def marks_raw(p):
     return p.evaluate("() => JSON.parse(JSON.stringify(window.__xt.state().cfg.gearMarks || {}))")
 
 
+def _wait_sold(p, gram, timeout=4000):
+    """等逐档分摊落到目标克重，替代固定 280ms。
+
+    固定时长在并行（xdist 多进程抢 CPU）下会不够，断言在渲染完成前就跑了，
+    表现为「assert 100 == 80」这类假失败。改成条件等待后与负载无关。
+    """
+    try:
+        p.wait_for_function(
+            "g => Math.abs(Array.from({length:6},(_,k)=>window.__xt.gearState(k+1).soldG)"
+            ".reduce((a,b)=>a+b,0) - g) < 0.2",
+            arg=float(gram), timeout=timeout)
+    except Exception:
+        pass  # 真不达标时留给断言层报出具体数值
+
+
 def sell(p, gram, price=900):
     p.evaluate("() => window.__xt.openSell(null)")
     p.wait_for_timeout(150)
     p.fill('[name="g_gram"]', str(gram))
     p.fill('[name="g_price"]', str(price))
     p.click("#btnSave")
-    p.wait_for_timeout(280)
+    _wait_sold(p, gram)
 
 
 def edit_sell(p, gram):
@@ -95,7 +110,7 @@ def edit_sell(p, gram):
     p.wait_for_timeout(150)
     p.fill('[name="g_gram"]', str(gram))
     p.click("#btnSave")
-    p.wait_for_timeout(280)
+    _wait_sold(p, gram)
 
 
 def del_sell(p):

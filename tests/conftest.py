@@ -12,7 +12,10 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PORT = 8765
+# 并行跑时每个 worker 独占一个端口：xdist 的 gw0/gw1/... → 8765/8766/...
+# 不共享单端口，避免 bind 竞态（Errno 98）与 owner worker 先退出导致的服务消失。
+_WK = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
+PORT = 8765 + (int(_WK[2:]) if _WK[2:].isdigit() else 0)
 BASE = "http://127.0.0.1:%d" % PORT
 
 PRICE = 4072.40
