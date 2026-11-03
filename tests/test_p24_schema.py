@@ -46,8 +46,8 @@ def _marks(p):
 def test_v1_new_cfg_gets_version(make_env):
     """新配置加载完就是当前版本（v2 = P27 加的「标记补人民币成本」）。"""
     p = make_env(cfg=_cfg()).page
-    assert _ver(p) == 2
-    assert p.evaluate("() => window.__xt.SCHEMA") == 2
+    assert _ver(p) == 3
+    assert p.evaluate("() => window.__xt.SCHEMA") == 3
     assert p.evaluate("() => window.__xt.runMigrations()") is False
 
 
@@ -56,7 +56,7 @@ def test_v2_legacy_buys_fold_into_marks(make_env):
     cfg = _cfg(buys=[{"id": "b1", "name": "老记录", "gram": 20, "priceCny": CX,
                       "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第2档"}])
     p = make_env(cfg=cfg, price=4030.0).page
-    assert _ver(p) == 2
+    assert _ver(p) == 3
     assert p.evaluate("() => window.__xt.boughtOf(2)") == pytest.approx(20, abs=0.05)
     mk = _marks(p)
     assert mk["2"]["g"] == pytest.approx(20, abs=0.05)
@@ -89,7 +89,7 @@ def test_v3_fx_gate_holds_version(make_env):
       window.__xt.migrateAll();
     }""")
     p.wait_for_timeout(150)
-    assert _ver(p) == 2
+    assert _ver(p) == 3
     assert p.evaluate("() => window.__xt.boughtOf(2)") == pytest.approx(20, abs=0.05)
 
 
@@ -100,7 +100,7 @@ def test_v4_already_migrated_keeps_marks(make_env):
                buys=[{"id": "b1", "name": "老记录", "gram": 20, "priceCny": CX,
                       "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第2档"}])
     p = make_env(cfg=cfg, price=4030.0).page
-    assert _ver(p) == 2
+    assert _ver(p) == 3
     mk = _marks(p)
     assert list(mk.keys()) == ["1"], "迁移本已完成，不该再补第 2 档"
     assert mk["1"]["g"] == 16
@@ -113,7 +113,7 @@ def test_v5_idempotent(make_env):
     before = json.dumps(_marks(p), sort_keys=True, ensure_ascii=False)
     for _ in range(3):
         assert p.evaluate("() => window.__xt.migrateAll()") is False
-    assert _ver(p) == 2
+    assert _ver(p) == 3
     assert json.dumps(_marks(p), sort_keys=True, ensure_ascii=False) == before
 
 

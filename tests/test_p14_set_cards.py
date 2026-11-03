@@ -43,7 +43,7 @@ def body(page):
             const card = el && el.closest('.card');
             return card ? card.id : null;
         };
-        const ids = ['setTotal','setKeep','setCut','setStop',
+        const ids = ['setTotal','setKeep','setComeback','setCut','setStop',
                      'setHigh','setHighLive','btnHighAuto','setAvgT','setAvgB','setSpanMode',
                      'setAlpha','setSpanLive','setStartDrop','setEndDrop','setAnchor','setGearCount',
                      'setWGrid','setWLab','setSwingGrid','setAlertGrid','setDripDays','setReOn',
@@ -78,11 +78,11 @@ def test_l1_three_cards_in_order(env):
 
 
 def test_l2_pos_owns(env):
-    """仓位卡只装仓位四项。"""
+    """仓位卡装：总克重 / 底仓 / 回本加点（P32）/ 计划减仓 / 成本下方减仓。"""
     p = env().page
     open_set(p)
     own = body(p)["own"]
-    for i in ("setTotal", "setKeep", "setCut", "setStop"):
+    for i in ("setTotal", "setKeep", "setComeback", "setCut", "setStop"):
         assert own[i] == "cardPos", (i, own[i])
 
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.51 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.52 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -411,6 +411,9 @@ body.tab-ov .tpx{display:none}
 .tk .a.cut{color:#E8C079;border-color:rgba(212,162,76,.42);background:rgba(212,162,76,.11)}
 .tk .a.ref{color:var(--tx3)}
 .tk .l2{font-size:10.5px;color:var(--tx3);margin-top:3px}
+/* 账户色点（P32）：颜色由 JS 事后写 style —— sanitizeHtml 会剥掉内联 style */
+.abdot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;
+  vertical-align:middle;position:relative;top:-1px}
 .tk .l3{font-size:10.5px;line-height:1.5;margin-top:2px;color:var(--tx3)}
 .tk .sc{font-size:10px;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--tx3);margin-left:5px;white-space:nowrap;display:inline-block}
 .tk .sc.hi{color:#E8C079;border-color:rgba(212,162,76,.4);background:rgba(212,162,76,.1)}
@@ -526,6 +529,71 @@ body.tab-ov .tpx{display:none}
 .posmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
+
+/* === P32 账户：筛选条 / 当前账户行 / 账户卡片 === */
+.acctbar{display:flex;gap:6px;overflow-x:auto;margin:-2px 0 12px;padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.acctbar::-webkit-scrollbar{display:none}
+.acctbar button{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;white-space:nowrap;
+  height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;color:var(--tx2);font-size:12px}
+.acctbar button.on{color:var(--tx);border-color:rgba(212,162,76,.55);background:rgba(212,162,76,.13)}
+.acctbar button b{font-weight:600;color:var(--tx3);font-size:10.5px}
+.acctbar .dot{width:6px;height:6px;border-radius:50%}
+.acctnow{font-size:11px;color:var(--gold);margin:-4px 0 10px}
+.acsum{display:flex;gap:16px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.acsum .it span{display:block;font-size:10.5px;color:var(--tx3)}
+.acsum .it b{font-size:14px;font-weight:650}
+.acrow{padding:10px 0;border-top:1px solid rgba(255,255,255,.05);cursor:pointer}
+.acsum + .acrow{border-top:none;padding-top:12px}
+.acrow.on{background:rgba(212,162,76,.07);border-radius:8px;padding-left:8px;padding-right:8px;margin:0 -8px}
+.acrow .ah{display:flex;align-items:center;gap:6px}
+.acrow .ah .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.acrow .ah b{font-size:13px;font-weight:620;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acrow .ah em{font-size:10.5px;color:var(--tx3);font-style:normal;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.acrow .ah .sh{margin-left:auto;font-size:10.5px;color:var(--tx3);flex:0 0 auto}
+.acrow .ab{display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;padding-left:13px}
+.acrow .ab span{font-size:10.5px;color:var(--tx3);display:flex;gap:4px;align-items:baseline}
+.acrow .ab em{font-style:normal;color:var(--tx3)}
+.acrow .ab b{font-size:12.5px;font-weight:600;color:var(--tx)}
+.acrow .ab.empty{color:var(--tx3);font-size:10.5px}
+.acrow .abar{height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin:7px 0 0 13px;overflow:hidden}
+.acrow .abar i{display:block;height:100%;border-radius:2px;background:var(--gold);opacity:.75}
+.acfoot{font-size:10px;color:var(--tx3);margin-top:10px;line-height:1.6;border-top:1px solid rgba(255,255,255,.05);padding-top:8px}
+
+/* 账户管理面板 */
+.acmgr{display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px solid rgba(255,255,255,.06)}
+.acmgr:first-child{border-top:none;padding-top:0}
+.acmgr .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.acmgr .ah{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto}
+.acmgr .ah b{font-size:13px;font-weight:620;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acmgr .ah em{font-size:10.5px;color:var(--tx3);font-style:normal;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.acmgr .am{font-size:10.5px;color:var(--tx3);flex:0 0 auto;white-space:nowrap}
+.acmgr .aa{display:flex;gap:5px;flex:0 0 auto}
+.acmgr .aa button{height:28px;padding:0 9px;border-radius:6px;border:1px solid var(--line);
+  background:transparent;color:var(--tx2);font-size:11px}
+.acmgr .aa button[data-del]{color:#E8684A;border-color:rgba(232,104,74,.35)}
+.actrans{font-size:11.5px;color:var(--tx2);background:rgba(212,162,76,.09);
+  border:1px solid rgba(212,162,76,.3);border-radius:9px;padding:10px;margin-bottom:10px;line-height:1.65}
+.actrans .atb{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.actrans .atb button{height:32px;padding:0 11px;border-radius:7px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);color:var(--tx);font-size:11.5px}
+.actrans .lnk{display:block;margin-top:6px;background:none;border:none;padding:4px 0;
+  color:var(--tx3);font-size:11px;text-decoration:underline}
+.acdotpick{display:flex;gap:10px;flex-wrap:wrap}
+.acdotpick button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;
+  background:transparent;padding:0;display:flex;align-items:center;justify-content:center}
+.acdotpick button.on{border-color:var(--tx)}
+.acdotpick button i{display:block;width:20px;height:20px;border-radius:50%}
+
+/* 窄屏：账户行四项（克重/均价/回本/浮盈）收紧间距，尽量留在一行，别把浮盈挤到下一行孤零零 */
+@media (max-width:360px){
+  .acrow .ab{gap:10px}
+  .acrow .ab span{font-size:10px}
+  .acrow .ab b{font-size:12px}
+}
 
 /* P16b 仓位进度条：20 段色块，点亮的段不透明、未点亮压到 .14。
    颜色不能写在行内 style 上（sanitizeHtml 会剥掉 style 属性），
@@ -782,7 +850,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.51 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.52 · 11/03</span></div>
       </div>
     </div>
     <div class="stat">
@@ -946,6 +1014,10 @@ body.tab-ov .tpx{display:none}
     <div class="sech"><h2>持仓汇总</h2><button class="act" id="btnHold">记一笔</button></div>
     <div class="card" id="posBox"></div>
 
+    <!-- P32 账户卡片：筛选条在汇总卡内部，管理入口在这里（同屏只放一处） -->
+    <div class="sech" style="margin-top:16px"><h2>账户 <span class="cnt" id="acctMeta"></span></h2><button class="act" id="btnAcctMgr">管理</button></div>
+    <div class="card" id="acctBox"></div>
+
     <div class="sech" style="margin-top:16px"><h2>买入记录 <span class="cnt" id="buyMeta"></span></h2><button class="act" id="btnAddBuy">+ 记一笔</button></div>
     <div class="card" id="buyList"></div>
 
@@ -955,7 +1027,7 @@ body.tab-ov .tpx{display:none}
 
     <div class="sech" style="margin-top:16px"><h2>止盈阶梯 <span class="cnt" id="takeMeta"></span></h2></div>
     <div class="card" id="takeBox"></div>
-    <div class="note">成本按元/克记录（实际成交价），止盈位由均价推导；$/oz 只是按实时汇率折算的参考。<br>
+    <div class="note"><b>止盈阶梯按全账户均价计算，不随账户筛选变化。</b>成本按元/克记录（实际成交价），止盈位由均价推导；$/oz 只是按实时汇率折算的参考。<br>
     候选位：回本位、盈利档 +15/20/25/30%、枢轴 / 斐波 / 均线、前高、<b>延伸 127.2% / 161.8% / 200%</b>、PL90 / PL180、52 周高点、整数关口。<br>
     执行次数不固定：按「位置强度 + 空间 + 趋势配合」评分，分数出现断层就停，取 2–8 个位。<b>触及概率</b>按日线 ATR 折算成「还要走几天」，趋势强上调、趋势弱下调。<br>
     减仓量按 分数 × 可达性 × 空间 加权，先从持仓里扣掉底仓再分配（底仓按克设定，旁边百分比只是折算）。点执行位可直接记一笔减仓，持仓会自动扣减。</div>
@@ -977,7 +1049,10 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>目标总克重</label><input type="number" id="setTotal" step="1" inputmode="decimal"></div>
         <div class="fld"><label>底仓保留（g，涨到位也不动）</label><input type="number" id="setKeep" step="1" min="0" inputmode="decimal" placeholder="10"></div>
       </div>
-      <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
+      <div class="row2">
+        <div class="fld"><label>回本加点（元/克）</label><input type="number" id="setComeback" step="1" min="0" max="50" inputmode="decimal" placeholder="10"></div>
+        <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
+      </div>
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
       <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
     </div>
@@ -1197,6 +1272,10 @@ body.tab-ov .tpx{display:none}
   <div class="sh"><h3 id="sheetTitle">记录成交</h3><button id="sheetClose">关闭</button></div>
   <div class="form">
     <div class="fld"><label>标签</label><input type="text" name="g_name" placeholder="如 第3档 / 补仓"></div>
+    <div class="fld" id="acctFld"><label>账户</label>
+      <select id="gAcct"></select>
+      <div class="note" id="acctNote" style="display:none">只有一个账户，先到持仓页「账户 · 管理」新建</div>
+    </div>
     <div class="fld" id="gearLinkFld" style="display:none"><label>关联档位<em style="font-style:normal;color:var(--tx3);font-weight:400">（选了就同步该档的克重与待补）</em></label><select id="gGear"></select></div>
     <div class="row2">
       <div class="fld"><label id="lbGram">买入克重（g）</label><input type="number" name="g_gram" step="0.1" inputmode="decimal" placeholder="10"></div>
@@ -1205,6 +1284,25 @@ body.tab-ov .tpx{display:none}
     <div class="fld"><label>成交时间</label><input type="datetime-local" name="g_time"></div>
     <div class="fld"><label>备注</label><input type="text" name="g_note" placeholder="选填"></div>
     <button class="btn-primary" id="btnSave">保存这笔买入</button>    <button class="btn-ghost" id="btnDelBuy" style="display:none">删除这笔</button>
+  </div>
+</div>
+
+<div class="sheet-mask" id="acctMask"></div>
+<div class="sheet" id="sheetAcct">
+  <div class="sh"><h3 id="acctTitle">账户管理</h3><button id="acctClose">关闭</button></div>
+  <div class="form">
+    <div id="acctListBox"></div>
+    <div id="acctForm" style="display:none">
+      <div class="fld"><label>账户名称</label><input type="text" id="acName" maxlength="20" placeholder="如 招商银行积存金"></div>
+      <div class="fld"><label>备注（选填）</label><input type="text" id="acNote" maxlength="20" placeholder="如 尾号 3821"></div>
+      <div class="fld"><label>颜色</label><div class="fchips" id="acColors"></div></div>
+      <div class="row2">
+        <button class="btn-primary" id="acSave" style="margin-top:0">保存</button>
+        <button class="btn-ghost" id="acCancel" style="margin-top:0">取消</button>
+      </div>
+    </div>
+    <button class="btn-ghost" id="acNew">+ 新建账户</button>
+    <div class="note">账户只是给买卖记录分个归属：档位价、权重、目标克重都是全局的，同一档可以在两个账户各买一部分。删除账户时若还有记录，会先让你把记录转移到别的账户。</div>
   </div>
 </div>
 
@@ -1312,7 +1410,8 @@ var S = {
   cal:{ ok:false, events:[], updatedAt:0, week:"" },
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
   cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0, alpha:1, spanMode:"target", gearMarks:{} },
-  editing:null, tab:"struct"
+  editing:null, tab:"struct", acctFilter:null,
+  acctEdit:null, acctDel:null, acctColor:null
 };
 
 /* === UTIL === */
@@ -1361,6 +1460,37 @@ function fallbackCopy(txt){
   document.body.appendChild(ta); ta.select();
   try{ document.execCommand("copy"); }catch(e){}
   document.body.removeChild(ta);
+}
+/* === 账户（P32）访问器 ===
+   三个函数都做成"坏数据不抛错"：拿不到 accounts 就返回空/兜底名，绝不让渲染层因为
+   数据半截而白屏。真正的补账户在 migrateAccountsV9 里做，这里只读不改。 */
+function acctList(){
+  var a = S.cfg && S.cfg.accounts;
+  if(!Array.isArray(a) || !a.length) return [];
+  return a;
+}
+/* 失效 id 一律回落第一个账户 —— 宁可挂错账户，也不让一条记录凭空消失。
+   记录里的 acct 指向已删账户时，克重会从这里回到"默认账户"，总数不变。 */
+function acctOf(id){
+  var a = acctList();
+  if(!a.length) return null;
+  for(var i=0;i<a.length;i++) if(a[i].id === id) return id;
+  return a[0].id;
+}
+function acctName(id){
+  var a = acctList(), k = acctOf(id);
+  for(var i=0;i<a.length;i++) if(a[i].id === k) return a[i].name;
+  return "默认账户";
+}
+function acctColor(id){
+  var a = acctList(), k = acctOf(id);
+  for(var i=0;i<a.length;i++) if(a[i].id === k) return a[i].color || "#D4A24C";
+  return "#D4A24C";
+}
+/* 记录行里只放 6 个字，全名靠 title 兜（移动端唯一能看到全名的地方） */
+function shortName(n){
+  n = String(n || "");
+  return n.length > 6 ? n.slice(0, 6) + "…" : n;
 }
 
 /* ===== 声音提醒（Web Audio 合成，不引任何音频文件） ===== */
@@ -3477,7 +3607,7 @@ function migrateMarksV7(){
 
    四个「数据到达」时机（applyRemote / doPull 合并 / 断网快照 / fetchFx 回调）只调 migrateAll()，
    不直接调具体迁移。这样下一期加 v2，只改 runMigrations 一处。 */
-var SCHEMA = 2;
+var SCHEMA = 3;
 function runMigrations(){
   var cfg = S.cfg || (S.cfg = {});
   var from = Number(cfg.schemaVersion) || 0;
@@ -3496,6 +3626,12 @@ function runMigrations(){
     /* v2 只做一件事：从账本补人民币成本。与汇率无关，所以**没有门**，一次到底。 */
     migrateMarksV8();
     cfg.schemaVersion = 2;
+  }
+
+  if(from < 3){
+    /* v3：账户。只加字段、只补 acct 指针，不改任何克重与金额 —— 与汇率无关，没有门。 */
+    migrateAccountsV9();
+    cfg.schemaVersion = 3;
   }
 
   if(Number(cfg.schemaVersion) > from) saveCfg();
@@ -3535,6 +3671,40 @@ function migrateMarksV8(){
   });
   if(changed){ compute(); refreshAll(); saveCfg(); }
   return changed;
+}
+
+/* v3：账户（P32）。四步，任何一步都不依赖网络与汇率，所以**没有门**。
+   幂等：已有 accounts 就沿用，只补缺失字段；acct 指针只在"缺失或指向不存在的账户"时才改。
+   绝不改克重/金额 —— m2（迁移前后 holdStats 完全一致）是这一批的硬门。 */
+function migrateAccountsV9(){
+  var cfg = S.cfg || {};
+  var list = Array.isArray(cfg.accounts) ? cfg.accounts.filter(function(a){ return a && a.id; }) : [];
+  if(!list.length){
+    list = [{ id:"a0", name:"默认账户", note:"", color:"#D4A24C", at:Date.now() }];
+  }
+  var ids = {};
+  list.forEach(function(a){
+    if(!a.name) a.name = "账户";
+    if(a.note === undefined) a.note = "";
+    if(!a.color) a.color = "#D4A24C";
+    if(!Number(a.at)) a.at = Date.now();
+    ids[a.id] = 1;
+  });
+  cfg.accounts = list;
+
+  function fix(rec){
+    if(!rec) return;
+    if(!rec.acct || !ids[rec.acct]) rec.acct = list[0].id;
+  }
+  (cfg.buys  || []).forEach(fix);
+  (cfg.sells || []).forEach(fix);
+
+  if(!cfg.acctLast || !ids[cfg.acctLast]) cfg.acctLast = list[0].id;
+  /* 空串与缺省都算"没填"，回 10；越界夹到 0–50；"abc" 回 10 */
+  var cbRaw = cfg.comeback, cb = Number(cbRaw);
+  cfg.comeback = (cbRaw === undefined || cbRaw === null || cbRaw === "" || !isFinite(cb))
+    ? 10 : Math.max(0, Math.min(50, cb));
+  return true;
 }
 
 /* 唯一入口。迁移函数内部自己会 compute / refreshAll / saveCfg，这里不重复做 */
@@ -4070,16 +4240,24 @@ function renderReview(){
   var h = box.querySelector('[data-rv="h"]');
   if(h) h.onclick = toggleReview;
 }
-function holdStats(){
-  var buys = (S.cfg.buys||[]).slice();
-  var sells = (S.cfg.sells||[]).slice();
+/* acct 缺省 = 全局。18 个调用点里只有 3 个传（renderPos / renderBuys / saveSell），
+   其余全部是全局口径 —— 档位、止盈、仓位进度都不分账户。 */
+function holdStats(acct){
+  var all = !acct;
+  var buys  = (S.cfg.buys  || []).slice();
+  var sells = (S.cfg.sells || []).slice();
+  if(!all){
+    buys  = buys.filter(function(b){ return acctOf(b.acct) === acct; });
+    sells = sells.filter(function(x){ return acctOf(x.acct) === acct; });
+  }
   var bg=0, amt=0, sg=0, sAmt=0;
   buys.forEach(function(b){
     var gg = Number(b.gram)||0, pp = Number(b.priceCny)||0;
     bg += gg; amt += gg*pp;
   });
-  // 兼容旧数据：没有逐笔但有汇总
-  if(!buys.length && Number(S.cfg.GRAMS)>0 && Number(S.cfg.COST)>0){
+  /* 兼容旧数据：没有逐笔但有汇总。
+     `all &&` 不能省 —— 漏了它，筛一个空账户会把这份"历史汇总 100 克"显示出来。 */
+  if(all && !buys.length && Number(S.cfg.GRAMS)>0 && Number(S.cfg.COST)>0){
     bg = Number(S.cfg.GRAMS); amt = bg*Number(S.cfg.COST);
   }
   sells.forEach(function(s){
@@ -4095,6 +4273,45 @@ function holdStats(){
     soldAmt: sAmt,
     realized: avg ? sAmt - sg*avg : 0
   };
+}
+
+/* 各账户汇总。单遍聚合，不调 N 次 holdStats（账户多时是 O(n·m)）。
+   返回 [{id,name,note,color,buyGram,sold,gram,amt,avg,costLeft,pnl,recs,share}]。
+   pnl 在现价/汇率为空时是 null（不是 0）。金额单位元，克重单位 g。 */
+function acctStats(){
+  var list = acctList(), map = {}, order = [];
+  list.forEach(function(a){
+    map[a.id] = { id:a.id, name:a.name, note:a.note||"", color:a.color||"#D4A24C",
+                  buyGram:0, sold:0, gram:0, amt:0, soldAmt:0, recs:0 };
+    order.push(a.id);
+  });
+  function slot(id){ var k = acctOf(id); return k ? map[k] : null; }
+
+  (S.cfg.buys || []).forEach(function(b){
+    var s = slot(b.acct); if(!s) return;
+    var g = Number(b.gram)||0, p = Number(b.priceCny)||0;
+    s.buyGram += g; s.amt += g*p; s.recs++;
+  });
+  (S.cfg.sells || []).forEach(function(x){
+    var s = slot(x.acct); if(!s) return;
+    var g = Number(x.gram)||0, p = Number(x.priceCny)||0;
+    s.sold += g; s.soldAmt += g*p; s.recs++;
+  });
+
+  var nowCny = (S.fx && S.price) ? S.price*S.fx/OZ : null;
+  /* 占比分母用全局，不能用循环里累加的 —— 累加值漏掉"本机没有的账户"时偏小，占比会超 100% */
+  var totalAll = holdStats().grams;
+  return order.map(function(id){
+    var r = map[id];
+    r.gram = Math.max(0, r.buyGram - r.sold);
+    /* 均价分母必须是买入总克重 buyGram，不是卖出后的余额 gram ——
+       用 gram 会让"卖过一半"的账户均价虚高。 */
+    r.avg      = r.buyGram > 0 ? r.amt / r.buyGram : 0;
+    r.costLeft = r.gram * r.avg;
+    r.pnl      = nowCny !== null ? r.gram * (nowCny - r.avg) : null;
+    r.share    = totalAll > 0 ? r.gram / totalAll : 0;
+    return r;
+  });
 }
 
 function cnyToUsd(cny){ return (S.fx && cny) ? cny * OZ / S.fx : null; }
@@ -4708,6 +4925,12 @@ function normCfg(){
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
+  /* 回本加点（P32）：值域夹取。**这里不造 accounts** —— 造账户是迁移的职责，
+     否则 schemaVersion=99（未来版本）也会被凭空塞一个账户出来。 */
+  var cbv = Number(S.cfg.comeback);
+  S.cfg.comeback = (S.cfg.comeback === undefined || S.cfg.comeback === null ||
+                    S.cfg.comeback === "" || !isFinite(cbv))
+    ? 10 : Math.max(0, Math.min(50, cbv));
   S.H_BASE = S.cfg.H_BASE || null;
   S.TOTAL = S.cfg.TOTAL || 100;
   S.hadData = countCfg(S.cfg) > 0;
@@ -4722,7 +4945,10 @@ function loadCfg(){
     avgTarget:null, avgBand:20,
     wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0,
     alpha:1, spanMode:"target", gearMarks:{},
-    swingGears:DEFAULT_SWING.slice()
+    swingGears:DEFAULT_SWING.slice(),
+    /* P32：新用户不用等迁移就有账户，记账弹层的下拉不会是空的 */
+    accounts:[{ id:"a0", name:"默认账户", note:"", color:"#D4A24C", at:0 }],
+    acctLast:"a0", comeback:10, delAccts:[]
   };
   normCfg();
 }
@@ -4992,6 +5218,25 @@ function mergeRemote(remote, preferLocal){
   /* 版本号单调：并集合并时取 max，否则本机 0 + 远端 1 会被带回去重跑一次迁移 */
   out.schemaVersion = Math.max(Number(remote.schemaVersion) || 0,
                                Number(S.cfg.schemaVersion) || 0);
+  /* 账户按 id 并集，删除靠 delAccts 墓碑。同名不同 id **不合并** ——
+     两台设备各建一个"招行"时宁可留两条让用户自己删，
+     猜着合并会把两笔记录挂到同一个账户上，比重复更糟。 */
+  var dA = {}, seenA = {}, accts = [];
+  (remote.delAccts || []).concat(S.cfg.delAccts || []).forEach(function(x){ if(x) dA[x] = 1; });
+  [remote.accounts || [], S.cfg.accounts || []].forEach(function(arr){
+    arr.forEach(function(a){
+      if(!a || !a.id || dA[a.id] || seenA[a.id]) return;
+      seenA[a.id] = 1; accts.push(a);
+    });
+  });
+  if(!accts.length) accts = [{ id:"a0", name:"默认账户", note:"", color:"#D4A24C", at:0 }];
+  out.accounts = accts.sort(function(x,y){ return (Number(x.at)||0) - (Number(y.at)||0); });
+  out.delAccts = Object.keys(dA).slice(-200);
+  /* 记录的 acct 可能指向"本机没有的账户"（远端刚建），兜到第一个，绝不留空 */
+  var idsA = {}; out.accounts.forEach(function(a){ idsA[a.id] = 1; });
+  [out.buys, out.sells].forEach(function(arr){
+    (arr || []).forEach(function(r){ if(!r.acct || !idsA[r.acct]) r.acct = out.accounts[0].id; });
+  });
   out.marks = marks;
   out.alerts = alerts;
   out.takePlan = Object.assign({}, remote.takePlan || {}, S.cfg.takePlan || {});
@@ -7233,16 +7478,54 @@ function renderGauge(){
   box.onclick = function(){ gotoTab("set", { anchor:"cardPos" }); };
 }
 
+/* 账户筛选条：只有一个账户时整条不出（多一条只有一个选项的筛选栏是纯噪音）。
+   颜色走 data-c，因为 sanitizeHtml 会剥掉内联 style。 */
+function acctBarHtml(){
+  var list = acctList();
+  if(list.length <= 1) return "";
+  var cur = S.acctFilter || "";
+  var h = '<div class="acctbar">' +
+    '<button type="button" data-acct=""' + (cur ? "" : ' class="on"') + '>全部 <b>' + list.length + "</b></button>";
+  list.forEach(function(a){
+    h += '<button type="button" data-acct="' + escapeHtml(a.id) + '"' +
+         (cur === a.id ? ' class="on"' : "") + ">" +
+         '<i class="dot" data-c="' + escapeHtml(a.color || "#D4A24C") + '"></i>' +
+         escapeHtml(shortName(a.name)) + "</button>";
+  });
+  return h + "</div>";
+}
+/* 三个空态分支与正常分支都要绑一次 —— 抽出来比复制四遍 onclick 稳。
+   点击只改内存里的 S.acctFilter 再调 refreshAll()，不写 cfg（写 cfg = 点一下筛一次云端 PUT）。 */
+function bindAcctBar(box){
+  if(!box) return;
+  /* 只能用 class 找：sanitizeHtml 的白名单不放行 id 属性，写 #acctBar 会永远查不到 */
+  Array.prototype.forEach.call(box.querySelectorAll(".acctbar .dot"), function(n){
+    n.style.background = n.getAttribute("data-c") || "#D4A24C";
+  });
+  Array.prototype.forEach.call(box.querySelectorAll(".acctbar button"), function(b){
+    b.onclick = function(){
+      S.acctFilter = b.getAttribute("data-acct") || null;
+      refreshAll();
+    };
+  });
+}
+
 function renderPos(){
   var box = $("posBox");
-  var hs = holdStats();
+  var hs = holdStats(S.acctFilter || null);
+  var bar = acctBarHtml();
+  /* 三个空态都必须先接筛选条，否则筛到空账户之后连"全部"都点不回去了 */
   if(!hs.grams && !hs.sold){
-    box.innerHTML = '<div class="muted">还没有买入记录。点右侧「记一笔」填克重和单价（元/克），这里会自动汇总总金额与均价。</div>';
+    box.innerHTML = sanitizeHtml(bar + '<div class="muted">' + (S.acctFilter
+      ? escapeHtml(acctName(S.acctFilter)) + " 还没有买入记录。换一个账户看看，或点右侧「记一笔」。"
+      : "还没有买入记录。点右侧「记一笔」填克重和单价（元/克），这里会自动汇总总金额与均价。") + "</div>");
+    bindAcctBar(box);
     return;
   }
   if(!hs.grams){
-    box.innerHTML = '<div class="muted">已全部减仓（累计减 ' + gnum(hs.sold) + ' 克，实现盈亏 '
-      + (hs.realized>=0?"+":"") + money(hs.realized,0) + ' 元）。重新买入后这里会继续汇总。</div>';
+    box.innerHTML = sanitizeHtml(bar + '<div class="muted">已全部减仓（累计减 ' + gnum(hs.sold) + ' 克，实现盈亏 '
+      + (hs.realized>=0?"+":"") + money(hs.realized,0) + ' 元）。重新买入后这里会继续汇总。</div>');
+    bindAcctBar(box);
     return;
   }
   var nowCny = S.fx && S.price ? S.price*S.fx/OZ : null;
@@ -7251,18 +7534,257 @@ function renderPos(){
   var pnl = value!==null ? value - costLeft : null;
   var pctv = pnl!==null && costLeft ? pnl/costLeft*100 : null;
   var cls = pnl===null?"flatc":pnl>0?"red":pnl<0?"green":"flatc";
-  var html = '<div class="pnllb">浮动盈亏（元）</div>' +
+
+  /* 回本价 = 均价 + 回本加点。低于它是"还差"（绿），高于它是"已过"（红）——
+     与收益率方向一致，不取反。现价或汇率缺失时整项显示 --，不显示 0.00%。 */
+  var cb = Number(S.cfg.comeback);
+  if(!isFinite(cb)) cb = 10;
+  var backPx = hs.avg + cb;
+  var gapPct = (nowCny !== null && backPx > 0) ? (nowCny/backPx - 1)*100 : null;
+  var gapTxt = "--", gapCls = "flatc";
+  if(gapPct !== null){
+    if(gapPct < 0){ gapTxt = "还差 " + Math.abs(gapPct).toFixed(2) + "%"; gapCls = "green"; }
+    else { gapTxt = "已过 +" + gapPct.toFixed(2) + "%"; gapCls = "red"; }
+  }
+
+  var html = bar;
+  if(S.acctFilter){
+    html += '<div class="acctnow">当前：' + escapeHtml(acctName(S.acctFilter)) + "（" +
+      gnum(hs.grams) + "g / 共 " + gnum(holdStats().grams) + "g）</div>";
+  }
+  html += '<div class="pnllb">浮动盈亏（元）</div>' +
     '<div class="pnlbig '+cls+'">' +
       (pnl===null?"--":((pnl>0?"+":"")+money(pnl,2))) + '</div>' +
     '<div class="posmini">' +
       '<div class="it"><span>持仓克重</span><b class="num">'+gnum(hs.grams)+' g</b></div>' +
       '<div class="it"><span>持仓成本</span><b class="num">'+money(costLeft,0)+'</b></div>' +
       '<div class="it"><span>均价成本</span><b class="num">'+num(hs.avg,2)+'</b></div>' +
+      '<div class="it"><span>回本价</span><b class="num">'+num(backPx,2)+'</b></div>' +
       '<div class="it"><span>现价</span><b class="num">'+(nowCny?num(nowCny,2):"--")+'</b></div>' +
+      '<div class="it"><span>距回本</span><b class="num '+gapCls+'">'+gapTxt+'</b></div>' +
       '<div class="it"><span>收益率</span><b class="num '+cls+'">'+(pctv===null?"--":pctv.toFixed(2)+"%")+'</b></div>' +
       (hs.sold > 0 ? '<div class="it"><span>已减 '+gnum(hs.sold)+' g 实现</span><b class="num '+(hs.realized>=0?"red":"green")+'">'+(hs.realized>=0?"+":"")+money(hs.realized,0)+'</b></div>' : '') +
     '</div>';
   box.innerHTML = sanitizeHtml(html);
+  bindAcctBar(box);
+}
+
+/* 账户卡片：每行一个账户，顶部三个数**直接取全局 holdStats()**，不由下面几行累加。
+   卖出不按账户重新分摊成本，账户成本相加天然不等于全局成本（差额 Σ grams_i×(avg−avg_i)），
+   所以这一条必须写死在脚注里，防止后来的人"顺手加一下"。 */
+function renderAcctCard(){
+  var box = $("acctBox");
+  if(!box) return;
+  var rows = acctStats(), all = holdStats();
+  var meta = $("acctMeta");
+  if(meta) meta.textContent = rows.length ? (rows.length + " 个") : "";
+
+  var nowCny = (S.fx && S.price) ? S.price*S.fx/OZ : null;
+  var costAll = all.grams * all.avg;
+  var pnlAll = nowCny !== null ? all.grams*(nowCny - all.avg) : null;
+  var clsAll = pnlAll===null ? "flatc" : pnlAll>0 ? "red" : pnlAll<0 ? "green" : "flatc";
+
+  var cbv = Number(S.cfg.comeback); if(!isFinite(cbv)) cbv = 10;
+
+  var html = '<div class="acsum">' +
+    '<div class="it"><span>全账户克重</span><b class="num">' + gnum(all.grams) + ' g</b></div>' +
+    '<div class="it"><span>持仓成本</span><b class="num">' + money(costAll,0) + '</b></div>' +
+    '<div class="it"><span>浮动盈亏</span><b class="num ' + clsAll + '">' +
+      (pnlAll===null ? "--" : ((pnlAll>0?"+":"") + money(pnlAll,0))) + '</b></div>' +
+  '</div>';
+
+  rows.forEach(function(r){
+    var rc = r.pnl===null ? "flatc" : r.pnl>0 ? "red" : r.pnl<0 ? "green" : "flatc";
+    var w = Math.max(0, Math.min(100, Math.round((r.share||0)*100)));
+    html += '<div class="acrow' + (S.acctFilter === r.id ? " on" : "") + '" data-acct="' + escapeHtml(r.id) + '">' +
+      '<div class="ah">' +
+        '<i class="dot" data-c="' + escapeHtml(r.color) + '"></i>' +
+        '<b title="' + escapeHtml(r.name) + '">' + escapeHtml(shortName(r.name)) + '</b>' +
+        (r.note ? '<em>' + escapeHtml(r.note) + '</em>' : '') +
+        '<span class="sh">' + w + '%</span>' +
+      '</div>' +
+      (r.gram > 0
+        ? '<div class="ab">' +
+            '<span><em>克重</em><b class="num">' + gnum(r.gram) + 'g</b></span>' +
+            '<span><em>均价</em><b class="num">' + num(r.avg,2) + '</b></span>' +
+            '<span><em>回本</em><b class="num">' + num(r.avg + cbv,2) + '</b></span>' +
+            '<span><em>浮盈</em><b class="num ' + rc + '">' +
+              (r.pnl===null ? "--" : ((r.pnl>0?"+":"") + money(r.pnl,0))) + '</b></span>' +
+          '</div>' +
+          '<div class="abar"><i data-w="' + w + '"></i></div>'
+        : '<div class="ab empty">还没开始买 · 0 笔</div>') +
+    '</div>';
+  });
+  html += '<div class="acfoot">账户行是各账户自己的口径；卡片顶部三个数取自全账户汇总，不由下面几行累加。</div>';
+  box.innerHTML = sanitizeHtml(html);
+
+  Array.prototype.forEach.call(box.querySelectorAll(".dot"), function(n){
+    n.style.background = n.getAttribute("data-c") || "#D4A24C";
+  });
+  Array.prototype.forEach.call(box.querySelectorAll(".abar i"), function(n){
+    n.style.width = (n.getAttribute("data-w") || 0) + "%";
+  });
+  Array.prototype.forEach.call(box.querySelectorAll(".acrow"), function(n){
+    n.onclick = function(){
+      var id = n.getAttribute("data-acct");
+      S.acctFilter = (S.acctFilter === id) ? null : id;
+      refreshAll();
+    };
+  });
+}
+
+/* ===== P32 账户管理 =====
+   复用 #sheet 的骨架但另开一个弹层：两个弹层各有自己的编辑态（S.editing / S.acctEdit），
+   塞进同一个容器里，关一个会把另一个的半截表单也带走。 */
+var ACCT_COLORS = ["#D4A24C", "#5B8FF9", "#5AD8A6", "#F6BD16", "#E8684A", "#9270CA"];
+
+function openAcctMgr(){
+  S.acctEdit = null; S.acctDel = null; S.acctColor = ACCT_COLORS[0];
+  hideAcctForm();
+  renderAcctMgr();
+  $("acctMask").className = "sheet-mask on";
+  $("sheetAcct").className = "sheet on";
+}
+function closeAcctMgr(){
+  $("sheetAcct").className = "sheet";
+  $("acctMask").className = "sheet-mask";
+  S.acctEdit = null; S.acctDel = null;
+}
+
+function renderAcctMgr(){
+  var box = $("acctListBox");
+  if(!box) return;
+  var rows = acctStats();
+  var html = "";
+  if(S.acctDel){
+    var others = acctList().filter(function(a){ return a.id !== S.acctDel.id; });
+    html += '<div class="actrans">「' + escapeHtml(acctName(S.acctDel.id)) + '」还有 ' +
+      S.acctDel.n + ' 笔记录。删之前先把它们转到：' +
+      '<div class="atb">' + others.map(function(a){
+        return '<button type="button" data-move="' + escapeHtml(a.id) + '">转到 ' + escapeHtml(a.name) + "</button>";
+      }).join("") + "</div>" +
+      '<button type="button" class="lnk" data-cancelmove="1">取消，先不删</button></div>';
+  }
+  rows.forEach(function(r){
+    html += '<div class="acmgr">' +
+      '<i class="dot" data-c="' + escapeHtml(r.color) + '"></i>' +
+      '<div class="ah"><b title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + "</b>" +
+        (r.note ? "<em>" + escapeHtml(r.note) + "</em>" : "") + "</div>" +
+      '<div class="am">' + gnum(r.gram) + "g · " + r.recs + " 笔</div>" +
+      '<div class="aa"><button type="button" data-edit="' + escapeHtml(r.id) + '">编辑</button>' +
+        '<button type="button" data-del="' + escapeHtml(r.id) + '">删除</button></div>' +
+    "</div>";
+  });
+  box.innerHTML = sanitizeHtml(html);
+
+  Array.prototype.forEach.call(box.querySelectorAll(".dot"), function(n){
+    n.style.background = n.getAttribute("data-c") || "#D4A24C";
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-edit]"), function(n){
+    n.onclick = function(){ startAcctForm(n.getAttribute("data-edit")); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-del]"), function(n){
+    n.onclick = function(){ askDelAcct(n.getAttribute("data-del")); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-move]"), function(n){
+    n.onclick = function(){ doMoveAcct(S.acctDel.id, n.getAttribute("data-move")); };
+  });
+  var cm = box.querySelector("[data-cancelmove]");
+  if(cm) cm.onclick = function(){ S.acctDel = null; renderAcctMgr(); };
+}
+
+function renderColorPick(){
+  var box = $("acColors");
+  if(!box) return;
+  var html = ACCT_COLORS.map(function(c){
+    return '<button type="button" class="cpick' + (c === S.acctColor ? " on" : "") +
+      '" data-c="' + escapeHtml(c) + '"><i data-c="' + escapeHtml(c) + '"></i></button>';
+  }).join("");
+  box.className = "acdotpick";
+  box.innerHTML = sanitizeHtml(html);
+  Array.prototype.forEach.call(box.querySelectorAll("i"), function(n){
+    n.style.background = n.getAttribute("data-c");
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("button"), function(n){
+    n.onclick = function(){
+      S.acctColor = n.getAttribute("data-c");
+      renderColorPick();
+    };
+  });
+}
+
+function startAcctForm(id){
+  S.acctEdit = id || null;
+  var a = id ? acctList().filter(function(x){ return x.id === id; })[0] : null;
+  $("acName").value = a ? (a.name || "") : "";
+  $("acNote").value = a ? (a.note || "") : "";
+  S.acctColor = a ? (a.color || ACCT_COLORS[0]) : ACCT_COLORS[0];
+  if(ACCT_COLORS.indexOf(S.acctColor) < 0) S.acctColor = ACCT_COLORS[0];
+  renderColorPick();
+  $("acctForm").style.display = "";
+  $("acNew").style.display = "none";
+}
+function hideAcctForm(){
+  $("acctForm").style.display = "none";
+  $("acNew").style.display = "";
+}
+
+function saveAcct(){
+  var name = $("acName").value.trim();
+  var note = $("acNote").value.trim();
+  var editing = S.acctEdit;
+  if(!name){ toast("账户名不能为空"); return; }
+  if(name.length > 20){ toast("账户名最多 20 个字"); return; }
+  var dup = acctList().some(function(a){ return a.id !== editing && a.name === name; });
+  if(dup){ toast("已经有叫「" + name + "」的账户了"); return; }
+
+  var list = acctList().slice();
+  if(editing){
+    var a = list.filter(function(x){ return x.id === editing; })[0];
+    if(a){ a.name = name; a.note = note; a.color = S.acctColor; }
+  } else {
+    var nid = "a" + Date.now() + Math.floor(Math.random()*1000);
+    list.push({ id:nid, name:name, note:note, color:S.acctColor, at:Date.now() });
+    S.cfg.acctLast = nid;
+  }
+  S.cfg.accounts = list;
+  S.acctEdit = null;
+  hideAcctForm();
+  saveCfg(); refreshAll(); renderAcctMgr();
+  toast(editing ? "已保存" : ("已新建账户「" + name + "」"));
+}
+
+/* 删除：只剩 1 个不让删；有记录先要求转移（转移只改归属，不产生划转记录、不改金额） */
+function askDelAcct(id){
+  if(acctList().length <= 1){ toast("至少保留一个账户"); return; }
+  var n = (S.cfg.buys || []).filter(function(b){ return acctOf(b.acct) === id; }).length +
+          (S.cfg.sells || []).filter(function(x){ return acctOf(x.acct) === id; }).length;
+  if(n > 0){ S.acctDel = { id:id, n:n }; renderAcctMgr(); return; }
+  if(!window.confirm("删除账户「" + acctName(id) + "」？")) return;
+  doDelAcct(id);
+}
+function moveAcct(from, to){
+  var n = 0;
+  (S.cfg.buys || []).forEach(function(b){ if(acctOf(b.acct) === from){ b.acct = to; n++; } });
+  (S.cfg.sells || []).forEach(function(x){ if(acctOf(x.acct) === from){ x.acct = to; n++; } });
+  if(S.cfg.acctLast === from) S.cfg.acctLast = to;
+  return n;
+}
+function doMoveAcct(from, to){
+  var n = moveAcct(from, to);
+  doDelAcct(from, "已把 " + n + " 笔记录转过去并删除账户");
+}
+function doDelAcct(id, msg){
+  var list = acctList().filter(function(a){ return a.id !== id; });
+  if(!list.length) list = [{ id:"a0", name:"默认账户", note:"", color:"#D4A24C", at:Date.now() }];
+  S.cfg.accounts = list;
+  S.cfg.delAccts = (S.cfg.delAccts || []).concat([id]).slice(-200);
+  if(S.cfg.acctLast === id) S.cfg.acctLast = list[0].id;
+  if(S.acctFilter === id) S.acctFilter = null;   /* 删掉的正好是当前筛选，回到全部 */
+  S.acctDel = null;
+  hideAcctForm();
+  saveCfg(); refreshAll(); renderAcctMgr();
+  toast(msg || "已删除账户");
 }
 
 /* P21：减仓记录的第二行明细 —— 这笔卖出摊到了哪几档、各多少克。
@@ -7283,7 +7805,10 @@ function allotLine(rec, isSell){
 }
 
 function renderBuys(){
-  var hs = holdStats();
+  /* 跟随账户筛选：记录列表与计数都只显示当前账户的账。
+     只有一个账户时不显示账户徽标 —— 每行都写一遍"默认账户"是纯噪音。 */
+  var hs = holdStats(S.acctFilter || null);
+  var multi = acctList().length > 1;
   var list = $("buyList");
   var rows = hs.buys.map(function(b){ return {k:"b", d:b}; })
              .concat(hs.sells.map(function(s){ return {k:"s", d:s}; }))
@@ -7300,18 +7825,28 @@ function renderBuys(){
     var amt = gg*pp;
     var d = b.time ? new Date(b.time) : null;
     var tm = d && !isNaN(d.getTime()) ? ((d.getMonth()+1)+"-"+pad(d.getDate())+" "+hhmm(d.getTime())) : "--";
+    /* 色点用 data-c 传递颜色：sanitizeHtml 会剥掉 style 属性，不能内联写 background */
+    var badge = multi
+      ? '<span class="abdot" data-c="' + escapeHtml(acctColor(b.acct)) + '" title="' +
+          escapeHtml(acctName(b.acct)) + '"></span>' +
+        escapeHtml(shortName(acctName(b.acct))) + " · "
+      : "";
     html += '<div class="tk" data-'+(isSell?"sellid":"buy")+'="'+escapeHtml(b.id)+'">' +
       '<div class="l1">' +
         '<span class="v num">'+(isSell?"−":"")+gnum(gg)+'</span><span class="u">g</span>' +
         '<span class="nm">× '+num(pp,2)+' 元/克</span>' +
         '<span class="a '+(isSell?"cut":"")+' num">'+(isSell?"+":"")+money(amt,2)+'</span>' +
       '</div>' +
-      '<div class="l2">'+escapeHtml(b.name||(isSell?"减仓":"买入"))+' · '+tm+(b.note?" · "+escapeHtml(b.note):"")+'</div>' +
+      '<div class="l2">'+badge+escapeHtml(b.name||(isSell?"减仓":"买入"))+' · '+tm+(b.note?" · "+escapeHtml(b.note):"")+'</div>' +
       allotLine(b, isSell) +
     '</div>';
   });
   list.innerHTML = sanitizeHtml(html);
-  $("buyMeta").textContent = hs.buys.length + " 买 / " + hs.sells.length + " 减 · 剩 " + gnum(hs.grams) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
+  Array.prototype.forEach.call(list.querySelectorAll(".abdot"), function(n){
+    n.style.background = n.getAttribute("data-c") || "#D4A24C";
+  });
+  var pre = S.acctFilter ? shortName(acctName(S.acctFilter)) + " · " : "";
+  $("buyMeta").textContent = pre + hs.buys.length + " 买 / " + hs.sells.length + " 减 · 剩 " + gnum(hs.grams) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
 
   Array.prototype.forEach.call(list.querySelectorAll("[data-buy]"), function(node){
     node.onclick = function(){ openBuyEdit(node.getAttribute("data-buy")); };
@@ -7613,6 +8148,7 @@ function refreshAll(){
   renderSetGear();
   renderGauge();
   renderPos();
+  renderAcctCard();
   renderReview();
   renderBuys();
   renderTake();
@@ -7843,6 +8379,29 @@ function setSheetMode(mode){
   $("btnDelBuy").textContent = isSell ? "删除这笔减仓" : "删除这笔";
 }
 
+/* 记账时选的是"这笔进出哪个账户" —— 卖出也必须选，否则余额校验没有分母。
+   下拉不存在或账户全丢时回落 acctLast，再不行回落第一个，绝不留空值落库。 */
+function curAcct(){
+  var sel = $("gAcct");
+  var v = sel ? sel.value : "";
+  return acctOf(v) || acctOf(S.cfg.acctLast);
+}
+function fillAcctOpts(sel){
+  var box = $("gAcct"), note = $("acctNote");
+  if(!box) return;
+  var list = acctList();
+  var html = "";
+  list.forEach(function(a){
+    html += '<option value="' + escapeHtml(a.id) + '">' + escapeHtml(a.name) + "</option>";
+  });
+  box.innerHTML = html || '<option value="">默认账户</option>';
+  box.value = acctOf(sel || S.cfg.acctLast) || "";
+  /* 只有一个账户时不给选（禁掉比"能点但只有一项"更清楚），并提示去哪里加 */
+  var only = list.length <= 1;
+  box.disabled = only;
+  if(note) note.style.display = only ? "" : "none";
+}
+
 function openSell(name, id){
   var item = null;
   if(id){
@@ -7863,6 +8422,7 @@ function openSell(name, id){
   qs('[name="g_time"]').value = d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes());
   qs('[name="g_note"]').value = item ? (item.note||"") : "";
   $("btnDelBuy").style.display = item ? "block" : "none";
+  fillAcctOpts(item && item.acct);
   updateSubtotal();
   $("mask").className = "sheet-mask on";
   $("sheet").className = "sheet on";
@@ -7885,6 +8445,7 @@ function openSheet(gearName){
   qs('[name="g_note"]').value = "";
   $("btnDelBuy").style.display = "none";
   fillGearLink(g ? g.name : "");
+  fillAcctOpts(null);
   updateSubtotal();
   $("mask").className = "sheet-mask on";
   $("sheet").className = "sheet on";
@@ -7923,6 +8484,7 @@ function openBuyEdit(id){
   qs('[name="g_note"]').value = b.note || "";
   $("btnDelBuy").style.display = "block";
   fillGearLink(b.gear || "");
+  fillAcctOpts(b.acct);
   updateSubtotal();
   $("mask").className = "sheet-mask on";
   $("sheet").className = "sheet on";
@@ -7954,15 +8516,19 @@ function saveBuy(){
 
   S.cfg.buys = S.cfg.buys || [];
   var iso = time ? new Date(time).toISOString() : new Date().toISOString();
+  var acct = curAcct();
+  S.cfg.acctLast = acct;
 
   if(S.editing){
     var b = S.cfg.buys.filter(function(x){ return x.id===S.editing; })[0];
     if(b){
       b.name = name; b.gram = gram; b.priceCny = priceCny; b.time = iso; b.note = note;
+      b.acct = acct;                    /* 改归属只换指针，不动金额 */
     }
     pushFeed("gear", "修改买入：" + name, gnum(gram) + " g × " + num(priceCny,2) + " 元/克");
   } else {
-    S.cfg.buys.push({ id:"b"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note, gear:S.linkGear||null });
+    S.cfg.buys.push({ id:"b"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note,
+                      gear:S.linkGear||null, acct:acct });
     if(S.linkGear){
       S.cfg.gearsDone = S.cfg.gearsDone || [];
       if(S.cfg.gearsDone.indexOf(S.linkGear) < 0) S.cfg.gearsDone.push(S.linkGear);
@@ -7992,14 +8558,19 @@ function saveSell(){
   if(!priceCny || priceCny <= 0){ toast("单价要填数字"); return; }
 
   S.cfg.sells = S.cfg.sells || [];
-  var hs = holdStats();
+  var acct = curAcct();
+  S.cfg.acctLast = acct;
+  var hs = holdStats(acct);
   var back = 0;
   if(S.editing){
     var cur = S.cfg.sells.filter(function(x){ return x.id===S.editing; })[0];
     back = cur ? (Number(cur.gram)||0) : 0;
+    /* 换了账户就不能把原克重加回来 —— 那笔属于旧账户，新账户没有这笔余额。
+       漏了这一句，改账户的同时把克重调大，就能卖超过新账户的持仓。 */
+    if(cur && acctOf(cur.acct) !== acct) back = 0;
   }
   if(gram > hs.grams + back + 0.001){
-    toast("超过剩余持仓 " + gnum(hs.grams + back) + " 克");
+    toast(acctName(acct) + "只剩 " + gnum(hs.grams + back) + " 克，卖不了 " + gnum(gram) + " 克");
     return;
   }
 
@@ -8013,13 +8584,14 @@ function saveSell(){
       unallotSell(s0.allot || null, Number(s0.gram) || 0);
       var hadAllot = !!s0.allot;
       s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note;
+      s0.acct = acct;
       var r2 = allotSell(gram, cnyToUsd(priceCny), gram * priceCny);
       if(r2){ s0.allot = r2.lot; hit = r2.hit; }
       else if(hadAllot) delete s0.allot;
     }
     pushFeed("cut", "修改减仓：" + name, gnum(gram) + " g × " + num(priceCny,2) + " 元/克");
   } else {
-    var rec = { id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note };
+    var rec = { id:"s"+Date.now(), name:name, gram:gram, priceCny:priceCny, time:iso, note:note, acct:acct };
     S.cfg.sells.push(rec);
     /* P16/P20：卖出不指定档位，按各档净持占比自动摊到标记上 —— 释放的额度就这样
        重新回到配额，各档待补随之变大。账本里的记录仍然只有一个总克重。
@@ -8167,13 +8739,18 @@ function syncParamInputs(){
   $("setTotal").value = S.TOTAL || 100;
   var g = holdStats().grams;
   if(g) $("setKeep").value = computedKeep(g);
+  /* 回本加点回填：不填就是 10，输入框也要显示 10，否则用户不知道现在生效的是几点 */
+  if($("setComeback")){
+    var cbv = Number(S.cfg.comeback);
+    $("setComeback").value = isFinite(cbv) ? cbv : 10;
+  }
   $("setStop").checked = S.cfg.stopMode !== false;
   syncKeep();
 }
 
 /* ===== P17-2 未保存状态 =====
 
-   设置页只有这 5 项要点「保存参数」才写进 cfg，其余控件都是改即存。
+   设置页只有这 6 项要点「保存参数」才写进 cfg，其余控件都是改即存。
    输入框的值和 cfg 对不上 = 脏：描橙边 + 浮出提示条。
 
    之前的问题不是「值会回退」，而是「假装生效」：改了总仓切走再回来，
@@ -8183,7 +8760,8 @@ var SAVE_KEYS = [
   { id:"setKeep",  key:"keepGram" },
   { id:"setHigh",  key:"H_BASE" },
   { id:"setAvgT",  key:"avgTarget" },
-  { id:"setAvgB",  key:"avgBand" }
+  { id:"setAvgB",  key:"avgBand" },
+  { id:"setComeback", key:"comeback" }
 ];
 
 function saveItemVal(it){
@@ -8202,6 +8780,11 @@ function saveCfgVal(it){
      这条永远判脏 —— 存完刷新还是「1 项未保存」。 */
   if(it.key === "keepGram") return Number(computedKeep(holdStats().grams));
   if(it.key === "avgBand") return (v === null || v === undefined || v === "") ? 20 : Number(v);
+  /* 回本加点：缺省就是 10，不是 null —— 否则空着时「10 已生效」与「没填」判不一致，永远脏 */
+  if(it.key === "comeback"){
+    var cb = Number(v);
+    return (v === null || v === undefined || v === "" || !isFinite(cb)) ? 10 : cb;
+  }
   if(v === null || v === undefined || v === "") return null;
   return Number(v);
 }
@@ -8282,6 +8865,14 @@ function bindUI(){
   $("btnRecalc").onclick = recalcGears;
   $("btnHold").onclick = function(){ openSheet(null); };
 
+  /* P32 账户管理 */
+  $("btnAcctMgr").onclick = openAcctMgr;
+  $("acctClose").onclick = closeAcctMgr;
+  $("acctMask").onclick = closeAcctMgr;
+  $("acNew").onclick = function(){ startAcctForm(null); };
+  $("acSave").onclick = saveAcct;
+  $("acCancel").onclick = function(){ S.acctEdit = null; hideAcctForm(); };
+
   /* 我的位置 */
   $("mkClose").onclick = closeMark;
   $("mkAdd").onclick = function(){ openMark(null); };
@@ -8357,6 +8948,11 @@ function bindUI(){
     if(av && !(al >= ALPHA_MIN && al <= ALPHA_MAX)){
       toast("间隔系数 α 要在 " + ALPHA_MIN + "-" + ALPHA_MAX + " 之间"); return;
     }
+    var cbs = $("setComeback") ? $("setComeback").value.trim() : "";
+    var cbv = cbs === "" ? 10 : Number(cbs);
+    if(cbs !== "" && !(isFinite(cbv) && cbv >= 0 && cbv <= 50)){
+      toast("回本加点要在 0-50 元/克之间"); return;
+    }
     var ws = [], grid = $("setWGrid");
     if(grid){
       Array.prototype.forEach.call(grid.querySelectorAll("[data-w]"), function(inp){
@@ -8370,6 +8966,7 @@ function bindUI(){
     S.cfg.TOTAL = t; S.TOTAL = t;
     S.cfg.avgTarget = at;
     S.cfg.avgBand = ab || 20;
+    S.cfg.comeback = cbv;
     if(al){ S.cfg.alpha = al; S.cfg.spanMode = "alpha"; }
     /* 深档兜底三格：与 change 事件同一套规范化，保存时一并落 */
     if($("setDripDays")){
@@ -8623,6 +9220,16 @@ if(/[?&]xt=1/.test(location.search)){
     connInfo:connInfo,
     playSnd:playSnd,
     holdStats:holdStats,
+    /* P32：账户。acctStats 单遍聚合，不用测试里自己算三遍 */
+    accounts:function(){ return acctList(); },
+    acctOf:acctOf, acctName:acctName, acctColor:acctColor,
+    acctStats:acctStats, shortName:shortName,
+    migrateAccountsV9:migrateAccountsV9,
+    /* 渲染与弹层单独暴露：测「汇率缺失」「切筛选」这类状态时不能走 refreshAll
+       （它会重拉汇率，把构造好的 S.fx=0 覆盖掉） */
+    renderPos:renderPos, renderAcctCard:renderAcctCard,
+    openAcctMgr:openAcctMgr, closeAcctMgr:closeAcctMgr, renderAcctMgr:renderAcctMgr,
+    moveAcct:moveAcct, openSheet:openSheet, openSell:openSell,
     renderGauge:renderGauge,
     /* P30：均价卡单独暴露 —— 测「汇率缺失」这类只影响本卡的状态时，
        不能走 refreshAll（它会重拉汇率，把构造好的 S.fx=0 覆盖掉） */

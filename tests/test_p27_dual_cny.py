@@ -285,14 +285,14 @@ def test_m2_pure_marks_stay_unknown(env):
     assert "¥未填" in p.eval_on_selector("#ladder", "e => e.innerText")
 
 
-def test_m3_schema_1_to_2_and_idempotent(env):
-    """schemaVersion 1 → 2；连跑三次标记一个字节都不变。"""
+def test_m3_schema_1_to_3_and_idempotent(env):
+    """schemaVersion 1 → 3（v2 补成本、v3 建账户）；连跑三次标记一个字节都不变。"""
     c = cfg(schemaVersion=1, migratedV7=True,
             gearMarks={"1": {"g": 16, "cost": 2000, "sold": 0, "proceeds": 0, "at": 1}},
             buys=[{"id": "b0", "name": "底仓", "gram": 10, "priceCny": 900,
                    "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第1档"}])
     p = env(c=c).page
-    assert p.evaluate("() => window.__xt.state().cfg.schemaVersion") == 2
+    assert p.evaluate("() => window.__xt.state().cfg.schemaVersion") == 3
     assert marks_raw(p)["1"]["costCny"] > 0          # v2 已经补过
 
     first = marks_raw(p)
