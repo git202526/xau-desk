@@ -1,11 +1,11 @@
 """P19-1 判定回溯 · 计算层
 
 契约：
-  · 预热 209 根：序列长度 = 总根数 − 209（日线 800 → 591）
-  · 区间起止 = 第 209 根与末根的时间戳
+  · 预热 60 根：序列长度 = 总根数 − 60（日线 800 → 740）
+  · 区间起止 = 第 60 根与末根的时间戳
   · 同一份数据重算两次，序列逐值相同
   · 回溯用原始报价，不随汇率缩放系数变化
-  · 数据不足 210 根返回 None，不给半张图
+  · 数据不足 61 根返回 None，不给半张图
 """
 import pytest
 
@@ -45,29 +45,29 @@ def seq(page, k="1d"):
 
 
 def test_b3_window_len(env):
-    """日线 800 根 → 可回溯 591 个点（800 − 209）。"""
+    """日线 800 根 → 可回溯 740 个点（800 − 60）。"""
     bars = _bars("1d", 800)
     p = env(bars=bars).page
     wait_ready(p)
     w = win(p)
     assert w["total"] == 800, w
-    assert w["n"] == 591, w
+    assert w["n"] == 740, w
 
     s = seq(p)
-    assert len(s) == 591, len(s)
+    assert len(s) == 740, len(s)
 
 
 def test_b4_window_range(env):
-    """区间起止必须正好是第 209 根（索引 209）与最后一根。"""
+    """区间起止必须正好是第 60 根（索引 60）与最后一根。"""
     bars = _bars("1d", 800)
     p = env(bars=bars).page
     wait_ready(p)
     w = win(p)
-    assert w["from"] == bars[209][0], (w["from"], bars[209][0])
+    assert w["from"] == bars[60][0], (w["from"], bars[60][0])
     assert w["to"] == bars[-1][0], (w["to"], bars[-1][0])
 
     s = seq(p)
-    assert s[0]["t"] == bars[209][0], s[0]
+    assert s[0]["t"] == bars[60][0], s[0]
     assert s[-1]["t"] == bars[-1][0], s[-1]
 
 
@@ -106,8 +106,8 @@ def test_b12_scale_invariant(env):
 
 
 def test_b13_insufficient(env):
-    """只有 180 根时返回 None，页面不崩。"""
-    p = env(bars=_bars("1d", 180)).page
+    """只有 40 根时返回 None，页面不崩。"""
+    p = env(bars=_bars("1d", 40)).page
     p.wait_for_timeout(1500)
     assert win(p) is None
     assert seq(p) is None
@@ -116,7 +116,7 @@ def test_b13_insufficient(env):
 
 
 def test_b3a_perf(env):
-    """591 次判定必须在可感知延迟内跑完，否则要改成分帧。
+    """740 次判定必须在可感知延迟内跑完，否则要改成分帧。
 
     阈值放到 800ms 是给并发负载留余量：实测在本机约 100ms，
     只要不到这个量级就不引入异步复杂度。
@@ -129,7 +129,7 @@ def test_b3a_perf(env):
         window.__xt.btRun('1d');
         return performance.now() - t0;
     }""")
-    print("\n[perf] 591 x judgeOne = %.1f ms" % ms)
+    print("\n[perf] 740 x judgeOne = %.1f ms" % ms)
     assert ms < 800, ms
 
 
@@ -191,7 +191,7 @@ def test_b2_default_period(env):
         return b ? b.getAttribute('data-k') : null;
     }""")
     assert on == "1d"
-    assert card(p)["meta"] == "591 天"
+    assert card(p)["meta"] == "740 天"
 
 
 def test_b5_segments_merged(env):
@@ -330,8 +330,8 @@ def test_b15_period_switch(env):
         note: document.getElementById('btNote').textContent.trim(),
         n: document.querySelectorAll('.btseg').length,
     })""")
-    assert h1["meta"] == "791 根", h1
-    assert "33 天" in h1["note"], h1
+    assert h1["meta"] == "940 根", h1
+    assert "39 天" in h1["note"], h1
     # 小时级一天内可能切换多次，记录必须带时间，否则同一天出现两行互相矛盾
     rows = p.evaluate("() => Array.from(document.querySelectorAll('#btSw .r span')).map(x => x.textContent.trim())")
     assert rows and all(":" in r for r in rows), rows
@@ -346,11 +346,11 @@ def test_b15_period_switch(env):
             wSum: rects.reduce((a, r) => a + (+r.getAttribute('width') || 0), 0),
         };
     }""")
-    assert w1["meta"] == "11 周", w1
-    assert "10 周" in w1["note"], w1
-    assert abs(w1["wSum"] - 11 * 8) < 0.01, w1
-    # 11 个点铺不满一屏，不该再提示「可拖动」
-    assert p.evaluate("() => document.getElementById('btDrag').hidden") is True
+    assert w1["meta"] == "160 周", w1
+    assert "159 周" in w1["note"], w1
+    assert abs(w1["wSum"] - 160 * 8) < 0.01, w1
+    # 160 点 × 8px = 1280px，铺不满 390 宽才怪，必须提示「可拖动」
+    assert p.evaluate("() => document.getElementById('btDrag').hidden") is False
 
 
 def test_b16_drag_hint(env):

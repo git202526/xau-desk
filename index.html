@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.65 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.0 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -262,6 +262,7 @@ body.tab-ov .tpx{display:none}
 .pcard .v{font-size:13px;font-weight:650;margin-top:3px}
 .pcard.up .v{color:var(--up)}.pcard.dn .v{color:var(--dn)}.pcard .v.rg{color:var(--tx2)}
 .pcard .m{font-size:10px;color:var(--tx3);margin-top:2px}
+.pnote{font-size:10.5px;color:var(--tx3);margin-top:8px;text-align:center}
 
 /* 判定依据 */
 .reasons{margin-top:10px}
@@ -908,7 +909,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.65 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.0 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -985,8 +986,9 @@ body.tab-ov .tpx{display:none}
   <section class="panel" id="panel-struct">
     <div class="sech"><h2>多周期共振 <span class="cnt" id="structMeta"></span></h2></div>
     <div class="pgrid" id="pgrid"></div>
+    <div class="pnote">日线定方向 · 周线定背景 · 4 小时定节奏 · 1 小时只做触发</div>
     <div class="card" style="margin-top:10px">
-      <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">日线判定依据（满足 3 条即成方向）</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">日线判定依据（4 维 5 条，满足 3 条即成方向）</div>
       <div class="reasons" id="reasons"></div>
     </div>
 
@@ -1447,8 +1449,8 @@ var LS_KEY = "wb_xau_desk_v3";        /* 旧版本地缓存，仅用于首次迁
 var SNAP_KEY = "wb_xau_desk_snap";    /* 离线只读快照，只用于断网时展示，绝不回写 */
 var PERIODS = [
   { key:"1w", label:"周线", limit:220 },
-  { key:"1d", label:"日线", limit:800 },
-  { key:"4h", label:"4小时", limit:750 },
+  { key:"1d", label:"日线", limit:1000 },
+  { key:"4h", label:"4小时", limit:1000 },
   { key:"1h", label:"1小时", limit:1000 }
 ];
 /* 建仓档位：w 是权重而非固定克重，克重 = 待建额度 × w / Σw
@@ -1951,32 +1953,79 @@ function atrOf(bars, n, idx){
   return sum/n;
 }
 
-/* ===== 单周期判定 ===== */
+/* 摆动点：左 L 右 L 严格极值。只扫最近 60 根，够取到最近两个高/低。
+   用 >= / <= 反向判定（任一邻居不低于/不高于即淘汰），平台期不会把同一价位
+   重复计成两个摆点。L=3 是通行取值，再小噪音多、再大近端取不到点。 */
+function pivotsOf(bars, i, L){
+  L = L || 3;
+  var hi = [], lo = [];
+  for(var j = Math.max(L, i - 60); j <= i - L; j++){
+    var isH = true, isL = true;
+    for(var k = j - L; k <= j + L; k++){
+      if(k === j) continue;
+      if(bars[k].h >= bars[j].h) isH = false;
+      if(bars[k].l <= bars[j].l) isL = false;
+    }
+    if(isH) hi.push({ p:bars[j].h, i:j });
+    if(isL) lo.push({ p:bars[j].l, i:j });
+  }
+  return { hi:hi, lo:lo };
+}
+
+/* ===== 单周期判定（v7.0：5 条 / 4 维，一维一票）=====
+   旧版 5+5 里四条都是「价格 vs 均线」的单调变换：两条 φ=0.75，反向五条是正向
+   镜像，主成分参与率只有 2.35。现在五个条件分别落在
+   趋势（排列）/ 趋势（斜率，按 ATR 归一）/ 结构（摆点成对）/ 动量（MACD）/ 强度（ADX）
+   四个维度上，反向五条仍是镜像，但正向内部不再互相重复。 */
 function judgeOne(bars){
   var i = bars.length-1;
   var c = bars[i].c;
-  var ma5 = sma(bars,5,i), ma20 = sma(bars,20,i), ma60 = sma(bars,60,i), ma200 = sma(bars,200,i);
+  var ma20 = sma(bars,20,i), ma60 = sma(bars,60,i);
   var ma20p = sma(bars,20,i-1);
   var r = rsi(bars,14,i);
   var m = macdOf(bars);
   var a = adxOf(bars,14);
   var at = atrOf(bars,14,i);
-  var hi20 = maxOf(bars,i-19,i,'h'), hi20p = maxOf(bars,i-39,i-20,'h');
-  var lo20 = minOf(bars,i-19,i,'l'), lo20p = minOf(bars,i-39,i-20,'l');
+  var pv = pivotsOf(bars, i, 3);
+  var hi = pv.hi, lo = pv.lo;
+  var h1 = hi.length >= 2 ? hi[hi.length-2].p : null;
+  var h2 = hi.length >= 1 ? hi[hi.length-1].p : null;
+  var l1 = lo.length >= 2 ? lo[lo.length-2].p : null;
+  var l2 = lo.length >= 1 ? lo[lo.length-1].p : null;
+  var slope = (ma20 !== null && ma20p !== null) ? ma20 - ma20p : null;
+  var slopeThr = at === null ? null : 0.05 * at;
+  var hasStruct = hi.length >= 2 && lo.length >= 2;
+  var structUp = hasStruct && h2 > h1 && l2 > l1;
+  var structDn = hasStruct && h2 < h1 && l2 < l1;
+  var structD = hasStruct
+    ? "高点 " + num(h1,1) + " → " + num(h2,1) + " · 低点 " + num(l1,1) + " → " + num(l2,1)
+    : "摆点不足";
 
   var upC = [
-    { k:"收盘站上 MA20", v: ma20!==null && c>ma20, d: ma20===null?"数据不足":"现价 "+num(c,1)+" / MA20 "+num(ma20,1) },
-    { k:"MA5 上穿 MA20 上方", v: ma5!==null&&ma20!==null&&ma5>ma20, d: (ma5&&ma20)?("MA5 "+num(ma5,1)+" / MA20 "+num(ma20,1)):"--" },
-    { k:"MA20 拐头向上", v: ma20!==null&&ma20p!==null&&ma20>ma20p, d: ma20p?("前值 "+num(ma20p,1)+" → 现值 "+num(ma20,1)):"--" },
-    { k:"近 20 根高点抬高", v: hi20!==null&&hi20p!==null&&hi20>hi20p, d: (hi20&&hi20p)?(num(hi20p,1)+" → "+num(hi20,1)):"--" },
-    { k:"ADX≥20 且 +DI 占优", v: a.adx>=20&&a.pdi>a.mdi, d: "ADX "+num(a.adx,1)+" · +DI "+num(a.pdi,1)+" / -DI "+num(a.mdi,1) }
+    { dim:"trend", k:"价格站上 MA20 且 MA20 在 MA60 上",
+      v: ma20!==null && ma60!==null && c>ma20 && ma20>ma60,
+      d: (ma20!==null&&ma60!==null) ? ("现价 "+num(c,1)+" / MA20 "+num(ma20,1)+" / MA60 "+num(ma60,1)) : "数据不足" },
+    { dim:"slope", k:"MA20 斜率 > 0.05 ATR",
+      v: slope!==null && slopeThr!==null && slope>slopeThr,
+      d: (slope!==null&&slopeThr!==null) ? ("Δ "+(slope>0?"+":"")+num(slope,2)+" / 阈值 "+num(slopeThr,2)) : "数据不足" },
+    { dim:"struct", k:"摆动高低点同步抬高", v: structUp, d: structD },
+    { dim:"mom", k:"MACD 柱在零轴上方", v: m.hist>0,
+      d: "柱 "+(m.hist>0?"+":"")+num(m.hist,2)+" · DIF "+num(m.dif,2)+" / DEA "+num(m.dea,2) },
+    { dim:"strength", k:"ADX≥25 且 +DI 占优", v: a.adx>=25 && a.pdi>a.mdi,
+      d: "ADX "+num(a.adx,1)+" · +DI "+num(a.pdi,1)+" / -DI "+num(a.mdi,1) }
   ];
   var dnC = [
-    { k:"收盘跌破 MA20", v: ma20!==null && c<ma20, d: ma20===null?"数据不足":"现价 "+num(c,1)+" / MA20 "+num(ma20,1) },
-    { k:"MA5 下穿 MA20 下方", v: ma5!==null&&ma20!==null&&ma5<ma20, d: (ma5&&ma20)?("MA5 "+num(ma5,1)+" / MA20 "+num(ma20,1)):"--" },
-    { k:"MA20 拐头向下", v: ma20!==null&&ma20p!==null&&ma20<ma20p, d: ma20p?("前值 "+num(ma20p,1)+" → 现值 "+num(ma20,1)):"--" },
-    { k:"近 20 根低点下移", v: lo20!==null&&lo20p!==null&&lo20<lo20p, d: (lo20&&lo20p)?(num(lo20p,1)+" → "+num(lo20,1)):"--" },
-    { k:"ADX≥20 且 -DI 占优", v: a.adx>=20&&a.mdi>a.pdi, d: "ADX "+num(a.adx,1)+" · -DI "+num(a.mdi,1)+" / +DI "+num(a.pdi,1) }
+    { dim:"trend", k:"价格跌破 MA20 且 MA20 在 MA60 下",
+      v: ma20!==null && ma60!==null && c<ma20 && ma20<ma60,
+      d: (ma20!==null&&ma60!==null) ? ("现价 "+num(c,1)+" / MA20 "+num(ma20,1)+" / MA60 "+num(ma60,1)) : "数据不足" },
+    { dim:"slope", k:"MA20 斜率 < -0.05 ATR",
+      v: slope!==null && slopeThr!==null && slope<-slopeThr,
+      d: (slope!==null&&slopeThr!==null) ? ("Δ "+(slope>0?"+":"")+num(slope,2)+" / 阈值 -"+num(slopeThr,2)) : "数据不足" },
+    { dim:"struct", k:"摆动高低点同步下移", v: structDn, d: structD },
+    { dim:"mom", k:"MACD 柱在零轴下方", v: m.hist<0,
+      d: "柱 "+num(m.hist,2)+" · DIF "+num(m.dif,2)+" / DEA "+num(m.dea,2) },
+    { dim:"strength", k:"ADX≥25 且 -DI 占优", v: a.adx>=25 && a.mdi>a.pdi,
+      d: "ADX "+num(a.adx,1)+" · -DI "+num(a.mdi,1)+" / +DI "+num(a.pdi,1) }
   ];
   function cnt(arr){ var n2=0; arr.forEach(function(x){ if(x.v) n2++; }); return n2; }
   var upN = cnt(upC), dnN = cnt(dnC);
@@ -1985,9 +2034,9 @@ function judgeOne(bars){
 
   return {
     state:state, upN:upN, dnN:dnN, upC:upC, dnC:dnC,
-    c:c, ma5:ma5, ma20:ma20, ma60:ma60, ma200:ma200,
+    c:c, ma20:ma20, ma60:ma60,
     rsi:r, rsiState:rsiState, macd:m, adx:a, atr:at,
-    hi20:hi20, lo20:lo20, bars:bars.length
+    bars:bars.length
   };
 }
 
@@ -1995,10 +2044,13 @@ function judgeOne(bars){
    judgeOne 只看 bars 的最后一根，所以「第 i 天的判定」= judgeOne(bars.slice(0, i+1))，
    天然可复现，不需要另写一套历史判定。
 
-   预热 209 根：MA200 要 i-199，20 根高低点回看要 i-39，取更严的一侧。
+   预热 60 根（v7.0）：新条件里最长的是 MA60 要 60 根、摆点回看要 39 根、
+   ADX(14) 双倍平滑要 28 根，取最大即 60。旧版预热 209 根是为 MA200 设的，
+   而 ma200 从头到尾没有被任何地方读取 —— 删掉后周线回溯从 11 点回到 160 点。
    用原始 S.kl[k] 而不是 scaled(k)：五条条件全是大小关系 / 比例，线性缩放不改真假，
    但用原始序列能保证「回溯结果不随汇率开关变化」（test b12 锁住这条）。 */
-var BT_WARM = 209;
+var JUDGE_MIN = 60;
+var BT_WARM = JUDGE_MIN;
 
 /* 可回溯窗口；数据不足返回 null（不返回半张图） */
 function btWindow(k){
@@ -2130,7 +2182,7 @@ function renderBt(){
     var bars = (S.kl || {})[k] || [];
     meta.textContent = "—";
     winEl.textContent = "";
-    strip.innerHTML = '<div class="btempty">数据不足，暂时无法回溯。需要至少 211 根历史数据，当前只有 '
+    strip.innerHTML = '<div class="btempty">数据不足，暂时无法回溯。需要至少 ' + (BT_WARM + 1) + ' 根历史数据，当前只有 '
       + bars.length + " 根。</div>";
     dist.innerHTML = "";
     sw.innerHTML = "";
@@ -2145,9 +2197,9 @@ function renderBt(){
   var unit = btUnit(k);
   meta.textContent = win.n + " " + unit;
   winEl.innerHTML = "可回溯 <b>" + btDate(win.from) + "</b> ~ <b>" + btDate(win.to)
-    + "</b> · 共 <b>" + win.n + "</b> " + unit + "（前 209 根用于指标预热）";
+    + "</b> · 共 <b>" + win.n + "</b> " + unit + "（前 " + BT_WARM + " 根用于指标预热）";
 
-  /* 同色连续段合并：591 天通常压到 20–40 段，既省节点也点得准 */
+  /* 同色连续段合并：数百个点通常压到 20–40 段，既省节点也点得准 */
   var sig = k + "|" + win.n + "|" + win.to;
   if(_btView.dom !== sig){
     var segs = [], st0 = 0;
@@ -2202,9 +2254,13 @@ function renderBt(){
     sw.innerHTML = h2;
   }
 
+  /* 提示文案跟着实际窗口走：周线是 160 点（跨 159 周），1h 是 940 小时≈39 天。
+     写死数字在预热从 209 降到 60 之后会全线错位。 */
+  var ww = btWindow("1w"), wh = btWindow("1h");
   note.textContent = k === "1w"
-    ? "周线数据只有 220 根，可回溯约 10 周。"
-    : "四周期共振的回溯受 1 小时数据限制，最多 33 天。想看更长的方向轨迹，请用日线。";
+    ? "周线数据只有 220 根，可回溯约 " + ((ww ? ww.n : 1) - 1) + " 周。"
+    : "四周期共振的回溯受 1 小时数据限制，最多 " + Math.round(((wh && wh.n) || 0) / 24)
+      + " 天。想看更长的方向轨迹，请用日线。";
 }
 
 /* 逐条依据：点击时现算一次 judgeOne。
@@ -2310,58 +2366,82 @@ function bindBt(){
 }
 
 /* ===== 共振 ===== */
-var PERIOD_W = { "1w":0.15, "1d":0.35, "4h":0.30, "1h":0.20 };
-function computeStruct(){
-  var out = { p:{}, score:0, dir:"rg", conf:0, valid:0, same:0, label:"" };
+/* 周期权重（v7.0）：日线定方向、周线定背景、4h 定节奏、1h 只做触发。
+   旧版 15/35/30/20 把一半分量给了 4h+1h，而它们自身 20 根前瞻没有正超额
+   （日线 +1.99%，4h −0.12%，1h −0.15%）。1h 权重 0：仍展示，不进方向。 */
+var PERIOD_W = { "1w":0.10, "1d":0.50, "4h":0.40, "1h":0 };
+
+var PNAME = { "1w":"周线", "1d":"日线", "4h":"4小时", "1h":"1小时" };
+
+/* 纯函数：把四周期判定结果合成结构结论，computeStruct 只负责取数与调用。
+   拆出来的目的是可单测 —— 否则要构造出「日线多、周线空、4h 空」的 K 线才能验裁决。 */
+function structCore(p){
+  p = p || {};
+  var out = { p:p, score:0, dir:"rg", conf:0, confStr:0, confBase:0,
+              valid:0, same:0, rgN:0, shape:"nodata", trig:"na", label:"", text:"" };
   var keys = ["1w","1d","4h","1h"];
   keys.forEach(function(k){
-    var bars = scaled(k);
-    if(!bars || bars.length < 210) { out.p[k] = null; return; }
-    var j = judgeOne(bars);
+    var j = p[k];
+    if(!j) return;
     j.w = PERIOD_W[k];
-    out.p[k] = j;
-    out.valid++;
-    if(j.state==="up") out.score += j.w;
-    else if(j.state==="dn") out.score -= j.w;
+    out.score += (j.state==="up" ? j.w : j.state==="dn" ? -j.w : 0);
   });
-  var d1 = out.p["1d"];
-  var adx = d1 ? d1.adx.adx : 0;
-  out.dir = out.score > 0.18 ? "up" : out.score < -0.18 ? "dn" : "rg";
-  out.conf = Math.round(Math.min(100, Math.abs(out.score)*100*0.62 + Math.min(1, adx/40)*38));
-  var dirWord = out.dir==="up"?"上行":out.dir==="dn"?"下行":"震荡";
-  out.label = dirWord;
+  var d1 = p["1d"], dw = p["1w"], d4 = p["4h"], dh = p["1h"];
+
+  /* 方向：日线定。日线缺判定时才退回合力分，避免整页空白 */
+  out.dir = d1 ? d1.state : (out.score > 0.18 ? "up" : out.score < -0.18 ? "dn" : "rg");
+  /* 二对一否决：周线与 4h 同时反向才作废；单一周期反向只降级（counter / diverge） */
+  if(out.dir !== "rg" && dw && d4 &&
+     dw.state !== "rg" && d4.state !== "rg" &&
+     dw.state !== out.dir && d4.state !== out.dir){
+    out.dir = "rg";
+  }
+
+  /* 结构类型：顺序判定，命中即停。notrend 最优先 —— 日线自己没方向时，
+     任何「背离 / 反抽」的故事都是编的（旧版把 diverge 排在 notrend 之前）。 */
+  if(!d1) out.shape = "nodata";
+  else if(d1.state === "rg") out.shape = "notrend";
+  else if(out.dir === "rg") out.shape = "veto";
+  else if(dw && dw.state !== "rg" && dw.state !== out.dir) out.shape = "counter";
+  else if(d4 && d4.state !== "rg" && d4.state !== out.dir) out.shape = "diverge";
+  else if(d4 && d4.state === out.dir) out.shape = "align";
+  else out.shape = "mixed";
+
+  /* 置信：方向置信（对齐度）与趋势强度（ADX）分开算。
+     dir=rg 时方向置信恒 0，强度单独给 confStr，页面写「强度 x」而不是「置信 0」。 */
+  var voters = [dw, d1, d4].filter(Boolean);
+  out.valid = voters.length;
+  out.same = out.dir === "rg" ? 0 : voters.filter(function(v){ return v.state === out.dir; }).length;
+  var base = out.valid > 1 ? (out.same - 1) / (out.valid - 1) : 0;
+  var str = Math.min(1, (d1 && d1.adx ? d1.adx.adx : 0) / 40);
+  out.confBase = Math.round(Math.max(0, base) * 100);
+  out.confStr = Math.round(str * 100);
+  out.conf = out.dir === "rg" ? 0 : Math.round(Math.max(0, base) * 62 + str * 38);
+  if(out.valid < 2) out.conf = Math.min(out.conf, 40);
+  if(out.shape === "counter") out.conf = Math.min(out.conf, 60);
+  if(d1 && d1.adx && d1.adx.adx < 20) out.conf = Math.min(out.conf, 55);
+
+  /* 1h 只做触发：与日线同向即「触发」，不参与方向与置信 */
+  out.trig = (!dh || !d1 || d1.state === "rg") ? "na" : (dh.state === d1.state ? "on" : "off");
+
+  out.label = dirWord(out.dir);
   var parts = [];
   keys.forEach(function(k){
-    var pname = { "1w":"周线", "1d":"日线", "4h":"4小时", "1h":"1小时" };
-    if(out.p[k]) parts.push((pname[k]||k) + " " + (out.p[k].state==="up"?"上行":out.p[k].state==="dn"?"下行":"震荡"));
+    if(p[k]) parts.push(PNAME[k] + " " + dirWord(p[k].state));
   });
   out.text = parts.join(" · ");
-  out.same = keys.filter(function(k){ return out.p[k] && out.p[k].state===out.dir; }).length;
-  out.rgN = keys.filter(function(k){ return out.p[k] && out.p[k].state==="rg"; }).length;
-
-  // 结构类型：识别大周期与小周期是否背离
-  var bigDirs = ["1w","1d"].map(function(k){ return out.p[k] ? out.p[k].state : null; }).filter(Boolean);
-  var smallDirs = ["4h","1h"].map(function(k){ return out.p[k] ? out.p[k].state : null; }).filter(Boolean);
-  function maj(arr){
-    var u=0,dn=0; arr.forEach(function(x){ if(x==="up")u++; else if(x==="dn")dn++; });
-    if(arr.length===0) return "rg";
-    if(u>arr.length/2) return "up";
-    if(dn>arr.length/2) return "dn";
-    return "rg";
-  }
-  var bd = maj(bigDirs), sd = maj(smallDirs);
-  if(bd!=="rg" && sd!=="rg" && bd!==sd){
-    out.shape = "diverge"; out.bigDir = bd; out.smallDir = sd;
-  } else if(out.dir!=="rg" && out.same>=3){
-    out.shape = "align"; out.bigDir = bd; out.smallDir = sd;
-  } else if(adx < 20){
-    out.shape = "notrend";
-  } else if(out.rgN>=2){
-    out.shape = "range";
-  } else {
-    out.shape = "mixed";
-  }
+  out.rgN = keys.filter(function(k){ return p[k] && p[k].state==="rg"; }).length;
   return out;
+}
+
+function computeStruct(){
+  var p = {};
+  ["1w","1d","4h","1h"].forEach(function(k){
+    var bars = scaled(k);
+    if(!bars || bars.length < JUDGE_MIN){ p[k] = null; return; }
+    p[k] = judgeOne(bars);
+  });
+  return structCore(p);
 }
 
 /* ===== 关键位 ===== */
@@ -6305,11 +6385,11 @@ function dirCls(d){ return d==="up"?"up":d==="dn"?"dn":"rg"; }
 function renderVerdict(){
   var st = S.struct;
   if(!st || !st.p["1d"]){
-    $("vMain").textContent = "数据不足，无法判定（需要至少 210 根日线）";
+    $("vMain").textContent = "数据不足，无法判定（需要至少 60 根日线）";
     return;
   }
   var keys=["1w","1d","4h","1h"];
-  var names={ "1w":"周线","1d":"日线","4h":"4小时","1h":"1小时" };
+  var names=PNAME;
   var tags="";
   keys.forEach(function(k){
     var j=st.p[k];
@@ -6318,51 +6398,53 @@ function renderVerdict(){
   });
   $("vTags").innerHTML = sanitizeHtml(tags);
 
-  var d1 = st.p["1d"], d4 = st.p["4h"], dh = st.p["1h"];
-  var maTxt = "现价 " + num(d1.c,1) + "，" + (d1.ma20 ? (d1.c>d1.ma20?"站上":"跌破") + " MA20 " + num(d1.ma20,1) : "MA20 数据不足");
-  var adxTxt = "ADX " + num(d1.adx.adx,1) + (d1.adx.adx>=25?"（趋势强）":d1.adx.adx>=20?"（有趋势）":"（无趋势）");
-
   var v = verdictText(st);
   $("vMain").textContent = v.main;
   $("vSub").innerHTML = sanitizeHtml(v.sub);
-  $("cfFill").style.width = st.conf + "%";
-  $("cfNum").textContent = "置信 " + st.conf;
+  /* 方向震荡时 conf 恒 0：不写「置信 0」，改写「强度 x」，条长按强度给 */
+  var w = st.conf === 0 ? (st.confStr || 0) : st.conf;
+  $("cfFill").style.width = w + "%";
+  $("cfNum").textContent = st.conf === 0 ? ("强度 " + (st.confStr || 0)) : ("置信 " + st.conf);
 }
 
+/* 结构类型 → 文案。六态顺序与 structCore 一致；
+   diverge 按方向分写（旧版不管大周期向上向下都写「4 小时在反抽」）。 */
 function verdictText(st){
   var d1 = st.p["1d"];
   var rsiTxt = "RSI " + num(d1.rsi,1) + "（" + d1.rsiState + "）";
   var adx = d1.adx.adx;
-  var base = (d1.c>d1.ma20?"站上":"跌破") + " MA20 " + num(d1.ma20,1) + "；ADX " + num(adx,1) + "；" + rsiTxt;
+  var base = (d1.ma20 ? (d1.c>d1.ma20?"站上":"跌破") + " MA20 " + num(d1.ma20,1) : "MA20 数据不足")
+           + "；ADX " + num(adx,1) + "；" + rsiTxt;
+  var dw = st.p["1w"];
+  var dirW = dirWord(st.dir);
 
-  if(st.shape==="diverge"){
-    var b = st.bigDir==="dn" ? "空" : "多", sm = st.smallDir==="dn" ? "空" : "多";
-    return {
-      main: "周期背离：大周期" + b + "、小周期" + sm,
-      sub: "周线/日线" + (st.bigDir==="dn"?"向下":"向上") + "，4 小时与 1 小时在反抽。" +
-           (st.bigDir==="dn" ? "反弹是修复不是反转，不追多；等反抽到阻力再评估。" : "回调是上车机会，不追空。") +
-           "　" + base
-    };
+  if(st.shape === "notrend"){
+    return { main: "无趋势：日线 ADX " + num(adx,1),
+             sub: "不做方向性判断，只执行回撤分档。　" + base };
   }
-  if(st.shape==="align"){
-    return {
-      main: st.dir==="dn" ? "空头共振：" + st.same + "/4 周期向下，反弹不追" : "多头共振：" + st.same + "/4 周期向上，回踩可接",
-      sub: st.text + "　" + base
-    };
+  if(st.shape === "veto"){
+    return { main: "方向作废：日线与中长周期相反",
+             sub: "多空各半，只按回撤分档执行。　" + base };
   }
-  if(st.shape==="notrend"){
-    return {
-      main: "无趋势：ADX " + num(adx,1) + "，方向判定无效",
-      sub: "趋势强度不足，不做方向性判断，只执行回撤分档。　" + base
-    };
+  if(st.shape === "counter"){
+    return { main: "逆周线：日线" + dirW + "、周线" + dirWord(dw.state),
+             sub: (st.dir==="up" ? "反弹" : "回调") + "级别，仓位按半档执行。　" + base };
   }
-  if(st.shape==="range"){
-    return {
-      main: "区间运行：" + st.rgN + "/4 周期震荡",
-      sub: "方向不明时按箱体对待，上沿减、下沿看，不追中间。　" + base
-    };
+  if(st.shape === "diverge"){
+    return st.dir === "up"
+      ? { main: "回调中：日线向上，4 小时转弱", sub: "等 4 小时重新转强再动手，不追空。　" + base }
+      : { main: "反抽中：日线向下，4 小时转强", sub: "反弹是修复不是反转，不追多。　" + base };
   }
-  return { main: "方向混合：" + st.same + "/4 同向，未形成合力", sub: st.text + "　" + base };
+  if(st.shape === "align"){
+    var wk = (dw && dw.state === st.dir) ? "确认" : "未反对";
+    return { main: (st.dir==="dn" ? "空头共振" : "多头共振"),
+             sub: st.same + "/3 同向 · 周线" + wk + "　" + base };
+  }
+  if(st.shape === "mixed"){
+    return { main: "方向待确认：日线" + dirW,
+             sub: "4 小时无明确方向，按日线方向轻仓。　" + base };
+  }
+  return { main: "数据不足，无法判定", sub: base };
 }
 
 function renderStruct(){
@@ -6376,10 +6458,19 @@ function renderStruct(){
       html += '<div class="pcard"><div class="k">'+names[k]+'</div><div class="v rg">--</div><div class="m">数据不足</div></div>';
       return;
     }
+    /* 1 小时不投票：小字换成「触发 / 未触发」，不再摆 ADX 假装它参与定方向。
+       日线震荡时触发无从谈起（trig=na），显示 —，不写「未触发」 */
+    var small;
+    if(k === "1h"){
+      small = (st.trig === "na" || j.state === "rg") ? "—"
+        : (st.trig === "on" ? "触发" : "未触发") + ' · ' + (j.state==="up"?j.upN:j.dnN) + '/5';
+    } else {
+      small = (j.state==="up"?j.upN:j.state==="dn"?j.dnN:0)+'/5 · ADX '+num(j.adx.adx,0);
+    }
     html += '<div class="pcard '+dirCls(j.state)+'">' +
       '<div class="k">'+names[k]+'</div>' +
       '<div class="v '+(j.state==="rg"?"rg":"")+'">'+dirWord(j.state)+'</div>' +
-      '<div class="m num">'+(j.state==="up"?j.upN:j.state==="dn"?j.dnN:0)+'/5 · ADX '+num(j.adx.adx,0)+'</div>' +
+      '<div class="m'+(k==="1h"?"":" num")+'">'+small+'</div>' +
     '</div>';
   });
   $("pgrid").innerHTML = sanitizeHtml(html);
@@ -6400,7 +6491,7 @@ function renderStruct(){
     '<span class="c">反向条件满足 <b>'+otherN+'/5</b>　'+(otherN>=3?"已构成反向信号":"不构成反向")+'</span></div>';
   $("reasons").innerHTML = sanitizeHtml(rhtml);
 
-  $("structMeta").textContent = d1 ? ("日线 " + d1.bars + " 根 · 权重 35%") : "";
+  $("structMeta").textContent = d1 ? ("日线 " + d1.bars + " 根 · 权重 50%") : "";
 }
 
 function renderKL(){
@@ -10007,6 +10098,35 @@ if(/[?&]xt=1/.test(location.search)){
     renderBt:renderBt,
     btShowPick:btShowPick, btDetail:btDetail, btPickHtml:btPickHtml,
     setBtPeriod:function(k){ S.btPeriod = k; renderBt(); },
+    /* === P33 多周期共振引擎 ===
+       structCore 是纯函数，喂「四周期判定」即出结论 —— 用它验裁决规则，
+       不用为了造出「日线多、周线空、4h 空」去拼一段 K 线。
+       judgeAt 的第三个参数允许直接传一段合成 K 线（默认取 S.kl[k]），
+       省掉「为了算 800 次判定去改 S.kl」的副作用。 */
+    structCore:structCore,
+    /* 总览结论卡：测「方向震荡时写强度而不是置信 0」需要只跑渲染，不重算 struct */
+    renderVerdict:renderVerdict,
+    structOf:function(){
+      var s = S.struct;
+      if(!s) return null;
+      var p = {};
+      ["1w","1d","4h","1h"].forEach(function(k){
+        var j = s.p[k];
+        p[k] = j ? { state:j.state, upN:j.upN, dnN:j.dnN, adx:j.adx, bars:j.bars } : null;
+      });
+      return { dir:s.dir, shape:s.shape, conf:s.conf, confStr:s.confStr, confBase:s.confBase,
+               valid:s.valid, same:s.same, trig:s.trig, score:s.score, rgN:s.rgN,
+               text:s.text, p:p };
+    },
+    judgeAt:function(k, i, arr){
+      var bars = arr || (S.kl || {})[k];
+      if(!bars || !(i >= 0) || i >= bars.length) return null;
+      var r = judgeOne(bars.slice(0, i + 1));
+      return { state:r.state, upN:r.upN, dnN:r.dnN, adx:r.adx, atr:r.atr, ma20:r.ma20,
+               up:r.upC.map(function(x){ return x.v; }),
+               dn:r.dnC.map(function(x){ return x.v; }),
+               upD:r.upC.map(function(x){ return x.d; }) };
+    },
     levelWindow:levelWindow,
     volumeProfile:volumeProfile,
     findGaps:findGaps,
