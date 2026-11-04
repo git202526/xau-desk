@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.61 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.62 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -484,10 +484,11 @@ body.tab-ov .tpx{display:none}
 #setSwingGrid .swg:disabled,.swg:disabled{opacity:.45;cursor:not-allowed}
 .wn.warn{color:var(--amber)}
 .circ{font-size:10.5px;color:var(--tx3);margin-left:2px}
-.tplan{display:flex;gap:7px;margin-bottom:10px}
-.tplan .bi{flex:1;min-width:0;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-.tplan .bi span{display:block;font-size:10px;color:var(--tx3);margin-bottom:1px}
+.tplan{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:7px;margin-bottom:10px}
+.tplan .bi{min-width:0;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tplan .bi span{display:block;font-size:10px;color:var(--tx3);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tplan .bi b{font-size:16px;font-weight:660;letter-spacing:-.4px;display:block;white-space:nowrap}
+.tplan.four .bi b{font-size:15px}       /* 四张卡时收一点字号，余额位放得下 */
 .tplan .bi b i{font-size:9.5px;font-style:normal;color:var(--tx3);margin-left:2px;font-weight:400}
 .tplan .bi b.gold{color:var(--gold)}
 .tplan .bi b.red{color:#E2604F}
@@ -500,6 +501,16 @@ body.tab-ov .tpx{display:none}
 .tsplit .sp b{font-weight:600;font-variant-numeric:tabular-nums}
 .tsplit .sp b.red{color:#E2604F}
 .tsplit .sp b.green{color:#3FA97C}
+/* 试算卡：按计划成交后的钱账。红盈绿亏，跟随 A 股习惯 */
+.tcalc{margin:0 0 10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
+.tcalc .tch{font-size:10px;color:var(--tx3);margin-bottom:4px;letter-spacing:.2px}
+.tcalc .tcr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11.5px;color:var(--tx2);line-height:1.85}
+.tcalc .tcr b{font-weight:620;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tcalc .tcr b.red{color:#E2604F}
+.tcalc .tcr b.green{color:#3FA97C}
+.tcalc .tcr b em{font-style:normal;font-weight:600;color:var(--tx3)}
+.tcalc .tcr b em.red{color:#E2604F}
+.tcalc .tcr b em.green{color:#3FA97C}
 .tw{padding:11px 0;border-top:1px solid rgba(255,255,255,.05);cursor:default}
 .tw:first-of-type{border-top:none;padding-top:2px}
 .tw.cut{cursor:pointer}
@@ -594,6 +605,12 @@ body.tab-ov .tpx{display:none}
   .acrow .ab{gap:10px}
   .acrow .ab span{font-size:10px}
   .acrow .ab b{font-size:12px}
+}
+
+/* 四张卡在手机上排不下一行：硬挤会把最后一张甩到第二行开头（3+1），比 2×2 难看。
+   390 及以上仍排一行（每张 85px 够放「328.8g」），再窄就两列两行。 */
+@media (max-width:380px){
+  .tplan.four{grid-template-columns:repeat(2,1fr)}
 }
 
 /* P16b 仓位进度条：20 段色块，点亮的段不透明、未点亮压到 .14。
@@ -851,7 +868,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.61 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.62 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -4841,6 +4858,12 @@ function computeTakes(){
     out.stop = { grams:0, amount:0, avg:0, gain:0, n:0 };
     out.avgSell = 0;
     out.expGain = 0;
+    /* 没有成交位：试算只剩「一股没卖」这一种答案。字段照样给全，
+       调用方（测试 / 外部读取）不必先判断有没有 calc。 */
+    out.calc = {
+      proceeds: 0, costBase: 0, pnl: 0, pnlPct: 0,
+      leftGrams: grams, leftFloat: (nowCny - cost)*grams
+    };
     out.summary = hitG > 0
       ? ("底仓 " + gnum(keepG) + " 克加上 " + hitRows.length + " 笔到价待核销（" + gnum(hitG)
          + " 克）已占满持仓，本轮不再新增减仓计划。")
@@ -4890,6 +4913,29 @@ function computeTakes(){
   var profitAgg = agg(execPicked.filter(function(m){ return !m.belowCost; }));
   var stopAgg = agg(execPicked.filter(function(m){ return m.belowCost; }));
 
+  /* 试算：这份计划全部成交后的钱账。
+     · proceeds 卖出回笼 = ∑ 价位 × 克重
+     · costBase 这批卖出的成本 = 持仓成本 × 克重
+     · pnl = proceeds − costBase，已实现盈亏；止盈赚的与止损亏的直接相抵，是净额
+     · leftGrams 卖完还剩多少克，按现价给浮动盈亏
+     只算执行位：到价待核销还没成交，算进「已实现」就是无中生有。 */
+  var proceeds = 0, cutSum = 0;
+  execPicked.forEach(function(m){
+    proceeds += m.cnyVal*m.cut;
+    cutSum += m.cut;
+  });
+  cutSum = Math.round(cutSum*1000)/1000;
+  var costBase = cost*cutSum;
+  var leftG = Math.round(Math.max(0, grams - cutSum)*1000)/1000;
+  var calc = {
+    proceeds: proceeds,
+    costBase: costBase,
+    pnl: proceeds - costBase,
+    pnlPct: costBase > 0 ? (proceeds/costBase - 1)*100 : 0,
+    leftGrams: leftG,
+    leftFloat: leftG > 0 ? (nowCny - cost)*leftG : 0
+  };
+
   // 只把真正分到克重的位写进计划，参考位不占额度
   execPicked.forEach(function(m){
     S.cfg.takePlan[m.name] = { cut: m.cut, price: m.cnyVal, at: nowTs };
@@ -4927,6 +4973,7 @@ function computeTakes(){
   out.stop = stopAgg;
   out.avgSell = execG ? execPicked.reduce(function(a,m){ return a + m.cnyVal*m.cut; },0)/execG : 0;
   out.expGain = out.avgSell ? (out.avgSell/cost - 1)*100 : 0;
+  out.calc = calc;
   out.summary = takeSummary(execPicked, above, ctx, grams, out);
   return out;
 }
@@ -5500,17 +5547,23 @@ function unionById(remoteArr, localArr, del, stamp){
 function mergeRemote(remote, preferLocal){
   if(!remote) return S.cfg;
   if(preferLocal === undefined) preferLocal = true;
-  var del = {}, seen = {}, list = [], out;
+  var del = {}, idx = {}, list = [], out;
   (remote.del || []).concat(S.cfg.del || []).forEach(function(x){ if(x) del[x] = 1; });
+  /* 同 id 不再「先到先得」，改为**谁的编辑更新谁赢**（up 字段）。
+     原来只做并集、远端对象先占位：本地把某笔买入改克重 / 换归属账户后，
+     下一次 push 合并就被远端旧对象盖回去 —— 界面上就是「保存了但没生效」。
+     老数据没有 up，按 0 算，仍然远端优先，与改动前行为一致。 */
   function take(x){
-    if(!x || !x.id || del[x.id] || seen[x.id]) return;
-    seen[x.id] = 1; list.push(x);
+    if(!x || !x.id || del[x.id]) return;
+    var i = idx[x.id];
+    if(i === undefined){ idx[x.id] = list.length; list.push(x); return; }
+    if((Number(x.up) || 0) > (Number(list[i].up) || 0)) list[i] = x;
   }
   (remote.buys || []).forEach(take);
   (S.cfg.buys || []).forEach(take);
   var buys = list.slice().sort(byTime);
 
-  list = []; seen = {};
+  list = []; idx = {};
   (remote.sells || []).forEach(take);
   (S.cfg.sells || []).forEach(take);
   var sells = list.slice().sort(byTime);
@@ -5564,12 +5617,16 @@ function mergeRemote(remote, preferLocal){
   /* 账户按 id 并集，删除靠 delAccts 墓碑。同名不同 id **不合并** ——
      两台设备各建一个"招行"时宁可留两条让用户自己删，
      猜着合并会把两笔记录挂到同一个账户上，比重复更糟。 */
-  var dA = {}, seenA = {}, accts = [];
+  var dA = {}, idxA = {}, accts = [];
   (remote.delAccts || []).concat(S.cfg.delAccts || []).forEach(function(x){ if(x) dA[x] = 1; });
+  /* 账户同理：改名 / 改备注 / 改颜色都会打 up，合并时取新的那个。
+     没有 up 的老账户还是远端优先，不会因为一次改名把别处的信息抹掉。 */
   [remote.accounts || [], S.cfg.accounts || []].forEach(function(arr){
     arr.forEach(function(a){
-      if(!a || !a.id || dA[a.id] || seenA[a.id]) return;
-      seenA[a.id] = 1; accts.push(a);
+      if(!a || !a.id || dA[a.id]) return;
+      var i = idxA[a.id];
+      if(i === undefined){ idxA[a.id] = accts.length; accts.push(a); return; }
+      if((Number(a.up) || 0) > (Number(accts[i].up) || 0)) accts[i] = a;
     });
   });
   if(!accts.length) accts = [{ id:"a0", name:"默认账户", note:"", color:"#D4A24C", at:0 }];
@@ -8084,7 +8141,7 @@ function saveAcct(){
   var list = acctList().slice();
   if(editing){
     var a = list.filter(function(x){ return x.id === editing; })[0];
-    if(a){ a.name = name; a.note = note; a.color = S.acctColor; }
+    if(a){ a.name = name; a.note = note; a.color = S.acctColor; a.up = Date.now(); }
   } else {
     var nid = "a" + Date.now() + Math.floor(Math.random()*1000);
     list.push({ id:nid, name:name, note:note, color:S.acctColor, at:Date.now() });
@@ -8107,9 +8164,9 @@ function askDelAcct(id){
   doDelAcct(id);
 }
 function moveAcct(from, to){
-  var n = 0;
-  (S.cfg.buys || []).forEach(function(b){ if(acctOf(b.acct) === from){ b.acct = to; n++; } });
-  (S.cfg.sells || []).forEach(function(x){ if(acctOf(x.acct) === from){ x.acct = to; n++; } });
+  var n = 0, ts = Date.now();
+  (S.cfg.buys || []).forEach(function(b){ if(acctOf(b.acct) === from){ b.acct = to; b.up = ts; n++; } });
+  (S.cfg.sells || []).forEach(function(x){ if(acctOf(x.acct) === from){ x.acct = to; x.up = ts; n++; } });
   if(S.cfg.acctLast === from) S.cfg.acctLast = to;
   return n;
 }
@@ -8212,10 +8269,19 @@ function renderTake(){
     var pg = ts.profit || {}, sg = ts.stop || {};
     var hasProfit = (pg.grams||0) > 0.05;
     var hasStop = (sg.grams||0) > 0.05;
-    html = '<div class="tplan">' +
+    /* 卡片顺序固定：计划量 → 次数 → 止盈均价 → 全部执行均价。
+       第四张只在「止盈 + 止损同时在」时出现：纯止盈或纯止损时它等于上面那个均价，
+       摆两张一样的卡只是噪音。
+       名字按实际卖出来说：计划把持仓卖光才叫「清仓」，留了底仓就叫「计划均价」——
+       留着 20 克还写「清仓均价」，是把话说满了。 */
+    var sellsAll = ts.planGrams >= (ts.holdGrams || 0) - 0.1;
+    html = '<div class="tplan'+(hasProfit && hasStop ? " four" : "")+'">' +
       '<div class="bi"><span>本轮计划减</span><b class="num">'+gnum(ts.planGrams)+'<i>g</i></b></div>' +
       '<div class="bi"><span>分几次</span><b class="num">'+ts.cutCount+'<i>次</i></b></div>' +
       '<div class="bi"><span>'+(hasProfit ? "止盈均价" : "加权均价")+'</span><b class="num gold">'+num(hasProfit ? pg.avg : ts.avgSell,0)+'</b></div>' +
+      (hasProfit && hasStop
+        ? '<div class="bi"><span>'+(sellsAll ? "清仓均价" : "计划均价")+'</span><b class="num">'+num(ts.avgSell,0)+'</b></div>'
+        : '') +
       '</div>';
     if(hasProfit || hasStop){
       html += '<div class="tsplit">';
@@ -8228,6 +8294,24 @@ function renderTake(){
              +' · <b class="'+(sg.gain>=0?"red":"green")+'">'+pct(sg.gain,1)+'</b></div>';
       }
       html += '</div>';
+    }
+    var cl = ts.calc;
+    if(cl){
+      var win = cl.pnl >= 0;
+      var lwin = cl.leftFloat >= 0;
+      html += '<div class="tcalc">' +
+        '<div class="tch">按计划执行后 · 试算</div>' +
+        '<div class="tcr"><span>卖出回笼</span><b class="num">¥' + money(cl.proceeds,0) + '</b></div>' +
+        '<div class="tcr"><span>已实现盈亏</span><b class="num ' + (win?"red":"green") + '">' +
+          (win ? "+" : "\u2212") + '¥' + money(Math.abs(cl.pnl),0) + ' · ' +
+          (cl.pnlPct >= 0 ? "+" : "\u2212") + Math.abs(cl.pnlPct).toFixed(1) + '%</b></div>' +
+        '<div class="tcr"><span>卖出后剩余</span><b class="num">' + gnum(cl.leftGrams) + 'g' +
+          (cl.leftGrams >= 0.1
+            ? '<em class="' + (lwin?"red":"green") + '"> · 浮动 ' + (lwin ? "+" : "\u2212") +
+              '¥' + money(Math.abs(cl.leftFloat),0) + '</em>'
+            : '<em> · 不足 1 手</em>') +
+          '</b></div>' +
+        '</div>';
     }
   } else {
     html = '<div class="tplan">' +
@@ -8971,6 +9055,7 @@ function saveBuy(){
     if(b){
       b.name = name; b.gram = gram; b.priceCny = priceCny; b.time = iso; b.note = note;
       b.acct = acct;                    /* 改归属只换指针，不动金额 */
+      b.up = Date.now();                /* 合并时用：这次编辑比远端的旧版本新 */
     }
     pushFeed("gear", "修改买入：" + name, gnum(gram) + " g × " + num(priceCny,2) + " 元/克");
   } else {
@@ -9032,6 +9117,7 @@ function saveSell(){
       var hadAllot = !!s0.allot;
       s0.name = name; s0.gram = gram; s0.priceCny = priceCny; s0.time = iso; s0.note = note;
       s0.acct = acct;
+      s0.up = Date.now();               /* 同上：不让合并把这次修改盖回旧值 */
       var r2 = allotSell(gram, cnyToUsd(priceCny), gram * priceCny);
       if(r2){ s0.allot = r2.lot; hit = r2.hit; }
       else if(hadAllot) delete s0.allot;
