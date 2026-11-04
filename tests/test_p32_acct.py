@@ -440,19 +440,20 @@ def test_s3_cost_left_does_not_add_up(env):
 
 
 def test_s4_card_header_uses_global(env):
-    """卡片头三个数取全局，不由账户行累加。"""
+    """账户区不再重复全账户的三个数；全账户口径只在持仓汇总卡，且取全局、不累加账户行。"""
     p = env(mixed()).page
     to_pos(p)
     p.wait_for_timeout(320)
     d = p.evaluate("""() => {
-        const S = window.__xt.state(), h = window.__xt.holdStats();
-        const cny = S.price * S.fx / 31.1035;
-        const head = [...document.querySelectorAll('#acctBox .acsum .it')]
+        const dup = document.querySelectorAll('#acctBox .acsum').length;
+        const it = [...document.querySelectorAll('#posBox .posmini .it')]
           .map(n => n.innerText.replace(/\\s+/g, ' ').trim());
-        return {pnl: h.grams * (cny - h.avg), head: head};
+        return {dup: dup, it: it};
     }""")
-    pnl_txt = [x for x in d["head"] if "浮动盈亏" in x][0]
-    assert str(int(round(d["pnl"]))) in pnl_txt.replace(",", ""), (d["pnl"], pnl_txt)
+    assert d["dup"] == 0, d
+    cost = [x for x in d["it"] if "持仓成本" in x][0]
+    # 全局成本 14250；账户行相加是 14500 —— 显示必须是前者
+    assert "14,250" in cost, cost
 
 
 def test_s5_filter_rescopes_summary_only(env):

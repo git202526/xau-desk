@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.62 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.63 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -498,6 +498,7 @@ body.tab-ov .tpx{display:none}
 .tsplit .sp em{display:inline-block;width:5px;height:5px;border-radius:50%;font-style:normal}
 .tsplit .sp em.p{background:#C9973F}
 .tsplit .sp em.s{background:#6B7280}
+.tsplit .sp em.h{background:#C4703F}
 .tsplit .sp b{font-weight:600;font-variant-numeric:tabular-nums}
 .tsplit .sp b.red{color:#E2604F}
 .tsplit .sp b.green{color:#3FA97C}
@@ -541,6 +542,30 @@ body.tab-ov .tpx{display:none}
 .posmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
+/* 盈亏试算：距回本单价差多少 + 成本 +5/10/15/20% 各赚多少 */
+.pnlcalc{margin-top:14px;padding:11px 12px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.022)}
+.pnlcalc .pch{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.pnlcalc .pch span{font-size:11px;color:var(--tx2);font-weight:600}
+.pnlcalc .pch em{font-style:normal;font-size:9.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcgap{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
+  padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pcgap span{display:block;font-size:10px;color:var(--tx3);margin-bottom:1px}
+.pcgap b{display:block;font-size:19px;font-weight:660;letter-spacing:-.4px;white-space:nowrap;color:var(--tx)}
+.pcgap b.gold{color:var(--gold)}
+.pcgap b.red{color:#E2604F}
+.pcgap b i{font-size:10px;font-style:normal;font-weight:400;color:var(--tx3);margin-left:3px;letter-spacing:0}
+.pcgap em{display:block;font-style:normal;font-size:9.5px;color:var(--tx3);margin-top:2px}
+.pcgap .pg{text-align:right;flex:0 0 auto}
+.pcgap .pg b{font-size:14px;font-weight:640}
+.pcgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pci{min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:9px;padding:7px 8px}
+.pci span{display:block;font-size:9.5px;color:var(--tx3);white-space:nowrap}
+.pci b{display:block;font-size:12.5px;font-weight:640;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pci b.red{color:#E2604F}
+.pci em{display:block;font-style:normal;font-size:9.5px;color:var(--tx3);margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:359px){.pcgrid{grid-template-columns:repeat(2,1fr)}}
 
 /* === P32 账户：筛选条 / 当前账户行 / 账户卡片 === */
 .acctbar{display:flex;gap:6px;overflow-x:auto;margin:-2px 0 12px;padding-bottom:2px;
@@ -553,11 +578,8 @@ body.tab-ov .tpx{display:none}
 .acctbar button b{font-weight:600;color:var(--tx3);font-size:10.5px}
 .acctbar .dot{width:6px;height:6px;border-radius:50%}
 .acctnow{font-size:11px;color:var(--gold);margin:-4px 0 10px}
-.acsum{display:flex;gap:16px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)}
-.acsum .it span{display:block;font-size:10.5px;color:var(--tx3)}
-.acsum .it b{font-size:14px;font-weight:650}
 .acrow{padding:10px 0;border-top:1px solid rgba(255,255,255,.05);cursor:pointer}
-.acsum + .acrow{border-top:none;padding-top:12px}
+.acrow:first-child{border-top:none;padding-top:2px}
 .acrow.on{background:rgba(212,162,76,.07);border-radius:8px;padding-left:8px;padding-right:8px;margin:0 -8px}
 .acrow .ah{display:flex;align-items:center;gap:6px}
 .acrow .ah .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
@@ -868,7 +890,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.62 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.63 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -4856,13 +4878,23 @@ function computeTakes(){
     out.allowStop = allowStop;
     out.profit = { grams:0, amount:0, avg:0, gain:0, n:0 };
     out.stop = { grams:0, amount:0, avg:0, gain:0, n:0 };
-    out.avgSell = 0;
-    out.expGain = 0;
-    /* 没有成交位：试算只剩「一股没卖」这一种答案。字段照样给全，
-       调用方（测试 / 外部读取）不必先判断有没有 calc。 */
+    /* 底仓占满时没有新计划，但已到价的那几笔照样要卖、照样有钱进账。
+       试算若把它们漏掉，就会凭空多出几十克"卖不掉的剩余"。 */
+    var hg0 = 0, ha0 = 0;
+    hitRows.forEach(function(m){ hg0 += m.cut; ha0 += m.cnyVal*m.cut; });
+    hg0 = Math.round(hg0*1000)/1000;
+    out.allGrams = hg0;
+    out.hitCount = hitRows.length;
+    out.avgSell = hg0 ? ha0/hg0 : 0;
+    out.expGain = out.avgSell && cost ? (out.avgSell/cost - 1)*100 : 0;
+    var left0 = Math.round(Math.max(0, grams - hg0)*1000)/1000;
+    /* 字段照样给全：调用方（测试 / 外部读取）不必先判断有没有 calc。 */
     out.calc = {
-      proceeds: 0, costBase: 0, pnl: 0, pnlPct: 0,
-      leftGrams: grams, leftFloat: (nowCny - cost)*grams
+      proceeds: ha0, costBase: cost*hg0,
+      pnl: ha0 - cost*hg0,
+      pnlPct: hg0 ? (ha0/(cost*hg0) - 1)*100 : 0,
+      sellGrams: hg0,
+      leftGrams: left0, leftFloat: left0 > 0 ? (nowCny - cost)*left0 : 0
     };
     out.summary = hitG > 0
       ? ("底仓 " + gnum(keepG) + " 克加上 " + hitRows.length + " 笔到价待核销（" + gnum(hitG)
@@ -4918,9 +4950,14 @@ function computeTakes(){
      · costBase 这批卖出的成本 = 持仓成本 × 克重
      · pnl = proceeds − costBase，已实现盈亏；止盈赚的与止损亏的直接相抵，是净额
      · leftGrams 卖完还剩多少克，按现价给浮动盈亏
-     只算执行位：到价待核销还没成交，算进「已实现」就是无中生有。 */
+     口径是「全部要卖的量」，含已到价待核销那几笔 —— 它们价已到、只是还没在账本里核销，
+     漏掉就会算出 54 克卖不掉的剩余，而实际持仓里根本没有这些余额。 */
   var proceeds = 0, cutSum = 0;
   execPicked.forEach(function(m){
+    proceeds += m.cnyVal*m.cut;
+    cutSum += m.cut;
+  });
+  hitRows.forEach(function(m){
     proceeds += m.cnyVal*m.cut;
     cutSum += m.cut;
   });
@@ -4932,6 +4969,7 @@ function computeTakes(){
     costBase: costBase,
     pnl: proceeds - costBase,
     pnlPct: costBase > 0 ? (proceeds/costBase - 1)*100 : 0,
+    sellGrams: cutSum,
     leftGrams: leftG,
     leftFloat: leftG > 0 ? (nowCny - cost)*leftG : 0
   };
@@ -4960,6 +4998,10 @@ function computeTakes(){
   out.execGrams = execG;
   out.planGrams = execPicked.length ? planG : 0;
   out.hitGrams = hitG;
+  /* 全部要卖的量 = 本轮新增 + 已到价待核销。「底仓 0 却只能减 83%」不是少算了，
+     是另外 17% 早就到价、正等着核销；两个数加在一起才是 100%。 */
+  out.allGrams = Math.round((out.planGrams + hitG)*1000)/1000;
+  out.hitCount = hitRows.length;
   out.keepGrams = keepG;
   out.ratio = ratio;
   out.holdGrams = grams;
@@ -4971,7 +5013,8 @@ function computeTakes(){
   out.allowStop = allowStop;
   out.profit = profitAgg;
   out.stop = stopAgg;
-  out.avgSell = execG ? execPicked.reduce(function(a,m){ return a + m.cnyVal*m.cut; },0)/execG : 0;
+  /* 清仓 / 计划均价是「全部执行后的加权卖出价」，同样含到价待核销那几笔 */
+  out.avgSell = calc.sellGrams ? calc.proceeds/calc.sellGrams : 0;
   out.expGain = out.avgSell ? (out.avgSell/cost - 1)*100 : 0;
   out.calc = calc;
   out.summary = takeSummary(execPicked, above, ctx, grams, out);
@@ -5032,9 +5075,18 @@ function takeSummary(picked, all, ctx, grams, meta){
   }
   var dirTxt = ctx.dir === "dn" ? "空头环境" : ctx.dir === "up" ? "多头环境" : "震荡环境";
   var total = picked.reduce(function(a,m){ return a + m.cut; }, 0);
+  var hitG = Number(meta && meta.hitGrams) || 0;
+  var hitN = Number(meta && meta.hitCount) || 0;
+  var allG = Math.round((total + hitG)*1000)/1000;
   var first = picked[0], last = picked[picked.length-1];
-  var s = dirTxt + "下分 " + picked.length + " 次减仓，计划减 " + gnum(total) + " 克（占持仓 "
-        + Math.round(total/grams*100) + "%）。首单 " + gnum(first.cut) + "g @ " + num(first.cnyVal,0)
+  /* 只报「本轮计划减」的百分比会让人误会：底仓 0 却只减 83%，
+     其实另外那 17% 早就到价、正等核销。两句并成一句说清总量。 */
+  var s = dirTxt + "下分 " + picked.length + " 次减仓，计划减 " + gnum(total) + " 克"
+        + (hitG > 0
+           ? ("；另有 " + hitN + " 笔已到价待核销 " + gnum(hitG) + " 克，两份合计 " + gnum(allG)
+              + " 克（占持仓 " + Math.round(allG/grams*100) + "%）")
+           : ("（占持仓 " + Math.round(total/grams*100) + "%）"))
+        + "。首单 " + gnum(first.cut) + "g @ " + num(first.cnyVal,0)
         + " 元/克，末单 " + gnum(last.cut) + "g @ " + num(last.cnyVal,0) + " 元/克。";
   var pg = meta.profit, sg = meta.stop;
   if(pg && pg.grams > 0.05){
@@ -7965,33 +8017,55 @@ function renderPos(){
       '<div class="it"><span>收益率</span><b class="num '+cls+'">'+(pctv===null?"--":pctv.toFixed(2)+"%")+'</b></div>' +
       (hs.sold > 0 ? '<div class="it"><span>已减 '+gnum(hs.sold)+' g 实现</span><b class="num '+(hs.realized>=0?"red":"green")+'">'+(hs.realized>=0?"+":"")+money(hs.realized,0)+'</b></div>' : '') +
     '</div>';
+
+  /* 盈亏试算：现价离回本还差多少（元/克），以及成本 +5/10/15/20% 各赚多少钱。
+     金额按「持仓成本 × 百分比」算，不是按现价 —— 说的是"盈利 5%"，
+     基准只能是成本；顺手给出对应价位，一眼知道涨到多少。
+     口径跟随账户筛选，与上面的大字汇总保持一致。 */
+  if(nowCny !== null){
+    var gapPx = backPx - nowCny;
+    var gapNeed = nowCny > 0 ? gapPx/nowCny*100 : null;
+    html += '<div class="pnlcalc">' +
+      '<div class="pch"><span>盈亏试算</span><em>持仓 ' + gnum(hs.grams) + 'g · 均价 ' + num(hs.avg,2) + '</em></div>' +
+      '<div class="pcgap">' +
+        '<div>' +
+          '<span>距回本单价</span>' +
+          '<b class="num ' + (gapPx > 0 ? "gold" : "red") + '">' +
+            (gapPx > 0 ? "还差 " : "已过 ") + num(Math.abs(gapPx),2) + '<i>元/克</i></b>' +
+          '<em>回本 ' + num(backPx,2) + ' · 现价 ' + num(nowCny,2) +
+            (gapNeed !== null && gapNeed > 0 ? ' · 需涨 ' + num(gapNeed,2) + '%' : '') + '</em>' +
+        '</div>' +
+        '<div class="pg"><span>全仓 ' + (gapPx > 0 ? "还差" : "已过") + '</span>' +
+          '<b class="num ' + (gapPx > 0 ? "" : "red") + '">¥' + money(Math.abs(gapPx)*hs.grams,0) + '</b></div>' +
+      '</div>' +
+      '<div class="pcgrid">' +
+        [5,10,15,20].map(function(k){
+          return '<div class="pci" data-p="' + k + '">' +
+            '<span>成本 +' + k + '%</span>' +
+            '<b class="num red">¥' + money(costLeft*k/100,0) + '</b>' +
+            '<em>→ ' + num(hs.avg*(1 + k/100),2) + '</em>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
   box.innerHTML = sanitizeHtml(html);
   bindAcctBar(box);
 }
 
-/* 账户卡片：每行一个账户，顶部三个数**直接取全局 holdStats()**，不由下面几行累加。
-   卖出不按账户重新分摊成本，账户成本相加天然不等于全局成本（差额 Σ grams_i×(avg−avg_i)），
-   所以这一条必须写死在脚注里，防止后来的人"顺手加一下"。 */
+/* 账户卡片：每行一个账户。顶部不再重复「全账户克重 / 持仓成本 / 浮动盈亏」——
+   那三个数正上方的持仓汇总（#posBox）已经用大字与三张小卡说过了，
+   同一个屏里读两遍只是噪音。账户区只负责"这笔钱在哪个账户里"。 */
 function renderAcctCard(){
   var box = $("acctBox");
   if(!box) return;
-  var rows = acctStats(), all = holdStats();
+  var rows = acctStats();
   var meta = $("acctMeta");
   if(meta) meta.textContent = rows.length ? (rows.length + " 个") : "";
 
-  var nowCny = (S.fx && S.price) ? S.price*S.fx/OZ : null;
-  var costAll = all.grams * all.avg;
-  var pnlAll = nowCny !== null ? all.grams*(nowCny - all.avg) : null;
-  var clsAll = pnlAll===null ? "flatc" : pnlAll>0 ? "red" : pnlAll<0 ? "green" : "flatc";
-
   var cbv = Number(S.cfg.comeback); if(!isFinite(cbv)) cbv = 10;
 
-  var html = '<div class="acsum">' +
-    '<div class="it"><span>全账户克重</span><b class="num">' + gnum(all.grams) + ' g</b></div>' +
-    '<div class="it"><span>持仓成本</span><b class="num">' + money(costAll,0) + '</b></div>' +
-    '<div class="it"><span>浮动盈亏</span><b class="num ' + clsAll + '">' +
-      (pnlAll===null ? "--" : ((pnlAll>0?"+":"") + money(pnlAll,0))) + '</b></div>' +
-  '</div>';
+  var html = '';
 
   rows.forEach(function(r){
     var rc = r.pnl===null ? "flatc" : r.pnl>0 ? "red" : r.pnl<0 ? "green" : "flatc";
@@ -8015,7 +8089,8 @@ function renderAcctCard(){
         : '<div class="ab empty">还没开始买 · 0 笔</div>') +
     '</div>';
   });
-  html += '<div class="acfoot">账户行是各账户自己的口径；卡片顶部三个数取自全账户汇总，不由下面几行累加。</div>';
+  html += '<div class="acfoot">账户行是各账户自己的口径：卖出不按账户重摊成本，' +
+          '几行相加不等于全账户的持仓成本（差额来自各账户均价不同）。</div>';
   box.innerHTML = sanitizeHtml(html);
 
   Array.prototype.forEach.call(box.querySelectorAll(".dot"), function(n){
@@ -8270,20 +8345,22 @@ function renderTake(){
     var hasProfit = (pg.grams||0) > 0.05;
     var hasStop = (sg.grams||0) > 0.05;
     /* 卡片顺序固定：计划量 → 次数 → 止盈均价 → 全部执行均价。
-       第四张只在「止盈 + 止损同时在」时出现：纯止盈或纯止损时它等于上面那个均价，
-       摆两张一样的卡只是噪音。
+       第四张在「止盈 + 止损同时在」，或还有到价待核销时出现 —— 这两种情况下
+       它都跟上一次那个均价不是同一个数，摆出来才有信息。
        名字按实际卖出来说：计划把持仓卖光才叫「清仓」，留了底仓就叫「计划均价」——
        留着 20 克还写「清仓均价」，是把话说满了。 */
-    var sellsAll = ts.planGrams >= (ts.holdGrams || 0) - 0.1;
-    html = '<div class="tplan'+(hasProfit && hasStop ? " four" : "")+'">' +
+    var hitG = Number(ts.hitGrams) || 0;
+    var sellsAll = (ts.planGrams + hitG) >= (ts.holdGrams || 0) - 0.1;
+    var four = (hasProfit && hasStop) || hitG > 0;
+    html = '<div class="tplan'+(four ? " four" : "")+'">' +
       '<div class="bi"><span>本轮计划减</span><b class="num">'+gnum(ts.planGrams)+'<i>g</i></b></div>' +
       '<div class="bi"><span>分几次</span><b class="num">'+ts.cutCount+'<i>次</i></b></div>' +
       '<div class="bi"><span>'+(hasProfit ? "止盈均价" : "加权均价")+'</span><b class="num gold">'+num(hasProfit ? pg.avg : ts.avgSell,0)+'</b></div>' +
-      (hasProfit && hasStop
+      (four
         ? '<div class="bi"><span>'+(sellsAll ? "清仓均价" : "计划均价")+'</span><b class="num">'+num(ts.avgSell,0)+'</b></div>'
         : '') +
       '</div>';
-    if(hasProfit || hasStop){
+    if(hasProfit || hasStop || hitG > 0){
       html += '<div class="tsplit">';
       if(hasProfit){
         html += '<div class="sp"><em class="p"></em>止盈 '+gnum(pg.grams)+'g · 均价 '+num(pg.avg,0)
@@ -8292,6 +8369,12 @@ function renderTake(){
       if(hasStop){
         html += '<div class="sp"><em class="s"></em>止损 '+gnum(sg.grams)+'g · 均价 '+num(sg.avg,0)
              +' · <b class="'+(sg.gain>=0?"red":"green")+'">'+pct(sg.gain,1)+'</b></div>';
+      }
+      /* 到价待核销：价已经到了、计划还在，只是还没在账本里记减仓。
+         单列一行，否则「计划减 274.5g」加「剩余 54g」会被读成"凭空少减了"。 */
+      if(hitG > 0){
+        html += '<div class="sp"><em class="h"></em>到价待核销 ' + gnum(hitG) + 'g · 与计划合计覆盖 '
+             + Math.round((ts.planGrams + hitG)/(ts.holdGrams||1)*100) + '%</div>';
       }
       html += '</div>';
     }
@@ -8305,11 +8388,14 @@ function renderTake(){
         '<div class="tcr"><span>已实现盈亏</span><b class="num ' + (win?"red":"green") + '">' +
           (win ? "+" : "\u2212") + '¥' + money(Math.abs(cl.pnl),0) + ' · ' +
           (cl.pnlPct >= 0 ? "+" : "\u2212") + Math.abs(cl.pnlPct).toFixed(1) + '%</b></div>' +
-        '<div class="tcr"><span>卖出后剩余</span><b class="num">' + gnum(cl.leftGrams) + 'g' +
-          (cl.leftGrams >= 0.1
-            ? '<em class="' + (lwin?"red":"green") + '"> · 浮动 ' + (lwin ? "+" : "\u2212") +
-              '¥' + money(Math.abs(cl.leftFloat),0) + '</em>'
-            : '<em> · 不足 1 手</em>') +
+        '<div class="tcr"><span>卖出后剩余</span><b class="num">' +
+          (cl.leftGrams < 0.05
+            ? '已全部卖出<em> · 持仓清零</em>'
+            : gnum(cl.leftGrams) + 'g' +
+              (cl.leftGrams >= 0.1
+                ? '<em class="' + (lwin?"red":"green") + '"> · 浮动 ' + (lwin ? "+" : "\u2212") +
+                  '¥' + money(Math.abs(cl.leftFloat),0) + '</em>'
+                : '<em> · 不足 1 手</em>')) +
           '</b></div>' +
         '</div>';
     }
@@ -8363,7 +8449,9 @@ function renderTake(){
 
   box.innerHTML = sanitizeHtml(html);
   $("takeMeta").textContent = ts.cutCount
-    ? (ts.cutCount + " 次 · 减 " + gnum(ts.execGrams) + "g / 持仓 " + gnum(ts.holdGrams) + "g")
+    ? (ts.cutCount + " 次 · 减 " + gnum(ts.planGrams) + "g"
+       + (ts.hitGrams > 0 ? " + 到价 " + gnum(ts.hitGrams) + "g" : "")
+       + " / 持仓 " + gnum(ts.holdGrams) + "g")
     : ("底仓 " + gnum(ts.keepGrams||0) + "g · "
        + (ts.hitGrams > 0 ? "到价待核销 " + gnum(ts.hitGrams) + "g" : "本轮不减"));
 
@@ -9434,7 +9522,11 @@ function bindUI(){
 
   syncParamInputs();
   $("setKeep").addEventListener("input", function(){
-    var v = Number($("setKeep").value);
+    /* 把 0 改成 90：光标停在 0 后面，浏览器把新输入追加进去得到 "090"，再输一位变 "0900"。
+       数字框对前导零不做规范化，只能自己收。只处理「0 后面紧跟数字」这一种，
+       0.5 前面那个 0 不能被吃掉。 */
+    if(/^0\d/.test(this.value)) this.value = String(Number(this.value));
+    var v = Number(this.value);
     if(!isNaN(v)) S.cfg.keepGram = v;
     syncKeep();
   });
