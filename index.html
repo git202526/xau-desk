@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.63 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.64 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -555,6 +555,8 @@ body.tab-ov .tpx{display:none}
 .pcgap b.red{color:#E2604F}
 .pcgap b i{font-size:10px;font-style:normal;font-weight:400;color:var(--tx3);margin-left:3px;letter-spacing:0}
 .pcgap em{display:block;font-style:normal;font-size:9.5px;color:var(--tx3);margin-top:2px}
+.pcgap em .sg{display:inline-block}
+.pcgap em .sg+.sg{margin-left:7px}
 .pcgap .pg{text-align:right;flex:0 0 auto}
 .pcgap .pg b{font-size:14px;font-weight:640}
 .pcgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -890,7 +892,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.63 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.64 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -7991,6 +7993,7 @@ function renderPos(){
      与收益率方向一致，不取反。现价或汇率缺失时整项显示 --，不显示 0.00%。 */
   var cb = Number(S.cfg.comeback);
   if(!isFinite(cb)) cb = 10;
+  if(cb < 0) cb = 0;    /* 输入框有 min=0，但手输能绕过；回本价低于均价的话「已盈利」会算出负数 */
   var backPx = hs.avg + cb;
   var gapPct = (nowCny !== null && backPx > 0) ? (nowCny/backPx - 1)*100 : null;
   var gapTxt = "--", gapCls = "flatc";
@@ -8023,20 +8026,28 @@ function renderPos(){
      基准只能是成本；顺手给出对应价位，一眼知道涨到多少。
      口径跟随账户筛选，与上面的大字汇总保持一致。 */
   if(nowCny !== null){
-    var gapPx = backPx - nowCny;
+    var gapPx = backPx - nowCny;            /* >0 还没到回本价；<=0 已经回本 */
+    var backOk = gapPx <= 0;
+    /* 「已盈利」只能是相对成本的：回本价本身已经含了回本加点那一段，
+       拿现价减回本价当盈利，等于把客户自己的目标利润算成了本金。 */
+    var overCost = nowCny - hs.avg;
+    var overPct = hs.avg > 0 ? overCost/hs.avg*100 : null;
     var gapNeed = nowCny > 0 ? gapPx/nowCny*100 : null;
     html += '<div class="pnlcalc">' +
       '<div class="pch"><span>盈亏试算</span><em>持仓 ' + gnum(hs.grams) + 'g · 均价 ' + num(hs.avg,2) + '</em></div>' +
       '<div class="pcgap">' +
         '<div>' +
-          '<span>距回本单价</span>' +
-          '<b class="num ' + (gapPx > 0 ? "gold" : "red") + '">' +
-            (gapPx > 0 ? "还差 " : "已过 ") + num(Math.abs(gapPx),2) + '<i>元/克</i></b>' +
-          '<em>回本 ' + num(backPx,2) + ' · 现价 ' + num(nowCny,2) +
-            (gapNeed !== null && gapNeed > 0 ? ' · 需涨 ' + num(gapNeed,2) + '%' : '') + '</em>' +
+          '<span>' + (backOk ? "回本后盈利" : "距回本单价") + '</span>' +
+          '<b class="num ' + (backOk ? "red" : "gold") + '">' +
+            (backOk ? "已盈利 " : "还差 ") + num(backOk ? overCost : gapPx,2) + '<i>元/克</i></b>' +
+          /* 拆成两段：窄屏放不下时整段换行，而不是把「+16.20%」单独甩下去当孤儿 */
+          '<em><span class="sg">回本 ' + num(backPx,2) + ' · 现价 ' + num(nowCny,2) + '</span>' +
+            (backOk
+              ? (overPct !== null ? '<span class="sg">较成本 ' + pct(overPct,2) + '</span>' : '')
+              : (gapNeed !== null && gapNeed > 0 ? '<span class="sg">需涨 ' + num(gapNeed,2) + '%</span>' : '')) + '</em>' +
         '</div>' +
-        '<div class="pg"><span>全仓 ' + (gapPx > 0 ? "还差" : "已过") + '</span>' +
-          '<b class="num ' + (gapPx > 0 ? "" : "red") + '">¥' + money(Math.abs(gapPx)*hs.grams,0) + '</b></div>' +
+        '<div class="pg"><span>全仓 ' + (backOk ? "已赚" : "还差") + '</span>' +
+          '<b class="num ' + (backOk ? "red" : "") + '">¥' + money((backOk ? overCost : gapPx)*hs.grams,0) + '</b></div>' +
       '</div>' +
       '<div class="pcgrid">' +
         [5,10,15,20].map(function(k){

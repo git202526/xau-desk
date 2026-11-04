@@ -137,3 +137,77 @@ def test_e8_keep_input_keeps_decimal(make_env):
     p.fill("#setKeep", "")
     p.type("#setKeep", "0.5")
     assert p.eval_on_selector("#setKeep", "e => e.value") == "0.5"
+
+
+# === v6.64：已回本后的「距回本」栏 ===
+# 同一栏，未回本说「还差 X 元/克」，已回本就该说「已盈利 X 元/克」，
+# 基数是成本价（真正的盈利），不是回本价（回本价已经含了回本加点那一段）。
+
+def test_f1_back_above_shows_profit_per_gram(make_env):
+    """现价高于回本价：不再说「还差」，改为「已盈利 X 元/克」。"""
+    e, p = pos(make_env, cfg(cost=800.0))
+    d = ctx(p)
+    back = d["avg"] + d["comeback"]
+    assert d["nowCny"] > back, d
+    want = d["nowCny"] - d["avg"]
+    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    assert "还差" not in box, box
+    assert "已盈利" in box, box
+    assert ("%.2f" % want) in box, (want, box)
+
+
+def test_f2_back_above_keeps_breakeven_visible(make_env):
+    """换成「已盈利」之后，回本价这个参照点还得留着，否则不知道从哪算起的。"""
+    e, p = pos(make_env, cfg(cost=800.0))
+    d = ctx(p)
+    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    assert ("%.2f" % (d["avg"] + d["comeback"])) in box, box
+    assert ("%.2f" % d["nowCny"]) in box, box
+
+
+def test_f3_back_above_position_amount_is_profit(make_env):
+    """右侧「全仓」跟着变成已赚金额 = (现价 − 均价) × 克重。"""
+    import re
+    e, p = pos(make_env, cfg(cost=800.0))
+    d = ctx(p)
+    want = (d["nowCny"] - d["avg"]) * d["grams"]
+    txt = p.inner_text("#posBox .pnlcalc .pcgap .pg")
+    assert "已赚" in txt, txt
+    nums = [int(x.replace(",", "")) for x in re.findall(r"[\d,]+", txt) if x.strip(",")]
+    assert any(abs(n - want) <= 1 for n in nums), (want, txt)
+
+
+def test_f4_back_above_no_need_rise_hint(make_env):
+    """已回本还写「需涨 x%」，是在教人涨多少才回本 —— 已经回本了。"""
+    e, p = pos(make_env, cfg(cost=800.0))
+    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    assert "需涨" not in box, box
+    assert "较成本" in box, box     # 换成"比成本高多少"，这才是已回本时该给的参照
+
+
+def test_f5_exactly_at_back_counts_as_back(make_env):
+    """现价正好等于回本价：算已回本，盈利恰好是回本加点那一段。"""
+    e, p = pos(make_env, cfg(cost=800.0))
+    p.evaluate("""() => {
+        var S = window.__xt.state();
+        var now = S.price * S.fx / 31.1035;
+        var cb = Number(S.cfg.comeback);
+        if(!isFinite(cb)) cb = 10;
+        S.cfg.buys[0].priceCny = now - cb;
+        window.__xt.compute(); window.__xt.refreshAll();
+    }""")
+    p.wait_for_timeout(250)
+    d = ctx(p)
+    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    assert "已盈利" in box, box
+    assert ("%.2f" % d["comeback"]) in box, (d["comeback"], box)
+
+
+def test_f6_below_back_still_says_gap(make_env):
+    """未回本的老行为不能被误伤。"""
+    e, p = pos(make_env, cfg())
+    d = ctx(p)
+    assert d["nowCny"] < d["avg"] + d["comeback"], d
+    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    assert "还差" in box, box
+    assert "已盈利" not in box, box
