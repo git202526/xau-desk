@@ -47,7 +47,21 @@ jobs:
           git add jin10/ || true
           if git diff --cached --quiet; then
             echo "无变化"
-          else
-            git commit -m "chore: jin10 relay $(date -u +'%H:%M')"
-            git push
+            exit 0
           fi
+          git commit -m "chore: jin10 relay $(date -u +'%H:%M')"
+
+          # calendar.yml 每 6 小时在整点提交 calendar.json，与本任务的 */20 会撞在同一分钟。
+          # 远端已被推走时直接 push 会被拒（非快进），产物就白抓了 —— 而这一轮已经花掉
+          # 一次 tools/call 额度，丢掉等于纯损耗。rebase 后重推，最多 3 次。
+          # 两边的产物路径不重叠（calendar.json vs jin10/），rebase 不会冲突。
+          for i in 1 2 3; do
+            if git push; then
+              echo "push 成功（第 $i 次）"
+              exit 0
+            fi
+            echo "::warning::push 被拒，rebase 后重试（第 $i 次）"
+            git pull --rebase --autostash origin main || true
+          done
+          echo "::error::连续 3 次 push 失败"
+          exit 1
