@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """金十 MCP 一次性探测（J5）：只发最少的请求，把「文档没写清」的部分问明白。
 
+⚠ 这是一次性工具，不参与日常抓取。J5 已经用它跑过一轮，结论写在
+docs/J5-金十MCP实测记录.md：get_kline 只有分钟级、count 上限 100、窗口 24 小时，
+因此主脚本 v6.58 起已停抓 K 线与报价，只留日历。
+**品种代码在这里硬编码**，不读主脚本常量 —— 主脚本删掉 XAU_CODE 之后，
+这个脚本仍然要能单独跑，用于日后复核。
+
 要回答三个问题：
   1. get_kline 的 inputSchema 里 time / count 到底是什么类型、什么含义
   2. 一次能返回几根 K 线（文档只给了字段名，没给上限）
@@ -64,7 +70,7 @@ def main():
     # ---- 1 次：get_kline，同时验参数语义与返回上限 ----
     print("\n[probe] get_kline({code:XAUUSD, time:1d, count:%d}) ..." % count)
     try:
-        payload = mcp.call("get_kline", {"code": F.XAU_CODE, "time": "1d", "count": count})
+        payload = mcp.call("get_kline", {"code": "XAUUSD", "time": "1d", "count": count})
     except Exception as e:
         print("[probe] 失败：%s" % e)
         print("[probe] 说明 time=1d 不被接受，或 count 太大。未再重试，免得白烧额度。")

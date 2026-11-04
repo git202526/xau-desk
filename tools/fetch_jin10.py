@@ -6,6 +6,15 @@
 浏览器永远满足不了这个条件，所以只能由服务端拉取、落成同源静态 JSON。
 详见 docs/J2-金十MCP探测记录.md。
 
+只服务一件事：**财经日历**。
+
+金十另外两个工具（get_quote / get_kline）经 J5 实测都不适合本页：
+  * get_quote 的 time 精确到秒，报价本身是实时的，但中转最快 5 分钟一份快照，
+    救不了页面的 15 秒报价，且报价已有 Gold API + gold-api.cn 两层。
+  * get_kline 只有分钟级接口（count 上限 100、窗口 24 小时），凑不出 4H / 日线
+    任何一根 bar，当备源和当校验源都不成立。
+详见 docs/J5-金十MCP实测记录.md。两个解析函数保留（纯函数），要恢复把 guard 加回来即可。
+
 职责边界：
   * 只做「拉取 → 归一化 → 落盘」，不做任何业务判断
   * 每工具独立软上限，到顶只停该工具，不影响其它工具
@@ -37,48 +46,20 @@ TIMEOUT = int(os.environ.get("JIN10_TIMEOUT", "20"))
 MCP_ORIGIN = os.environ.get("JIN10_ORIGIN", "https://mcp.jin10.com")
 
 # ============================================================ 工具表
-# ttl   : 缓存有效期（秒），命中则完全不发请求
-# cap   : 每工具每自然日软上限（按 GMT+8 切日）
-# args  : 调用参数
-# 入参已按金十接入文档对齐（v6.57）：
-#   get_quote({code}) / get_kline({code, time?, count?}) / list_calendar({})
-# 仍待核实的是 get_kline 的 time 与 count 语义，见 docs/J5-金十接入文档对齐.md
-TOOLS = {
-    # 快讯 / 资讯（list_flash / search_flash / list_news / search_news / get_news）
-    # J4 起停抓：前端已移除这两个卡片，每天省下 900 次额度，留给日历与 K 线。
-    "list_calendar": {"ttl": 1200, "cap": 110, "limit": 100},
-    "get_quote":     {"ttl": 60, "cap": 200, "limit": 1},
-    # 服务端硬额度（官方口径）：每用户每工具每天 1500 次，按北京时间自然日重置。
-    # 「每工具」= 各工具各自独立计数，get_kline / list_calendar / get_quote 互不占用。
-    #
-    # cap 是本脚本自设的护栏，比硬额度低一截：撞硬额度的后果是该工具当天彻底停摆，
-    # 而撞软上限只是提前收手，第二天照常。1100 = 正常日耗 696 的 1.58 倍，
-    # 留 404 次给「源不可用时的重试风暴」，距 1500 还差 400 次安全带。
-    #
-    # limit 是「我们请求几根」，不是「服务端最多给几根」—— 后者从未实测过（J2 只发了 3 次
-    # 请求，全是 OPTIONS 与 initialize，一次 tools/call 都没打）。按 200 请求是因为不知道
-    # 上限，要多了可能直接 400。探明后可以放大，同样的额度拿到更深的窗口。
-    "get_kline":     {"ttl": 240, "cap": 1100, "limit": 100},
-}
-
-# K 线按周期分别设 TTL：四个周期共用一个额度池，不能让周线陪着小时线一起每 5 分钟抓一遍。
-# 日耗 = 24（周）+ 96（日）+ 288（4H）+ 288（1H）= 696 次，全天覆盖。
-KLINE_TTL = {"1w": 3600, "1d": 900, "4h": 300, "1h": 300}
-
-# 品种代码：金十官方示例给的是 XAUUSD（现货黄金）。
-# 之前写的 hf_XAU 纯属猜测，既不是金十代码也不是任何已知标准 —— 真发出去只会 400。
-XAU_CODE = "XAUUSD"
-KLINE_PERIODS = ["1w", "1d", "4h", "1h"]
-
-# ⚠ J5 实测（2026-11-04，tools/list + 真实 get_kline）：
-#   get_kline 的 schema 是 {code, time?: 起始Unix秒, count?: 1-100}，
-#   返回的是**分钟级** K 线，count 上限 100，且只在最近 24 小时窗口内。
-#   实测 count=100 拿到 100 根 1 分钟线，首末跨度 1.65 小时。
+# ttl : 缓存有效期（秒），命中则完全不发请求
+# cap : 每自然日软上限（按 GMT+8 切日）
 #
-# 这个口径凑不出 4H / 日线任何一根 bar，所以「1d/4h/1h 各 20 根对齐校验」
-# 根本无法成立 —— 原来的 KLINE_PERIODS 设计是错的。
-# 先默认停抓（不再发注定 400 的请求），等确认后整块下线或改作分钟级用途。
-ENABLE_KLINE = os.environ.get("JIN10_KLINE", "0") == "1"
+# 只剩 list_calendar 一项。get_quote / get_kline 的抓取已在 v6.58 下线，原因见文件头。
+# 入参已按实测 schema 对齐：list_calendar 不收任何参数，传 {start,end,limit} 会被拒。
+TOOLS = {
+    # 服务端硬额度（官方口径）：每用户每工具每天 1500 次，北京时间自然日重置。
+    # 「每工具」= 各自独立计数，所以只跑日历时整条 1500 都是它的。
+    #
+    # cap 自设 110，远低于 1500：日历本身每 20 分钟才抓一次（72 次/天），
+    # 110 只是防"某个 bug 导致每轮都判定过期"把额度打光的护栏。
+    # 撞硬额度 = 当天彻底停摆；撞软上限 = 提前收手，第二天照常。
+    "list_calendar": {"ttl": 1200, "cap": 110, "limit": 100},
+}
 
 # 协议版本：接入文档推荐 2025-11-25。J2 探测时用的是 2025-06-18，服务端也接受，
 # 但新版本对齐官方文档，避免将来被拒。
@@ -723,39 +704,6 @@ def run(force=False, mcp=None, log=print, now=None):
 
     guard("list_calendar", "calendar.json", do_cal)
 
-    # ---- 报价（第三层，仅中转落盘；浏览器侧默认不用） ----
-    def do_quote(left):
-        # 文档：get_quote({code})，单数、单个品种，不是 {codes:[...]}
-        p = call_one(mcp, "get_quote", {"code": XAU_CODE}, left, note)
-        return {"updatedAt": now.isoformat(), "items": norm_quote(p)}, 1
-
-    guard("get_quote", "quote.json", do_quote)
-
-    # ---- K 线（Binance 的备源） ----
-    # 四个周期共用 get_kline 这一个额度池，但各自落一个文件。
-    # guard 只按工具名记 summary，所以这里先把每周期的结果收进局部表再合并，
-    # 否则后一个周期会把前一个覆盖掉。
-    kl_sum = {}
-    for period in (KLINE_PERIODS if ENABLE_KLINE else []):
-        target = "kline_%s.json" % period
-
-        def do_kl(left, period=period):
-            # 实测 schema：{code, time?: 起始Unix秒(integer), count?: 1-100}。
-            # time 是「从哪一刻往后取」，不是周期名 —— 传 "1h" 会被参数校验直接拒。
-            # 往回推 count 分钟作为起点，保证能取满。
-            start = int(time.time()) - TOOLS["get_kline"]["limit"] * 60
-            p = call_one(mcp, "get_kline",
-                         {"code": XAU_CODE, "time": start,
-                          "count": TOOLS["get_kline"]["limit"]}, left, note)
-            bars = norm_kline(p)
-            if len(bars) < 10:
-                raise SourceDown("kline too short: %s" % len(bars))
-            return {"updatedAt": now.isoformat(), "period": period, "bars": bars}, 1
-
-        guard("get_kline", target, do_kl, KLINE_TTL.get(period))
-        kl_sum[period] = summary.pop("get_kline", "")
-    summary["get_kline"] = kl_sum
-
     save_state(st)
     return summary
 
@@ -788,8 +736,7 @@ def _selftest():
             {"jsonrpc": "2.0", "id": req["id"], "result": body}).encode()
 
     m = Mcp(MCP_URL, "test-token", opener=fake_transport)
-    global OUT_DIR, STATE_PATH, ENABLE_KLINE
-    ENABLE_KLINE = True                      # 自测要覆盖 K 线分支，正式跑默认关
+    global OUT_DIR, STATE_PATH
     OUT_DIR = "/tmp/jin10_selftest"
     STATE_PATH = os.path.join(OUT_DIR, "state.json")
     if os.path.isdir(OUT_DIR):
@@ -817,69 +764,53 @@ def _selftest():
 
     print("[自测] 第一次强制抓取")
     cal = read("calendar.json")["events"]
-    quo = read("quote.json")["items"]
-    kl = read("kline_1h.json")["bars"]
 
-    # ---- 入参：这三条守住"别把参数改回猜的那套" ----
+    # ---- 入参：守住"别把参数改回猜的那套" ----
     sent = {}
     for m_, n_, a_ in calls:
         if m_ == "tools/call":
             sent.setdefault(n_, a_)
-    check("list_calendar 传空对象（文档：不收参数）", sent.get("list_calendar") == {},
+    check("list_calendar 传空对象（实测：不收参数）", sent.get("list_calendar") == {},
           sent.get("list_calendar"))
-    check("get_quote 传 {code}，不是 {codes:[]}",
-          sent.get("get_quote") == {"code": "XAUUSD"}, sent.get("get_quote"))
-    kb = sent.get("get_kline") or {}
-    check("get_kline 入参严格按 schema（code/time:数字/count，无 period/limit）",
-          kb.get("code") == "XAUUSD" and isinstance(kb.get("time"), int)
-          and 1 <= kb.get("count", 0) <= 100
-          and "period" not in kb and "limit" not in kb, kb)
 
-    # ---- 解析：按文档字段 ----
+    # ---- 解析：按实测字段 ----
     check("list_calendar 落盘且有内容", len(cal) >= 3, len(cal))
     check("list_calendar 翻页 2 页（cursor）", r1.get("list_calendar", "").endswith("x2"),
           r1.get("list_calendar"))
     check("日历 pub_time 字符串 → 毫秒", cal[0]["t"] > 10 ** 12, cal[0]["t"])
     check("日历 consensus → fc", cal[0]["fc"] == "18万", cal[0].get("fc"))
     check("日历 title → name", cal[0]["name"] in ("非农就业", "事件0"), cal[0]["name"])
-    check("get_quote close 千分位解析", quo[0]["price"] == 4072.4, quo[0]["price"])
-    check("get_quote ups_percent 去 %", quo[0]["change"] == 1.23, quo[0]["change"])
-    check("get_quote 带上 open/high/low", (quo[0].get("open"), quo[0].get("high")) == (4050.1, 4080.0),
-          quo[0])
-    check("kline data.klines → bars", len(kl) >= 10, len(kl))
-    check("K 线秒级 time → 毫秒", kl[0]["t"] > 10 ** 12, kl[0]["t"])
-    check("K 线字段 o/h/l/c 齐全", all(kl[0].get(x) for x in "ohlc"), kl[0])
     check("快讯/资讯已停抓", "list_flash" not in r1 and "list_news" not in r1, r1)
-    # 解析函数保留（前端已不用），单独验一下字段映射，防日后恢复时踩空
+    check("get_quote / get_kline 已停抓（v6.58 起只跑日历）",
+          "get_quote" not in r1 and "get_kline" not in r1, r1)
+
+    # ---- 已下线的解析函数：直接喂假数据，防日后恢复时踩空 ----
+    q = norm_quote({"code": "XAUUSD", "name": "现货黄金", "close": "4,072.40",
+                    "open": "4,050.10", "high": 4080.0, "low": 4045.2,
+                    "ups_price": 23.1, "ups_percent": "+1.23%"})
+    check("norm_quote 单条对象 / close 千分位 / % 去符号",
+          len(q) == 1 and q[0]["price"] == 4072.4 and q[0]["change"] == 1.23, q)
+    kb2 = norm_kline({"data": {"klines": [
+        {"time": 1762200000 + i * 60, "open": 4050, "high": 4060,
+         "low": 4045, "close": 4055, "volume": 10} for i in range(3)]}})
+    check("norm_kline data.klines / 秒级 time → 毫秒", len(kb2) == 3 and kb2[0]["t"] > 10 ** 12, kb2)
     check("norm_news 字段映射", norm_news([{"news_id": "n1", "ts": 1762290000,
                                             "title": "标题一", "summary": "摘要一"}])[0]["title"] == "标题一")
 
     print("[自测] 第二次（TTL 未过期）")
     check("list_calendar 命中缓存", r2.get("list_calendar") == "cached", r2.get("list_calendar"))
-    check("get_quote 命中缓存", r2.get("get_quote") == "cached", r2.get("get_quote"))
-
-    print("[自测] K 线周期级 TTL 与独立缓存")
-    st = load_state()
-    st["cache"]["kline_1w.json"] = {"at": time.time(), "pages": 1}          # 周线刚抓过
-    st["cache"]["kline_1h.json"] = {"at": time.time() - 400, "pages": 1}    # 1H 超过 300s
-    save_state(st)
-    r2b = run(force=False, mcp=m, log=lambda *a: None)
-    kl = r2b.get("get_kline", {})
-    check("周线在 1h TTL 内 → cached", kl.get("1w") == "cached", kl)
-    check("1H 超 300s → 重抓", str(kl.get("1h", "")).startswith("ok"), kl)
-    check("四个周期各有独立缓存键（不会互相顶掉）",
-          all("kline_%s.json" % k in load_state()["cache"] for k in KLINE_PERIODS),
-          list(load_state()["cache"].keys()))
 
     print("[自测] 软上限：把 list_calendar 预置为 110")
     st = load_state()
     st["day"] = day_key_gmt8()
     st["counts"]["list_calendar"] = TOOLS["list_calendar"]["cap"]
     save_state(st)
+    n_call_before = sum(1 for m_, _n, _a in calls if m_ == "tools/call")
     r3 = run(force=True, mcp=m, log=lambda *a: None)
+    n_call_after = sum(1 for m_, _n, _a in calls if m_ == "tools/call")
     check("list_calendar 到顶即停", r3.get("list_calendar") == "capped", r3.get("list_calendar"))
-    check("其它工具不受影响（get_quote 仍可抓）",
-          r3.get("get_quote") in ("ok x1", "cached"), r3.get("get_quote"))
+    check("到顶后一个 tools/call 都没发", n_call_after == n_call_before,
+          n_call_after - n_call_before)
 
     print("[自测] 跨日重置")
     st = load_state()
@@ -949,25 +880,6 @@ def _mock_result(name, args, calls):
         return {"structuredContent": {"data": rows,
                                       "has_more": not page2,
                                       "next_cursor": None if page2 else "cur-2"}}
-
-    if name == "get_quote":
-        # 文档：单条对象，close 是现价（可能带千分位），ups_percent 带 %
-        return {"structuredContent": {
-            "code": "XAUUSD", "name": "现货黄金", "time": "2026-11-04 09:40:00",
-            "open": "4,050.10", "close": "4,072.40", "high": 4080.0, "low": 4045.2,
-            "volume": 12345, "ups_price": 23.1, "ups_percent": "+1.23%"}}
-
-    if name == "get_kline":
-        # 文档：data.klines 为数组，每项 open/high/low/close/time/volume；time 秒级
-        # 实测口径：60 秒一根，最多 100 根，且原样是倒序（新的在前）
-        bars = []
-        for i in range(100):
-            bars.append({"time": 1762200000 + (99 - i) * 60, "open": 4050 + i * 0.1,
-                         "high": 4060 + i * 0.1, "low": 4045 + i * 0.1,
-                         "close": 4055 + i * 0.1, "volume": 100 + i})
-        return {"structuredContent": {"data": {"code": "XAUUSD", "klines": bars,
-                                               "name": "现货黄金"},
-                                      "status": 200, "message": ""}}
 
     return {"structuredContent": {}}
 

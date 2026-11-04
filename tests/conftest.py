@@ -216,9 +216,10 @@ def make_env(browser):
 
         page.route("**/calendar.json*", _cal)
 
-        # 金十中转产物（J3）：默认全部 404，等价于"中转还没跑起来"。
-        # 用例传 jn={"flash.json": {...}} 即注入。注意注册顺序在 calendar.json 之后，
+        # 金十中转产物：默认全部 404，等价于"中转还没跑起来"。
+        # 用例传 jn={"calendar.json": {...}} 即注入。注意注册顺序在 calendar.json 之后，
         # Playwright 后注册的优先，否则 jin10/calendar.json 会被上面的 _cal 抢走。
+        # v6.58 起金十只产 calendar.json，flash / news / quote / kline_*.json 都已停抓。
         def _jn(route):
             url = route.request.url
             name = url.split("/jin10/")[-1].split("?")[0]

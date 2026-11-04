@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.57 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.58 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -322,13 +322,6 @@ body.tab-ov .tpx{display:none}
 .klfilter button,#btChips button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap;font-family:inherit}
 .klfilter button.on,#btChips button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
 /* K 线源校验行（J4）：只做标记，不参与任何指标 */
-.chk{display:flex;align-items:center;gap:6px;padding:0 10px 6px;font-size:11px;color:var(--tx3);line-height:1.5}
-.chk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chk i{flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--tx3)}
-.chk.ok i{background:#4C9A6A}
-.chk.warn i{background:#C9973F}
-.chk.warn{color:#C9973F}
-.chk.na i{background:#6B6B6B}
 .klfilter button.rng{color:var(--tx2);min-width:64px}
 .klfilter button:active,#btChips button:active{transform:scale(.97)}
 .kl{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
@@ -858,7 +851,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.57 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.58 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -970,7 +963,6 @@ body.tab-ov .tpx{display:none}
     <div class="card chcard">
       <svg id="chSvg" viewBox="0 0 360 190" role="img" aria-label="日线回归通道图"></svg>
       <div class="chline" id="chLine">—</div>
-      <div class="chk na" id="chVerify"><i></i><span>K 线校验：待第一轮数据</span></div>
     </div>
 
     <div class="sech" style="margin-top:18px"><h2>关键位 <span class="cnt" id="klMeta"></span></h2></div>
@@ -1384,7 +1376,7 @@ var API_TICK  = "https://data-api.binance.vision/api/v3/ticker/price?symbol=PAXG
 var API_KLINE = "https://data-api.binance.vision/api/v3/klines?symbol=PAXGUSDT&interval=";
 /* 金十中转产物目录（同源静态文件，细节见下方「金十中转产物」注释块） */
 var JN_DIR = "jin10/";
-var JN_TTL = { cal: 1200000, kline: 240000 };
+var JN_TTL = { cal: 1200000 };
 var API_FX = "https://open.er-api.com/v6/latest/USD";
 var OZ_PER_G = 31.1035;   /* 1 金衡盎司 = 31.1035 克 */
 var OZ = OZ_PER_G;
@@ -1432,7 +1424,7 @@ var S = {
   spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0,
   /* J3：金十中转产物（同源静态 JSON）。快讯/资讯已下线（J4），只留日历与 K 线校验 */
   jn:{ cal:null, calAt:0 },
-  klMeta:{}, klChk:{ at:0, per:{}, state:"" }
+  klMeta:{}
 };
 
 /* === 源健康度与退避（J1） ===
@@ -1652,14 +1644,6 @@ function mapKline(arr){
 var KL_INC = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 增量拉几根
 var KL_GAP = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 缺口超过几个周期就回退全量
 var KL_FALLBACK = { "4h": 60*60000, "1h": 30*60000 };     // 兜底间隔（小时级才有）
-/* K 线源校验（J4）：金十 hf_XAU 对 Binance PAXG。绝对价不同（PAXG 有溢价），
-   只比同一根 bar 的相对涨跌 r=c/o-1。只做标记，不写回 S.kl。 */
-var KL_CHK_N = 20;          // 每周期回看根数
-var KL_CHK_MIN = 5;         // 能对齐的根数少于此值就不判定
-var KL_CHK_TOL = 0.0015;    // 收益率差中位数容差 0.15% TODO(待校准)
-var KL_CHK_DIR = 0.7;       // 方向一致率下限 TODO(待校准)
-var KL_CHK_TTL = 240000;    // 校验自身节流，和 kline_*.json 的 TTL 同频
-
 function klPeriodMs(k){
   var m = { "1w":7*86400000, "1d":86400000, "4h":4*3600000, "1h":3600000 };
   return m[k] || 0;
@@ -1699,103 +1683,10 @@ function mergeBars(old, add, maxLen){
   return out;
 }
 
-/* 金十 K 线备源：读中转落盘的 kline_<周期>.json（Binance 挂了才用） */
-/* 金十 K 线：读中转落盘的 kline_<周期>.json。
-   两种用途共用这一处读取 —— 备源（Binance 挂了顶上，要求 ≥30 根）
-   和校验（J4 常态对照，十几根就够）。minN 由调用方给，默认按备源口径。 */
-function jnKline(k, minN){
-  var need = Math.max(KL_CHK_MIN, minN || 30);
-  return new Promise(function(res){
-    jnRead("kline", "kline_" + k + ".json", JN_TTL.kline, function(d){
-      if(!d || !Array.isArray(d.bars) || d.bars.length < need){ res(null); return; }
-      var bars = d.bars.map(function(b){
-        /* TODO(待核实)：金十 bars 的 t 是秒还是毫秒尚未核实（J2 配额只够 3 次请求）。
-           这里按量级归一：小于 1e11 当秒，乘 1000。接真数据后确认一次即可删掉。 */
-        var t = +b.t || 0;
-        if(t > 0 && t < 1e11) t *= 1000;
-        return { t:t, o:+b.o, h:+b.h, l:+b.l, c:+b.c, v:+b.v || 0 };
-      }).filter(function(b){ return b.t > 0 && b.c > 0; });
-      res(bars.length >= need ? bars : null);
-    });
-  });
-}
-
-/* 逐根对齐后算两个指标：收益率差的中位数、方向一致率。
-   返回 null = 对不齐（金十没这个周期，或时间戳口径不同）。
-   TODO(待核实)：这里假设金十 bar 的 t 是「周期起点」，与 Binance 一致。
-   如果实测发现给的是「周期终点」，同一根永远差一个周期，需要在这里整体平移。 */
-function klChkOne(a, b, n){
-  if(!a || !b || !a.length || !b.length) return null;
-  var map = {}, i;
-  for(i = 0; i < b.length; i++) map[b[i].t] = b[i];
-  var diffs = [], same = 0, used = 0;
-  for(i = a.length - 1; i >= 0 && used < n; i--){
-    var o = map[a[i].t];
-    if(!o || !(a[i].o > 0) || !(o.o > 0)) continue;
-    var ra = a[i].c / a[i].o - 1, rb = o.c / o.o - 1;
-    diffs.push(Math.abs(ra - rb));
-    if((ra >= 0) === (rb >= 0)) same++;
-    used++;
-  }
-  if(used < KL_CHK_MIN) return null;
-  diffs.sort(function(x, y){ return x - y; });
-  var med = diffs[Math.floor(diffs.length / 2)];
-  var dir = same / used;
-  return { n:used, med:med, dir:dir, ok:(med <= KL_CHK_TOL && dir >= KL_CHK_DIR) };
-}
-
-function perLabel(k){
-  for(var i = 0; i < PERIODS.length; i++) if(PERIODS[i].key === k) return PERIODS[i].label;
-  return k;
-}
-
-/* 校验不写回 S.kl：金十 K 线只用来判断"主源这一版是不是失真"，
-   不参与指标、不参与价格合成、不改变任何业务数值。 */
-function klVerifyAll(){
-  if(document.hidden) return Promise.resolve(false);
-  var c = S.klChk;
-  if(c && c.at && Date.now() - c.at < KL_CHK_TTL) return Promise.resolve(false);
-  var keys = ["1d", "4h", "1h"];        // 周线样本太少（一年才 52 根），不参与
-  return Promise.all(keys.map(function(k){
-    return jnKline(k, KL_CHK_N).then(function(jb){
-      return { k:k, r:klChkOne(S.kl[k], jb, KL_CHK_N) };
-    }).catch(function(){ return { k:k, r:null }; });
-  })).then(function(res){
-    var per = {}, hit = 0, bad = 0, worst = null;
-    res.forEach(function(x){
-      if(!x.r) return;
-      hit++;
-      per[x.k] = { n:x.r.n, med:x.r.med, dir:x.r.dir, ok:x.r.ok };
-      if(!x.r.ok){
-        bad++;
-        if(!worst || x.r.med > worst.med) worst = { k:x.k, med:x.r.med, dir:x.r.dir };
-      }
-    });
-    if(!hit) return false;              // 一根都没对上：不记 at，下一轮再试
-    S.klChk = { at:Date.now(), per:per, state:bad ? "warn" : "ok", worst:worst };
-    renderKlChk();
-    return true;
-  });
-}
-
-function renderKlChk(){
-  var box = $("chVerify");
-  if(!box) return;
-  var c = S.klChk || {};
-  var sp = box.querySelector("span");
-  var cls = "chk na", txt = "K 线校验：金十 K 线未就绪";
-  if(c.state === "ok"){
-    cls = "chk ok";
-    txt = "K 线校验：与金十一致（" + Object.keys(c.per).length + " 个周期）";
-  }else if(c.state === "warn" && c.worst){
-    var w = c.worst;
-    cls = "chk warn";
-    txt = "K 线校验：" + perLabel(w.k) + "偏离 " + (w.med * 100).toFixed(2) +
-          "%（方向一致率 " + Math.round(w.dir * 100) + "%）";
-  }
-  box.className = cls;
-  if(sp) sp.textContent = txt;
-}
+/* 金十 K 线：J5 实测只有分钟级、count 上限 100、窗口 24 小时，
+   凑不出 4H / 日线任何一根 bar。原来这里的备源（Binance 挂了顶上去）
+   与常态校验（每 4 分钟对一遍收益率）都已下线，前端不再读 kline_*.json。
+   中转侧同样停抓，见 tools/fetch_jin10.py 与 docs/J5-金十MCP实测记录.md。 */
 
 function fetchKlines(force){
   var now = Date.now();
@@ -1833,30 +1724,24 @@ function fetchKlines(force){
       S.klMeta[p.key] = { at:now, lastT:r.bars[r.bars.length-1].t, mode:r.mode };
       return r;
     }).catch(function(e){
+      /* Binance 挂了：有旧数据就继续用旧的（不打断指标），没数据就这一根空着。
+         金十备源已下线（见上方注释）—— 它只有分钟线，顶不了 4H / 日线。 */
       if(!firstErr) firstErr = e;
-      /* Binance 挂了：有旧数据就继续用旧的（不打断指标），没数据才找金十备源 */
-      if(cur && cur.length >= 30) return null;
-      return jnKline(p.key).then(function(bars){
-        if(!bars) return null;
-        S.klMeta[p.key] = { at:now, lastT:bars[bars.length-1].t, mode:"jn" };
-        return { key:p.key, bars:bars, mode:"jn" };
-      });
+      return null;
     });
   });
 
   return Promise.all(jobs).then(function(res){
-    var got = 0, skipped = 0, failed = 0, fromJn = 0;
+    var got = 0, skipped = 0, failed = 0;
     res.forEach(function(r){
       if(!r){ failed++; return; }
       if(r.skipped){ skipped++; return; }
       S.kl[r.key] = r.bars;
       got++;
-      if(r.mode === "jn") fromJn++;
     });
     if(got) srcOk("kline");
     else if(failed) srcFail("kline", firstErr || new Error("kline all failed"));
-    return { got:got, skipped:skipped, failed:failed, fromJn:fromJn,
-             usable: got + skipped };
+    return { got:got, skipped:skipped, failed:failed, usable: got + skipped };
   });
 }
 
@@ -5050,9 +4935,9 @@ function firstFriday(y,m){
    好处是零跨域、零 Token 暴露；代价是内容最多滞后 5 分钟 —— 对快讯/资讯/日历够用，
    对 15 秒级的报价不够用，所以报价不接金十，仍是 Gold API + gold-api.cn 两层。 */
 
-function jnRead(kind, file, ttl, done){
+function jnRead(file, ttl, done){
   if(typeof fetch !== "function"){ done(null); return; }
-  /* URL 带时间片，和 K 线/日历一样绕开 HTTP 缓存；同片内不重复请求 */
+  /* URL 带时间片绕开 HTTP 缓存；同一时间片内不重复请求 */
   var url = JN_DIR + file + "?v=" + Math.floor(Date.now() / ttl);
   fetchJson(url, 10000).then(function(d){
     done(d || null);
@@ -5085,7 +4970,7 @@ function loadCalendar(){
   /* 三级：金十（中转）→ calendar.json（Actions 抓 ForexFactory）→ 内置固定事件 */
   if(typeof fetch !== "function") return Promise.resolve(false);
   return new Promise(function(res){
-    jnRead("cal", "calendar.json", JN_TTL.cal, function(d){
+    jnRead("calendar.json", JN_TTL.cal, function(d){
       if(!d || !Array.isArray(d.events)){ res(false); return; }
       var evs = d.events.filter(function(e){ return e && Number(e.t) > 0 && e.name; })
         .map(function(e){
@@ -8497,7 +8382,6 @@ function refreshAll(){
   renderTake();
   renderEvents();
   renderFeed();
-  renderKlChk();
   renderStat();
   renderDirtyBar();
   setConn();
@@ -8792,7 +8676,6 @@ function refreshData(force){
       applyScale();
       compute();
       refreshAll();
-      klVerifyAll();                        // J4：K 线到位后再拿金十对一遍，不阻塞渲染
     }
     refreshPrice();
   });
@@ -9660,24 +9543,10 @@ if(/[?&]xt=1/.test(location.search)){
     refreshPrice:refreshPrice,
     refreshTick:refreshTick,
     refreshData:refreshData,
-    /* J3/J4：金十中转（日历 / K 线校验）与 K 线降频 */
+    /* 金十中转（只剩日历）与 K 线降频 */
     jnState:function(){
-      return {
-        calAt:S.jn.calAt,
-        calSrc:(S.cal&&S.cal.src)||"none"
-      };
+      return { calAt:S.jn.calAt, calSrc:(S.cal&&S.cal.src)||"none" };
     },
-    klChkState:function(){
-      var c = S.klChk || {};
-      var per = {};
-      Object.keys(c.per || {}).forEach(function(k){
-        per[k] = { n:c.per[k].n, med:c.per[k].med, dir:c.per[k].dir, ok:c.per[k].ok };
-      });
-      return { at:c.at|0, state:c.state||"", per:per,
-               worst:c.worst || null,
-               txt:($("chVerify") && $("chVerify").textContent) || "" };
-    },
-    klVerify:function(){ S.klChk = { at:0, per:{}, state:"" }; return klVerifyAll(); },
     klState:function(){
       var o = {};
       PERIODS.forEach(function(p){
