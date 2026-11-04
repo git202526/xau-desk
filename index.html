@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.60 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.61 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -851,7 +851,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.60 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.61 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2596,24 +2596,50 @@ function buildLevels(range, opts){
   // 聚类：价差 < 0.35% 合并
   out.sort(function(a,b){ return a.price-b.price; });
   var merged = [];
+  /* 簇价取簇内各原始位的算术平均。
+     原来写成 (price*count + l.price)/(count+1)，而 count 上面刚自增过，
+     等于给新价多算了一份权重，簇价被系统性拉偏（三个位时偏低约 0.05%）。 */
+  var absorb = function(base, item){
+    base.names.push(item.name);
+    base.srcs.push(item.src);
+    base.raw.push(item.price);
+    base.items.push({ n:item.name, s:item.src, p:item.price });
+    base.count++;
+    var s = 0;
+    base.raw.forEach(function(v){ s += v; });
+    base.price = s / base.raw.length;
+    if(base.count >= 3) base.strong = true;
+  };
   out.forEach(function(l){
     var near = null;
+    /* 判据锚在簇的首位，不能用滚动的簇均价：均价会随着成员增多一路漂移，
+       于是一层一层往外吸，最后 12 个位、跨度 0.57% 的位被并成一个点，
+       label 只显示 3 个名字，真正的「前周高」反而被挤出去了。 */
     for(var k=0;k<merged.length;k++){
-      if(Math.abs(merged[k].price - l.price)/l.price < 0.0035){ near = merged[k]; break; }
+      if(Math.abs(merged[k].anchor - l.price)/l.price < 0.0035){ near = merged[k]; break; }
     }
-    if(near){
-      near.names.push(l.name);
-      near.srcs.push(l.src);
-      near.raw.push(l.price);
-      near.items.push({ n:l.name, s:l.src, p:l.price });
-      near.count++;
-      near.price = (near.price*near.count + l.price)/(near.count+1);
-      if(near.count>=3) near.strong = true;
-    } else {
-      merged.push({ price:l.price, names:[l.name], srcs:[l.src], raw:[l.price],
+    if(near) absorb(near, l);
+    else {
+      merged.push({ price:l.price, anchor:l.price, names:[l.name], srcs:[l.src], raw:[l.price],
                     items:[{ n:l.name, s:l.src, p:l.price }], count:1, kind:l.kind, strong:false });
     }
   });
+  /* 二次归并：锚定首位后，相邻两簇的簇价仍可能贴得很近（各自簇内都合规，
+     但两簇之间只差 0.2%）。这里按 0.3% 再收一遍，保证展示上不出现重复位。 */
+  var stillTight = true;
+  while(stillTight){
+    stillTight = false;
+    for(var mq=1;mq<merged.length;mq++){
+      if(Math.abs(merged[mq].price - merged[mq-1].price)/merged[mq].price >= 0.003) continue;
+      var addOn = merged[mq];
+      for(var ai=0;ai<addOn.raw.length;ai++){
+        absorb(merged[mq-1], { name:addOn.names[ai], src:addOn.srcs[ai], price:addOn.raw[ai] });
+      }
+      merged.splice(mq, 1);
+      stillTight = true;
+      break;
+    }
+  }
   // 同一簇里最多显示 3 个名称：按"日内实用性"排，前日/前周优先于枢轴与斐波，
   // 否则「前日高 / 枢轴 R1 / 枢轴 R2」会把真正的前周高挤掉
   var NAME_PRI = { pd:1, pw:2, pivot:3, gap:4, swing:5, round:6, vol:7, ma:8, fib:9, pl:10 };
@@ -4526,6 +4552,35 @@ function computedKeep(g){
   return Math.round(Math.max(0, Math.min(g, v)) * 10) / 10;
 }
 
+/* 把计划总量按权重拆成实际可执行的份额。
+   单位固定 0.1 克（最小可执行手数），全程整数运算 —— 原来逐项 Math.round(…*10)/10
+   再累加，四舍五入的余量会凑出比计划更多的克重（0.15 克持仓能计划出 0.7 克）。
+   firstProfitIdx：第一个成本上方位。12% 首单保底只给它 ——
+   止损位在成本之下，把最大份额压在那儿等于放大亏损。传 -1 表示本轮没有盈利位。 */
+function allocUnits(totalU, ws, firstProfitIdx){
+  totalU = Math.floor(Number(totalU) || 0);
+  if(!(totalU > 0) || !ws || !ws.length) return [];
+  var n = Math.min(ws.length, totalU);          // 份额不够每人一份时只分前几个位
+  var sumW = 0, i;
+  for(i=0;i<n;i++) sumW += Math.max(0, Number(ws[i]) || 0);
+  if(!(sumW > 0)) sumW = n;
+  var out = [], used = 0;
+  for(i=0;i<n;i++){
+    var u;
+    if(i === n-1){
+      u = totalU - used;                        // 最后一位收口，保证总和精确
+    } else {
+      u = Math.round(totalU * Math.max(0, Number(ws[i]) || 0) / sumW);
+      if(i === firstProfitIdx && u < Math.ceil(totalU*0.12)) u = Math.ceil(totalU*0.12);
+      var left = totalU - used - (n-1-i);       // 给后面每一位留 1 个份额
+      u = Math.max(1, Math.min(u, left));
+    }
+    used += u;
+    out.push(u);
+  }
+  return out;
+}
+
 function computeTakes(){
   var out = [];
   var hs = holdStats();
@@ -4629,9 +4684,7 @@ function computeTakes(){
   var d1 = S.struct && S.struct.p ? S.struct.p["1d"] : null;
   var ctx = {
     dir: S.struct ? S.struct.dir : "rg",
-    shape: S.struct ? S.struct.shape : "mixed",
     adx: d1 ? d1.adx.adx : 0,
-    aboveCost: (nowCny/cost - 1)*100,
     atr: atr
   };
 
@@ -4689,10 +4742,70 @@ function computeTakes(){
   // 分配：留底仓，按 分数 × 可达性 × 空间 加权
   // 口径统一为克重：底仓留多少克是主参数，百分比只是换算显示
   var keepG = computedKeep(grams);
-  var planG = Math.round(Math.max(0, grams - keepG) * 10)/10;
   var ratio = grams ? Math.round((grams - keepG)/grams*100) : 0;
 
-  // 底仓已等于全部持仓：不生成减仓计划
+  /* 计划持久化：记住每个执行位当时分配的克重。
+     价格冲过该位后它不再满足"现价上方"，但计划还在，需要提示核销。
+     先清掉 7 天前的条目，再拿剩下的算「已到价占用」—— 过期条目不占额度。 */
+  S.cfg.takePlan = S.cfg.takePlan || {};
+  var nowTs = Date.now();
+  Object.keys(S.cfg.takePlan).forEach(function(k){
+    if(nowTs - (S.cfg.takePlan[k].at || 0) > 7*86400000) delete S.cfg.takePlan[k];
+  });
+
+  var soldNames = {};
+  (hs.sells || []).forEach(function(x){
+    if(x.name) soldNames[x.name] = (soldNames[x.name] || 0) + (Number(x.gram) || 0);
+  });
+
+  var pickedNames = {};
+  picked.forEach(function(m){ pickedNames[m.name] = 1; });
+
+  /* 已到价未核销的旧计划：这些克重同样要从持仓里出，所以先按现价从高到低核销，
+     每条以「剩余持仓」封顶。旧计划是按当时的持仓算的，持仓缩水后整笔照搬，
+     会提示减 28.3 克而实际只剩 5 克 —— 点开预填 28.3，保存必被拒。 */
+  var hitRows = [];
+  var aliveG = grams;
+  var pend = [];
+  Object.keys(S.cfg.takePlan).forEach(function(nm){
+    var p = S.cfg.takePlan[nm];
+    if(!p || !p.price || p.price > nowCny) return;        // 还没到价
+    if(soldNames[nm]) return;                             // 已经核销
+    /* 成本下方的条目是开关打开期间留下的。开关关掉后，选位逻辑（cand）已经不选它们，
+       但这里若不跟着过滤，它们照样会变成可点击的「到价 · 减 Xg」——
+       一点就是亏损卖出，正是用户关这个开关要避免的事。 */
+    if(!allowStop && p.price < cost*0.999) return;
+    if(pickedNames[nm]) return;                           // 本轮计划里已有同位
+    if(!(p.cut > 0)) return;
+    pend.push({ nm:nm, p:p });
+  });
+  pend.sort(function(a,b){ return b.p.price - a.p.price; });   // 高位先核销
+  pend.forEach(function(x){
+    var cutU = Math.floor(Math.min(x.p.cut, aliveG)*10 + 1e-6);
+    if(cutU/10 > aliveG) cutU = Math.floor(aliveG*10);
+    if(cutU < 1) return;                                   // 剩余不足 0.1g 就不再提示
+    var cut = cutU/10;
+    aliveG = Math.round((aliveG - cut)*1000)/1000;
+    hitRows.push({
+      name:x.nm, cnyVal:x.p.price, cut:cut, role:"hit",
+      dist:(x.p.price/nowCny - 1)*100, isCost:false,
+      strength:0, score:0, prob:100, needD:0, hit:true, seq:"!",
+      action:"到价 · 减 " + gnum(cut) + "g",
+      alias:[], reason:"现价已越过此位，按原计划减仓"
+    });
+  });
+  var hitG = 0;
+  hitRows.forEach(function(m){ hitG += m.cut; });
+  hitG = Math.round(hitG*1000)/1000;
+
+  // 可减总量 = 持仓 − 底仓 − 已到价待核销；向下取到 0.1g，宁少不超
+  var availG = grams - keepG - hitG;
+  var totalU = availG > 0 ? Math.floor(availG*10 + 1e-6) : 0;
+  if(totalU/10 > availG) totalU = Math.floor(Math.max(0, availG)*10);
+  if(totalU < 0) totalU = 0;
+  var planG = totalU/10;
+
+  // 底仓已盖住全部持仓：不生成新计划（已到价待核销的仍要展示）
   if(planG < 0.2){
     picked.forEach(function(m){ m.role = "ref"; m.action = "不减"; m.cut = 0; });
     above.forEach(function(m){
@@ -4702,6 +4815,7 @@ function computeTakes(){
     });
     var shown0 = [];
     if(costRow){ costRow.role = "ref"; costRow.action = "心理位"; shown0.push(costRow); }
+    hitRows.forEach(function(m){ shown0.push(m); });
     above.filter(function(m){ return !m.isCost && m.score >= 45; })
          .sort(function(a,b){ return b.score - a.score; })
          .slice(0,5)
@@ -4713,6 +4827,7 @@ function computeTakes(){
     out.cutCount = 0;
     out.execGrams = 0;
     out.planGrams = 0;
+    out.hitGrams = hitG;
     out.ratio = 0;
     out.holdGrams = grams;
     out.keepGrams = keepG;
@@ -4721,33 +4836,39 @@ function computeTakes(){
     out.nowCny = nowCny;
     out.ctx = ctx;
     out.picked = [];
+    out.allowStop = allowStop;
     out.profit = { grams:0, amount:0, avg:0, gain:0, n:0 };
     out.stop = { grams:0, amount:0, avg:0, gain:0, n:0 };
     out.avgSell = 0;
     out.expGain = 0;
-    out.summary = "底仓保留 " + gnum(keepG) + " 克已等于全部持仓，本轮不减仓；把底仓调小才会生成减仓计划。";
+    out.summary = hitG > 0
+      ? ("底仓 " + gnum(keepG) + " 克加上 " + hitRows.length + " 笔到价待核销（" + gnum(hitG)
+         + " 克）已占满持仓，本轮不再新增减仓计划。")
+      : ("底仓保留 " + gnum(keepG) + " 克已等于全部持仓，本轮不减仓；把底仓调小才会生成减仓计划。");
     return out;
   }
 
-  var sumW = 0;
-  picked.forEach(function(m){
+  /* 每位至少 0.1 克，份额不够就少分几位（picked 已按价位升序，先落袋近位）。
+     超过份额数的位降为参考位，不参与分配。 */
+  var slots = Math.min(picked.length, totalU);
+  for(var si=slots;si<picked.length;si++){
+    picked[si].role = "ref"; picked[si].action = "参考"; picked[si].cut = 0;
+  }
+  var execPicked = picked.slice(0, slots);
+  var ws = [], firstProfitIdx = -1;
+  execPicked.forEach(function(m, idx){
     m.wgt = m.score * (0.7 + 0.3*m.prob/100) * (1 + Math.min(0.4, m.dist/25));
-    sumW += m.wgt;
+    if(!(m.wgt > 0)) m.wgt = 1;
+    ws.push(m.wgt);
+    if(firstProfitIdx < 0 && !m.belowCost) firstProfitIdx = idx;
   });
-  var used = 0;
-  picked.forEach(function(m, idx){
+  var units = allocUnits(totalU, ws, firstProfitIdx);
+  execPicked.forEach(function(m, idx){
     m.role = "cut";
     m.seq = idx+1;
-    var g;
-    if(idx === picked.length-1) g = planG - used;
-    else g = Math.round(planG * m.wgt / sumW * 10)/10;
-    if(idx === 0 && g < planG*0.12) g = Math.round(planG*0.12*10)/10;
-    g = Math.max(0.1, g);
-    used += g;
-    m.cut = Math.round(g*10)/10;
+    m.cut = (units[idx] || 0)/10;
     m.action = "减 " + gnum(m.cut) + "g";
     m.price = m.cnyVal;
-    m.hit = nowCny >= m.cnyVal*0.999;
   });
 
   above.forEach(function(m){
@@ -4756,7 +4877,8 @@ function computeTakes(){
     m.action = m.isCost ? "心理位" : "参考";
   });
 
-  var execG = picked.reduce(function(a,m){ return a + m.cut; }, 0);
+  // 没有可分到克重的位时，计划量要归零，不能显示「计划减 X 克、分 0 次」
+  var execG = execPicked.length ? totalU/10 : 0;   // allocUnits 保证各份之和恰为 totalU
 
   // 按成本线拆成两段：成本上方是止盈，下方是止损
   var agg = function(arr){
@@ -4765,44 +4887,12 @@ function computeTakes(){
     var avg = g ? a/g : 0;
     return { grams:g, amount:a, avg:avg, gain: (avg && cost) ? (avg/cost-1)*100 : 0, n:arr.length };
   };
-  var profitAgg = agg(picked.filter(function(m){ return !m.belowCost; }));
-  var stopAgg = agg(picked.filter(function(m){ return m.belowCost; }));
+  var profitAgg = agg(execPicked.filter(function(m){ return !m.belowCost; }));
+  var stopAgg = agg(execPicked.filter(function(m){ return m.belowCost; }));
 
-  /* 计划持久化：记住每个执行位当时分配的克重。
-     价格冲过该位后它不再满足"现价上方"，但计划还在，需要提示核销 */
-  S.cfg.takePlan = S.cfg.takePlan || {};
-  var nowTs = Date.now();
-  picked.forEach(function(m){
+  // 只把真正分到克重的位写进计划，参考位不占额度
+  execPicked.forEach(function(m){
     S.cfg.takePlan[m.name] = { cut: m.cut, price: m.cnyVal, at: nowTs };
-  });
-  Object.keys(S.cfg.takePlan).forEach(function(k){
-    if(nowTs - (S.cfg.takePlan[k].at || 0) > 7*86400000) delete S.cfg.takePlan[k];
-  });
-
-  var soldNames = {};
-  (hs.sells || []).forEach(function(x){
-    if(x.name) soldNames[x.name] = (soldNames[x.name] || 0) + (Number(x.gram) || 0);
-  });
-
-  var hitRows = [];
-  Object.keys(S.cfg.takePlan).forEach(function(nm){
-    var p = S.cfg.takePlan[nm];
-    if(!p || !p.price || p.price > nowCny) return;        // 还没到价
-    if(soldNames[nm]) return;                             // 已经核销
-    /* 成本下方的条目是开关打开期间留下的。开关关掉后，选位逻辑（cand）已经不选它们，
-       但这里若不跟着过滤，它们照样会变成可点击的「到价 · 减 Xg」——
-       一点就是亏损卖出，正是用户关这个开关要避免的事。 */
-    if(!allowStop && p.price < cost*0.999) return;
-    var inPicked = false;
-    for(var t=0;t<picked.length;t++){ if(picked[t].name === nm){ inPicked = true; break; } }
-    if(inPicked) return;
-    hitRows.push({
-      name:nm, cnyVal:p.price, cut:p.cut, role:"hit",
-      dist:(p.price/nowCny - 1)*100, isCost:false,
-      strength:0, score:0, prob:100, needD:0, hit:true, seq:"!",
-      action:"到价 · 减 " + gnum(p.cut) + "g",
-      alias:[], reason:"现价已越过此位，按原计划减仓"
-    });
   });
 
   // 展示清单：成本位 + 全部执行位 + 已到价未核销 + 最多 5 个高分参考位
@@ -4820,9 +4910,10 @@ function computeTakes(){
   out = shown;
   out.all = above;
   out.skipped = above.filter(function(m){ return m.role === "ref" && !m.isCost; }).length;
-  out.cutCount = picked.length;
+  out.cutCount = execPicked.length;
   out.execGrams = execG;
-  out.planGrams = planG;
+  out.planGrams = execPicked.length ? planG : 0;
+  out.hitGrams = hitG;
   out.keepGrams = keepG;
   out.ratio = ratio;
   out.holdGrams = grams;
@@ -4830,13 +4921,13 @@ function computeTakes(){
   out.costRow = costRow;
   out.nowCny = nowCny;
   out.ctx = ctx;
-  out.picked = picked;
+  out.picked = execPicked;
   out.allowStop = allowStop;
   out.profit = profitAgg;
   out.stop = stopAgg;
-  out.avgSell = execG ? picked.reduce(function(a,m){ return a + m.cnyVal*m.cut; },0)/execG : 0;
+  out.avgSell = execG ? execPicked.reduce(function(a,m){ return a + m.cnyVal*m.cut; },0)/execG : 0;
   out.expGain = out.avgSell ? (out.avgSell/cost - 1)*100 : 0;
-  out.summary = takeSummary(picked, above, ctx, grams, out);
+  out.summary = takeSummary(execPicked, above, ctx, grams, out);
   return out;
 }
 
@@ -4844,7 +4935,6 @@ function computeTakes(){
 function scoreTake(m, ctx){
   if(m.isCost){
     m.score = 0;
-    m.advice = "心理位";
     m.reason = "回到成本，不减仓";
     return;
   }
@@ -4883,7 +4973,6 @@ function scoreTake(m, ctx){
   if(ctx.dir === "dn" && m.dist > 20){ s -= 12; }
 
   m.score = Math.max(0, Math.min(100, Math.round(s)));
-  m.advice = m.score >= 70 ? "重点执行" : m.score >= 55 ? "建议执行" : m.score >= 48 ? "可选" : "跳过";
   m.reason = rs.slice(0,2).join("，");
 }
 
@@ -4910,7 +4999,7 @@ function takeSummary(picked, all, ctx, grams, meta){
   }
   s += "。";
   var skipped = meta.skipped || 0;
-  if(skipped) s += "另有 " + skipped + " 个位评分不足，列为参考。";
+  if(skipped) s += "另有 " + skipped + " 个位未进入本轮计划，列为参考。";
   return s;
 }
 
@@ -8165,7 +8254,7 @@ function renderTake(){
     // 成本位不从 above 里算分，没有 dist/score；缺字段时降级展示，不能让整块崩掉
     var dnum = Number(t.dist);
     var distTxt = isFinite(dnum)
-      ? (dnum >= 0 ? "距现价 +" + dnum.toFixed(1) + "%" : "已越过 " + dnum.toFixed(1) + "%")
+      ? (dnum >= 0 ? "距现价 +" + dnum.toFixed(1) + "%" : "已越过 " + Math.abs(dnum).toFixed(1) + "%")
       : "";
     var cls = "tw " + (clickable ? "cut" : "ref") + (t.hit ? " hit" : "") + ((t.belowCost && clickable) ? " stop" : "");
 
@@ -8191,7 +8280,8 @@ function renderTake(){
   box.innerHTML = sanitizeHtml(html);
   $("takeMeta").textContent = ts.cutCount
     ? (ts.cutCount + " 次 · 减 " + gnum(ts.execGrams) + "g / 持仓 " + gnum(ts.holdGrams) + "g")
-    : ("底仓 " + gnum(ts.keepGrams||0) + "g · 本轮不减");
+    : ("底仓 " + gnum(ts.keepGrams||0) + "g · "
+       + (ts.hitGrams > 0 ? "到价待核销 " + gnum(ts.hitGrams) + "g" : "本轮不减"));
 
   Array.prototype.forEach.call(box.querySelectorAll("[data-sell]"), function(node){
     node.onclick = function(){ openSell(node.getAttribute("data-sell")); };
@@ -8292,7 +8382,9 @@ function todoItems(){
   }
 
   (S.takes||[]).forEach(function(t){
-    if((t.role === "cut" || t.role === "hit") && t.hit && t.cut > 0){
+    /* 只有 hit 行才是「已到价」：cut 行要求现价在上方至少 1.5%，与到价互斥，
+       原来那句 t.role === "cut" 恒不成立，属死分支。 */
+    if(t.role === "hit" && t.cut > 0){
       items.push({ kind:"take", t:"止盈 "+t.name+" 触发",
         d:"现价已到 " + num(t.price || t.cnyVal,2) + " 元/克 · 计划减 " + gnum(t.cut) + " 克",
         btn:"记减仓", act:"take" });
@@ -8504,7 +8596,7 @@ function trackChanges(){
     });
     // 止盈位触及：只在本次会话里第一次命中时响，避免刷屏
     (S.takes||[]).forEach(function(tk){
-      if(!(tk.role === "cut" || tk.role === "hit") || !tk.hit || !(tk.cut > 0)) return;
+      if(tk.role !== "hit" || !(tk.cut > 0)) return;
       var k = String(tk.name||"") + "@" + Math.round(Number(tk.cnyVal || tk.price || 0));
       if(takeSaid[k]) return;
       takeSaid[k] = 1;
@@ -9627,6 +9719,8 @@ if(/[?&]xt=1/.test(location.search)){
     connInfo:connInfo,
     playSnd:playSnd,
     holdStats:holdStats,
+    /* 止盈计划分配：纯整数运算，测试直接单测边界，不用翻 DOM */
+    allocUnits:allocUnits,
     /* P32：账户。acctStats 单遍聚合，不用测试里自己算三遍 */
     accounts:function(){ return acctList(); },
     acctOf:acctOf, acctName:acctName, acctColor:acctColor,
