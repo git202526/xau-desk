@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.64 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.65 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -542,11 +542,11 @@ body.tab-ov .tpx{display:none}
 .posmini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 .posmini .it span{display:block;font-size:10.5px;color:var(--tx3)}
 .posmini .it b{font-size:14px;font-weight:650}
-/* 盈亏试算：距回本单价差多少 + 成本 +5/10/15/20% 各赚多少 */
-.pnlcalc{margin-top:14px;padding:11px 12px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.022)}
-.pnlcalc .pch{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
-.pnlcalc .pch span{font-size:11px;color:var(--tx2);font-weight:600}
-.pnlcalc .pch em{font-style:normal;font-size:9.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 盈利测算卡（v6.65 起独立成卡）：距回本单价差多少 + 成本 +5…+30% 各赚多少。
+   六档排两行三列；只有浮动收益率贴近某档时那一档才红，其余一律金色。 */
+#calcBox .pch{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+#calcBox .pch span{font-size:11px;color:var(--tx2);font-weight:600}
+#calcBox .pch em{font-style:normal;font-size:9.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pcgap{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
   padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid rgba(255,255,255,.05)}
 .pcgap span{display:block;font-size:10px;color:var(--tx3);margin-bottom:1px}
@@ -559,14 +559,30 @@ body.tab-ov .tpx{display:none}
 .pcgap em .sg+.sg{margin-left:7px}
 .pcgap .pg{text-align:right;flex:0 0 auto}
 .pcgap .pg b{font-size:14px;font-weight:640}
-.pcgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pci{min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:9px;padding:7px 8px}
 .pci span{display:block;font-size:9.5px;color:var(--tx3);white-space:nowrap}
 .pci b{display:block;font-size:12.5px;font-weight:640;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.pci b.red{color:#E2604F}
-.pci em{display:block;font-style:normal;font-size:9.5px;color:var(--tx3);margin-top:1px;
+  text-overflow:ellipsis;font-variant-numeric:tabular-nums;color:var(--gold)}
+.pci em{display:block;font-style:normal;font-size:9.5px;color:var(--gold);opacity:.72;margin-top:1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 命中档：红字 + 红底呼吸。只动 background，不动 opacity ——
+   整块淡入淡出会把数字一起糊掉，看着像刷新卡顿。 */
+.pci.on{border-color:rgba(226,96,79,.42);animation:pcPulse 1.7s ease-in-out infinite}
+.pci.on b{color:#E2604F}
+.pci.on em{color:#E2604F;opacity:.9}
+@keyframes pcPulse{
+  0%,100%{background:rgba(226,96,79,.06);border-color:rgba(226,96,79,.26)}
+  50%{background:rgba(226,96,79,.22);border-color:rgba(226,96,79,.62)}
+}
+@media (prefers-reduced-motion:reduce){
+  .pci.on{animation:none;background:rgba(226,96,79,.15);border-color:rgba(226,96,79,.5)}
+}
+.pcnear{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);
+  font-size:10px;color:var(--tx3);line-height:1.5}
+.pcnear b{font-weight:620;font-variant-numeric:tabular-nums}
+.pcnear b.red{color:#E2604F}
+.pcnear b.green{color:#3FA97C}
 @media (max-width:359px){.pcgrid{grid-template-columns:repeat(2,1fr)}}
 
 /* === P32 账户：筛选条 / 当前账户行 / 账户卡片 === */
@@ -892,7 +908,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.64 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.65 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1055,6 +1071,11 @@ body.tab-ov .tpx{display:none}
     <div class="card gauge" id="posGauge"></div>
     <div class="sech"><h2>持仓汇总</h2><button class="act" id="btnHold">记一笔</button></div>
     <div class="card" id="posBox"></div>
+
+    <!-- 盈利测算：v6.65 起独立成卡。原来塞在 #posBox 内部，跟着汇总卡的边距走，
+         看着像汇总的附属信息；它其实是另一件事（按成本百分比反推赚多少）。
+         卡片自带标题行，不另加 sech，两行「盈利测算」是重复。 -->
+    <div class="card" id="calcBox" style="display:none;margin-top:12px"></div>
 
     <!-- P32 账户卡片：筛选条在汇总卡内部，管理入口在这里（同屏只放一处） -->
     <div class="sech" style="margin-top:16px"><h2>账户 <span class="cnt" id="acctMeta"></span></h2><button class="act" id="btnAcctMgr">管理</button></div>
@@ -7964,6 +7985,12 @@ function bindAcctBar(box){
   });
 }
 
+/* 无持仓 / 已清仓时盈利测算卡不该出现：一张只有标题没有数的空框比不显示更难看 */
+function hideCalcBox(){
+  var c = $("calcBox");
+  if(c){ c.innerHTML = ""; c.style.display = "none"; }
+}
+
 function renderPos(){
   var box = $("posBox");
   var hs = holdStats(S.acctFilter || null);
@@ -7974,12 +8001,14 @@ function renderPos(){
       ? escapeHtml(acctName(S.acctFilter)) + " 还没有买入记录。换一个账户看看，或点右侧「记一笔」。"
       : "还没有买入记录。点右侧「记一笔」填克重和单价（元/克），这里会自动汇总总金额与均价。") + "</div>");
     bindAcctBar(box);
+    hideCalcBox();
     return;
   }
   if(!hs.grams){
     box.innerHTML = sanitizeHtml(bar + '<div class="muted">已全部减仓（累计减 ' + gnum(hs.sold) + ' 克，实现盈亏 '
       + (hs.realized>=0?"+":"") + money(hs.realized,0) + ' 元）。重新买入后这里会继续汇总。</div>');
     bindAcctBar(box);
+    hideCalcBox();
     return;
   }
   var nowCny = S.fx && S.price ? S.price*S.fx/OZ : null;
@@ -8021,47 +8050,87 @@ function renderPos(){
       (hs.sold > 0 ? '<div class="it"><span>已减 '+gnum(hs.sold)+' g 实现</span><b class="num '+(hs.realized>=0?"red":"green")+'">'+(hs.realized>=0?"+":"")+money(hs.realized,0)+'</b></div>' : '') +
     '</div>';
 
-  /* 盈亏试算：现价离回本还差多少（元/克），以及成本 +5/10/15/20% 各赚多少钱。
-     金额按「持仓成本 × 百分比」算，不是按现价 —— 说的是"盈利 5%"，
-     基准只能是成本；顺手给出对应价位，一眼知道涨到多少。
-     口径跟随账户筛选，与上面的大字汇总保持一致。 */
-  if(nowCny !== null){
-    var gapPx = backPx - nowCny;            /* >0 还没到回本价；<=0 已经回本 */
-    var backOk = gapPx <= 0;
-    /* 「已盈利」只能是相对成本的：回本价本身已经含了回本加点那一段，
-       拿现价减回本价当盈利，等于把客户自己的目标利润算成了本金。 */
-    var overCost = nowCny - hs.avg;
-    var overPct = hs.avg > 0 ? overCost/hs.avg*100 : null;
-    var gapNeed = nowCny > 0 ? gapPx/nowCny*100 : null;
-    html += '<div class="pnlcalc">' +
-      '<div class="pch"><span>盈亏试算</span><em>持仓 ' + gnum(hs.grams) + 'g · 均价 ' + num(hs.avg,2) + '</em></div>' +
-      '<div class="pcgap">' +
-        '<div>' +
-          '<span>' + (backOk ? "回本后盈利" : "距回本单价") + '</span>' +
-          '<b class="num ' + (backOk ? "red" : "gold") + '">' +
-            (backOk ? "已盈利 " : "还差 ") + num(backOk ? overCost : gapPx,2) + '<i>元/克</i></b>' +
-          /* 拆成两段：窄屏放不下时整段换行，而不是把「+16.20%」单独甩下去当孤儿 */
-          '<em><span class="sg">回本 ' + num(backPx,2) + ' · 现价 ' + num(nowCny,2) + '</span>' +
-            (backOk
-              ? (overPct !== null ? '<span class="sg">较成本 ' + pct(overPct,2) + '</span>' : '')
-              : (gapNeed !== null && gapNeed > 0 ? '<span class="sg">需涨 ' + num(gapNeed,2) + '%</span>' : '')) + '</em>' +
-        '</div>' +
-        '<div class="pg"><span>全仓 ' + (backOk ? "已赚" : "还差") + '</span>' +
-          '<b class="num ' + (backOk ? "red" : "") + '">¥' + money((backOk ? overCost : gapPx)*hs.grams,0) + '</b></div>' +
-      '</div>' +
-      '<div class="pcgrid">' +
-        [5,10,15,20].map(function(k){
-          return '<div class="pci" data-p="' + k + '">' +
-            '<span>成本 +' + k + '%</span>' +
-            '<b class="num red">¥' + money(costLeft*k/100,0) + '</b>' +
-            '<em>→ ' + num(hs.avg*(1 + k/100),2) + '</em>' +
-          '</div>';
-        }).join('') +
-      '</div>' +
-    '</div>';
-  }
+  /* 盈利测算搬到独立卡片去渲染（见 pnlCalcHtml）。原来拼在汇总卡内部，
+     跟着汇总卡的 padding 走，看着像汇总的附属信息 —— 它其实是另一件事。 */
   box.innerHTML = sanitizeHtml(html);
   bindAcctBar(box);
+
+  var cbox = $("calcBox");
+  if(cbox){
+    var ch = pnlCalcHtml(hs, nowCny, backPx);
+    if(ch){
+      cbox.innerHTML = sanitizeHtml(ch);
+      cbox.style.display = "";
+    } else {
+      cbox.innerHTML = "";
+      cbox.style.display = "none";
+    }
+  }
+}
+
+/* 盈利测算卡：六档 = 成本 +5/10/15/20/25/30% 各赚多少。
+   金额按「持仓成本 × 百分比」算，不是按现价 —— 说的是"盈利 5%"，
+   基准只能是成本；顺手给出对应价位，一眼知道涨到多少。
+   v6.65：拉到六档排两行三列；并且只有浮动盈亏收益率贴近某档（±2 个点）时
+   才把那一档涂红闪动，其余一律金色 —— 六张全红等于没重点，看不出现在站在哪。 */
+var PROFIT_STEPS = [5,10,15,20,25,30];
+var PROFIT_NEAR = 2;
+
+function pnlCalcHtml(hs, nowCny, backPx){
+  if(nowCny === null) return "";
+  var costLeft = hs.grams * hs.avg;
+  var gapPx = backPx - nowCny;            /* >0 还没到回本价；<=0 已经回本 */
+  var backOk = gapPx <= 0;
+  /* 「已盈利」只能是相对成本的：回本价本身已经含了回本加点那一段，
+     拿现价减回本价当盈利，等于把客户自己的目标利润算成了本金。 */
+  var overCost = nowCny - hs.avg;
+  var overPct = hs.avg > 0 ? overCost/hs.avg*100 : null;
+  var gapNeed = nowCny > 0 ? gapPx/nowCny*100 : null;
+
+  var hitK = null, nextK = null, i;
+  if(overPct !== null){
+    for(i=0;i<PROFIT_STEPS.length;i++){
+      if(Math.abs(overPct - PROFIT_STEPS[i]) <= PROFIT_NEAR){ hitK = PROFIT_STEPS[i]; break; }
+    }
+    for(i=0;i<PROFIT_STEPS.length;i++){
+      if(PROFIT_STEPS[i] > overPct){ nextK = PROFIT_STEPS[i]; break; }
+    }
+  }
+  var hint = "";
+  if(overPct !== null){
+    if(hitK !== null) hint = "已贴近 +" + hitK + "% 档";
+    else if(nextK === null) hint = "已超过最高档 +" + PROFIT_STEPS[PROFIT_STEPS.length-1] + "%";
+    else hint = "距 +" + nextK + "% 档还差 " + num(nextK - overPct,2) + " 个百分点";
+  }
+
+  return '<div class="pch"><span>盈利测算</span><em>持仓 ' + gnum(hs.grams) + 'g · 均价 ' + num(hs.avg,2) + '</em></div>' +
+    '<div class="pcgap">' +
+      '<div>' +
+        '<span>' + (backOk ? "回本后盈利" : "距回本单价") + '</span>' +
+        '<b class="num ' + (backOk ? "red" : "gold") + '">' +
+          (backOk ? "已盈利 " : "还差 ") + num(backOk ? overCost : gapPx,2) + '<i>元/克</i></b>' +
+        /* 拆成两段：窄屏放不下时整段换行，而不是把「+16.20%」单独甩下去当孤儿 */
+        '<em><span class="sg">回本 ' + num(backPx,2) + ' · 现价 ' + num(nowCny,2) + '</span>' +
+          (backOk
+            ? (overPct !== null ? '<span class="sg">较成本 ' + pct(overPct,2) + '</span>' : '')
+            : (gapNeed !== null && gapNeed > 0 ? '<span class="sg">需涨 ' + num(gapNeed,2) + '%</span>' : '')) + '</em>' +
+      '</div>' +
+      '<div class="pg"><span>全仓 ' + (backOk ? "已赚" : "还差") + '</span>' +
+        '<b class="num ' + (backOk ? "red" : "") + '">¥' + money((backOk ? overCost : gapPx)*hs.grams,0) + '</b></div>' +
+    '</div>' +
+    '<div class="pcgrid">' +
+      PROFIT_STEPS.map(function(k){
+        return '<div class="pci' + (hitK === k ? " on" : "") + '" data-p="' + k + '">' +
+          '<span>成本 +' + k + '%</span>' +
+          '<b class="num">¥' + money(costLeft*k/100,0) + '</b>' +
+          '<em>→ ' + num(hs.avg*(1 + k/100),2) + '</em>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+    (hint
+      ? '<div class="pcnear">当前浮动 <b class="' + (overPct >= 0 ? "red" : "green") + '">' +
+        pct(overPct,2) + '</b> · ' + hint + '</div>'
+      : '');
 }
 
 /* 账户卡片：每行一个账户。顶部不再重复「全账户克重 / 持仓成本 / 浮动盈亏」——

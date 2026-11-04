@@ -68,9 +68,9 @@ def test_e2_account_footnote_still_claims_nothing_about_header(make_env):
 def test_e3_pnl_calc_card_exists_below_summary(make_env):
     """持仓汇总下方有盈亏试算卡，且在账户区之前。"""
     e, p = pos(make_env, cfg())
-    assert p.eval_on_selector_all("#posBox .pnlcalc", "els => els.length") == 1
+    assert p.eval_on_selector_all("#calcBox", "els => els.length") == 1
     order = p.evaluate("""() => {
-        var a = document.querySelector('#posBox .pnlcalc');
+        var a = document.querySelector('#calcBox');
         var b = document.querySelector('#acctBox');
         return a.getBoundingClientRect().top <= b.getBoundingClientRect().top;
     }""")
@@ -84,7 +84,7 @@ def test_e4_gap_to_breakeven_is_per_gram(make_env):
     back = d["avg"] + d["comeback"]
     want = back - d["nowCny"]
     assert want > 0, d
-    txt = p.inner_text("#posBox .pnlcalc")
+    txt = p.inner_text("#calcBox")
     assert ("%.2f" % want) in txt, (want, txt)
     assert "%.2f" % back in txt            # 回本价也露出来，不然不知道涨到哪
 
@@ -96,22 +96,15 @@ def test_e5_profit_targets_are_cost_based(make_env):
     cost = d["grams"] * d["avg"]
     for pct in (5, 10, 15, 20):
         n = p.eval_on_selector_all(
-            "#posBox .pnlcalc .pci[data-p='%d'] b" % pct,
+            "#calcBox .pci[data-p='%d'] b" % pct,
             "els => els.length ? els[0].innerText : ''")
         want = round(cost * pct / 100)
         plain = n.replace(",", "").replace("¥", "").strip()
         assert plain.isdigit(), (pct, n)
         assert abs(int(plain) - want) <= 1, (pct, plain, want)
         px = p.eval_on_selector_all(
-            "#posBox .pnlcalc .pci[data-p='%d'] em" % pct, "els => els[0].innerText")
+            "#calcBox .pci[data-p='%d'] em" % pct, "els => els[0].innerText")
         assert ("%.2f" % (d["avg"] * (1 + pct / 100))) in px, (pct, px)
-
-
-def test_e6_profit_amounts_are_red(make_env):
-    """盈利金额用红色（A 股习惯），不用绿。"""
-    e, p = pos(make_env, cfg())
-    cls = p.eval_on_selector_all("#posBox .pnlcalc .pci b", "els => els.map(e => e.className)")
-    assert cls and all("red" in c for c in cls), cls
 
 
 def test_e7_keep_input_strips_leading_zero(make_env):
@@ -150,7 +143,7 @@ def test_f1_back_above_shows_profit_per_gram(make_env):
     back = d["avg"] + d["comeback"]
     assert d["nowCny"] > back, d
     want = d["nowCny"] - d["avg"]
-    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    box = p.inner_text("#calcBox .pcgap")
     assert "还差" not in box, box
     assert "已盈利" in box, box
     assert ("%.2f" % want) in box, (want, box)
@@ -160,7 +153,7 @@ def test_f2_back_above_keeps_breakeven_visible(make_env):
     """换成「已盈利」之后，回本价这个参照点还得留着，否则不知道从哪算起的。"""
     e, p = pos(make_env, cfg(cost=800.0))
     d = ctx(p)
-    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    box = p.inner_text("#calcBox .pcgap")
     assert ("%.2f" % (d["avg"] + d["comeback"])) in box, box
     assert ("%.2f" % d["nowCny"]) in box, box
 
@@ -171,7 +164,7 @@ def test_f3_back_above_position_amount_is_profit(make_env):
     e, p = pos(make_env, cfg(cost=800.0))
     d = ctx(p)
     want = (d["nowCny"] - d["avg"]) * d["grams"]
-    txt = p.inner_text("#posBox .pnlcalc .pcgap .pg")
+    txt = p.inner_text("#calcBox .pcgap .pg")
     assert "已赚" in txt, txt
     nums = [int(x.replace(",", "")) for x in re.findall(r"[\d,]+", txt) if x.strip(",")]
     assert any(abs(n - want) <= 1 for n in nums), (want, txt)
@@ -180,7 +173,7 @@ def test_f3_back_above_position_amount_is_profit(make_env):
 def test_f4_back_above_no_need_rise_hint(make_env):
     """已回本还写「需涨 x%」，是在教人涨多少才回本 —— 已经回本了。"""
     e, p = pos(make_env, cfg(cost=800.0))
-    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    box = p.inner_text("#calcBox .pcgap")
     assert "需涨" not in box, box
     assert "较成本" in box, box     # 换成"比成本高多少"，这才是已回本时该给的参照
 
@@ -198,7 +191,7 @@ def test_f5_exactly_at_back_counts_as_back(make_env):
     }""")
     p.wait_for_timeout(250)
     d = ctx(p)
-    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    box = p.inner_text("#calcBox .pcgap")
     assert "已盈利" in box, box
     assert ("%.2f" % d["comeback"]) in box, (d["comeback"], box)
 
@@ -208,6 +201,6 @@ def test_f6_below_back_still_says_gap(make_env):
     e, p = pos(make_env, cfg())
     d = ctx(p)
     assert d["nowCny"] < d["avg"] + d["comeback"], d
-    box = p.inner_text("#posBox .pnlcalc .pcgap")
+    box = p.inner_text("#calcBox .pcgap")
     assert "还差" in box, box
     assert "已盈利" not in box, box
