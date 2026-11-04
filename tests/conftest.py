@@ -140,7 +140,7 @@ def make_env(browser):
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
-              hash_="", bars=None, calendar=None, tz=None):
+              hash_="", bars=None, calendar=None, tz=None, jn=None):
         opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -215,6 +215,21 @@ def make_env(browser):
                 route.fulfill(status=404, content_type="application/json", body="{}")
 
         page.route("**/calendar.json*", _cal)
+
+        # 金十中转产物（J3）：默认全部 404，等价于"中转还没跑起来"。
+        # 用例传 jn={"flash.json": {...}} 即注入。注意注册顺序在 calendar.json 之后，
+        # Playwright 后注册的优先，否则 jin10/calendar.json 会被上面的 _cal 抢走。
+        def _jn(route):
+            url = route.request.url
+            name = url.split("/jin10/")[-1].split("?")[0]
+            body = (jn or {}).get(name)
+            if body is None:
+                route.fulfill(status=404, content_type="application/json", body="{}")
+            else:
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps(body, ensure_ascii=False))
+
+        page.route("**/jin10/**", _jn)
         page.route("**/fonts.googleapis.com/**", lambda r: r.abort())
         page.route("**/fonts.gstatic.com/**", lambda r: r.abort())
 

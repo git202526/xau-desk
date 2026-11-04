@@ -1,0 +1,49 @@
+name: jin10 relay
+
+# 为什么每 5 分钟：J2 实测 mcp.jin10.com 的 CORS 不放行（预检无 Access-Control-*，
+# 带 Origin 的 POST 被 403 拒），浏览器直连不可能成功，只能服务端拉、落成同源静态文件。
+# 5 分钟是 GitHub Actions cron 的最小粒度，也是本方案的下限。
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jin10-relay
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 拉取金十数据（无 token 自动跳过）
+        env:
+          JIN10_TOKEN: ${{ secrets.JIN10_TOKEN }}
+        run: |
+          if [ -z "$JIN10_TOKEN" ]; then
+            echo "::warning::未配置 secrets.JIN10_TOKEN，本次跳过（不发起请求）"
+            exit 0
+          fi
+          python3 tools/fetch_jin10.py
+
+      - name: 提交产物
+        run: |
+          git config user.name  "xau-desk-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add jin10/ || true
+          if git diff --cached --quiet; then
+            echo "无变化"
+          else
+            git commit -m "chore: jin10 relay $(date -u +'%H:%M')"
+            git push
+          fi

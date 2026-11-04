@@ -155,8 +155,9 @@ def test_h5_kline_429_backoff(env):
     p = e.page
     p.route("**/data-api.binance.vision/**", lambda r: r.fulfill(status=429, body="limited"))
     reset(p)
-    p.evaluate("() => window.__xt.refreshData()")
-    p.wait_for_timeout(600)
+    # J3 起 K 线默认按周期降频，首屏刚拉过就不再发；这里强制刷新才能真的打到 429
+    p.evaluate("() => window.__xt.refreshData(true)")
+    p.wait_for_timeout(700)
     s = src(p)
     assert s["kline"]["level"] == 1
     assert s["kline"]["until"] > p.evaluate("() => Date.now()")

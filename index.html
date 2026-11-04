@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.52 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.53 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（快讯资讯日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -318,9 +318,17 @@ body.tab-ov .tpx{display:none}
 /* v6.50：#btChips 原先只有 class="fchips" 却没有样式规则 —— .fchips 的布局只挂在
    .klfilter 后代下，于是判定回溯的周期按钮一直是浏览器原生样式（灰底黑边方角）。
    这里把两条选择器并列，让它们共用同一套胶囊 chips。 */
-.klfilter .fchips,#btChips{display:flex;gap:6px;flex:1 1 auto;min-width:0;flex-wrap:wrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-.klfilter button,#btChips button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap;font-family:inherit}
-.klfilter button.on,#btChips button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
+.klfilter .fchips,#btChips,#jnChips{display:flex;gap:6px;flex:0 1 auto;min-width:0;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.klfilter button,#btChips button,#jnChips button{flex:0 0 auto;font-size:11.5px;color:var(--tx3);background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;min-height:34px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.klfilter button.on,#btChips button.on,#jnChips button.on{color:var(--gold);border-color:rgba(212,162,76,.45);background:rgba(212,162,76,.1)}
+/* 快讯/资讯行（J3）：左时间右正文，长文最多两行，超出省略 */
+.jnrow{display:flex;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px;line-height:1.55}
+.jnrow:first-child{border-top:none;padding-top:2px}
+.jnrow .jntm{flex:0 0 auto;width:44px;color:var(--tx3);font-size:11px;padding-top:1px}
+.jnrow .jnb{flex:1 1 auto;min-width:0}
+.jnrow .jnt{color:var(--tx2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.jnrow .jns{color:var(--tx3);font-size:11px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.jnrow.hot .jnt{color:var(--gold)}
 .klfilter button.rng{color:var(--tx2);min-width:64px}
 .klfilter button:active,#btChips button:active{transform:scale(.97)}
 .kl{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid rgba(255,255,255,.045);font-size:12px}
@@ -850,7 +858,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.52 · 11/03</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.53 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1037,6 +1045,16 @@ body.tab-ov .tpx{display:none}
     <div class="sech"><h2>事件雷达 <span class="cnt" id="evMeta"></span></h2></div>
     <div id="evList"></div>
     <div class="note" id="evNote"></div>
+
+    <div class="sech" style="margin-top:16px">
+      <h2>市场快讯 <span class="cnt" id="jnMeta"></span></h2>
+      <div class="fchips" id="jnChips">
+        <button type="button" data-k="flash" class="on">快讯</button>
+        <button type="button" data-k="news">资讯</button>
+      </div>
+    </div>
+    <div class="card" id="jnFeed"><div class="muted">加载中…</div></div>
+
     <div class="sech" style="margin-top:16px"><h2>状态转移 <span class="cnt" id="feedMeta"></span></h2></div>
     <div id="feedList"></div>
   </section>
@@ -1416,7 +1434,10 @@ var S = {
   editing:null, tab:"struct", acctFilter:null,
   acctEdit:null, acctDel:null, acctColor:null,
   /* J1：行情源健康度。spotSrc 只记录当前用哪个源，不参与价格合成 */
-  spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0
+  spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0,
+  /* J3：金十中转产物（同源静态 JSON）+ K 线增量元数据 */
+  jn:{ flash:null, news:null, cal:null, flashAt:0, newsAt:0, calAt:0 },
+  jnTab:"flash", klMeta:{}
 };
 
 /* === 源健康度与退避（J1） ===
@@ -1629,29 +1650,146 @@ function mapKline(arr){
     return { t:+x[0], o:+x[1], h:+x[2], l:+x[3], c:+x[4], v:+x[5] };
   });
 }
-function fetchKlines(){
+/* === K 线降频与增量（J3） ===
+   原来每 5 分钟把 4 个周期全量重取（220+800+750+1000 根），一天 288 轮 → 约 2300 次请求。
+   改成：按周期各自的"到期"条件触发，到期也只拉最后 3/5 根，缺口过大才回退全量。
+   判据一律用 UTC —— 交易所的日线/周线边界是 UTC，用本地时区会在跨时区时错位。 */
+var KL_INC = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 增量拉几根
+var KL_GAP = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 缺口超过几个周期就回退全量
+var KL_FALLBACK = { "4h": 60*60000, "1h": 30*60000 };     // 兜底间隔（小时级才有）
+
+function klPeriodMs(k){
+  var m = { "1w":7*86400000, "1d":86400000, "4h":4*3600000, "1h":3600000 };
+  return m[k] || 0;
+}
+function utcWeekKey(t){
+  var d = new Date(t);
+  var day = (d.getUTCDay() + 6) % 7;               // 周一=0
+  var monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - day*86400000;
+  return String(monday);
+}
+function utcDayKey(t){
+  var d = new Date(t);
+  return d.getUTCFullYear() + "-" + (d.getUTCMonth()+1) + "-" + d.getUTCDate();
+}
+/* 到期判据：周线看 UTC 周变化，日线看 UTC 日变化，
+   4H/1H 既有"跨周期边界"也有"兜底间隔"——两者任一满足就刷 */
+function klDue(k, now){
+  var m = S.klMeta[k];
+  if(!m || !m.at) return true;                     // 从没拉过
+  if(k === "1w") return utcWeekKey(now) !== utcWeekKey(m.at);
+  if(k === "1d") return utcDayKey(now) !== utcDayKey(m.at);
+  var fb = KL_FALLBACK[k];
+  if(fb && now - m.at >= fb) return true;
+  var ms = klPeriodMs(k);
+  return ms ? (Math.floor(now/ms) > Math.floor(m.at/ms)) : true;
+}
+
+/* 按 t 合并；同 t 用新值覆盖（最后一根未收盘的会一直更新） */
+function mergeBars(old, add, maxLen){
+  var map = {}, i;
+  for(i=0;i<old.length;i++) map[old[i].t] = old[i];
+  for(i=0;i<add.length;i++) map[add[i].t] = add[i];
+  var out = [];
+  for(var k in map){ if(Object.prototype.hasOwnProperty.call(map, k)) out.push(map[k]); }
+  out.sort(function(a,b){ return a.t - b.t; });
+  if(maxLen && out.length > maxLen) out = out.slice(out.length - maxLen);
+  return out;
+}
+
+/* 金十 K 线备源：读中转落盘的 kline_<周期>.json（Binance 挂了才用） */
+function jnKline(k){
+  return new Promise(function(res){
+    jnRead("kline", "kline_" + k + ".json", 240000, function(d){
+      if(!d || !Array.isArray(d.bars) || d.bars.length < 30){ res(null); return; }
+      var bars = d.bars.map(function(b){
+        return { t:+b.t, o:+b.o, h:+b.h, l:+b.l, c:+b.c, v:+b.v || 0 };
+      }).filter(function(b){ return b.t > 0 && b.c > 0; });
+      res(bars.length >= 30 ? bars : null);
+    });
+  });
+}
+
+function fetchKlines(force){
+  var now = Date.now();
   var firstErr = null;
   var jobs = PERIODS.map(function(p){
-    var url = API_KLINE + p.key + "&limit=" + p.limit;
-    /* J1：加 15s 超时。原来裸 fetch 在弱网下会一直挂起 */
-    return fetchJson(url, 15000).then(function(d){
-      var bars = mapKline(d||[]);
-      if(bars.length < 30) throw new Error("kline short " + p.key);
-      return { key:p.key, bars:bars };
+    if(!force && !klDue(p.key, now)) return Promise.resolve({ key:p.key, skipped:true });
+    var cur = S.kl[p.key];
+    var inc = KL_INC[p.key] || 3;
+    var fullFirst = !cur || cur.length < 30;
+
+    function req(limit){
+      /* J1：加 15s 超时。原来裸 fetch 在弱网下会一直挂起 */
+      return fetchJson(API_KLINE + p.key + "&limit=" + limit, 15000)
+        .then(function(d){ return mapKline(d || []); });
+    }
+    function full(){
+      return req(p.limit).then(function(bars){
+        if(bars.length < 30) throw new Error("kline short " + p.key);
+        return { key:p.key, bars:bars, mode:"full" };
+      });
+    }
+
+    var chain = fullFirst ? full() : req(inc).then(function(bars){
+      if(!bars.length) throw new Error("kline empty " + p.key);
+      var pm = klPeriodMs(p.key);
+      var lastT = cur[cur.length-1].t;
+      if(bars[0].t - lastT > pm * (KL_GAP[p.key] || inc)){
+        /* 缺口过大（几天没开页面 / 长时间断网）：增量接不上，回退全量 */
+        return full();
+      }
+      return { key:p.key, bars:mergeBars(cur, bars, p.limit), mode:"inc" };
+    });
+
+    return chain.then(function(r){
+      S.klMeta[p.key] = { at:now, lastT:r.bars[r.bars.length-1].t, mode:r.mode };
+      return r;
     }).catch(function(e){
       if(!firstErr) firstErr = e;
-      return null;
+      /* Binance 挂了：有旧数据就继续用旧的（不打断指标），没数据才找金十备源 */
+      if(cur && cur.length >= 30) return null;
+      return jnKline(p.key).then(function(bars){
+        if(!bars) return null;
+        S.klMeta[p.key] = { at:now, lastT:bars[bars.length-1].t, mode:"jn" };
+        return { key:p.key, bars:bars, mode:"jn" };
+      });
     });
   });
+
   return Promise.all(jobs).then(function(res){
-    var ok = 0;
+    var got = 0, skipped = 0, failed = 0, fromJn = 0;
     res.forEach(function(r){
-      if(r){ S.kl[r.key] = r.bars; ok++; }
+      if(!r){ failed++; return; }
+      if(r.skipped){ skipped++; return; }
+      S.kl[r.key] = r.bars;
+      got++;
+      if(r.mode === "jn") fromJn++;
     });
-    if(ok) srcOk("kline");
-    else srcFail("kline", firstErr || new Error("kline all failed"));
-    return ok;
+    if(got) srcOk("kline");
+    else if(failed) srcFail("kline", firstErr || new Error("kline all failed"));
+    return { got:got, skipped:skipped, failed:failed, fromJn:fromJn,
+             usable: got + skipped };
   });
+}
+
+/* 未收盘的 K 线用 PAXG 逐笔本地推进：不等下次全量，图上最后一根就能跟着动。
+   只在"这根还没收盘"时改，收盘后一律以服务端真实 K 线为准（下次增量会覆盖）。 */
+function patchFormingBar(){
+  if(!S.paxg) return false;
+  var changed = false;
+  ["1h","4h","1d"].forEach(function(k){
+    var bars = S.kl[k];
+    if(!bars || !bars.length) return;
+    var b = bars[bars.length-1];
+    var pm = klPeriodMs(k);
+    if(!pm) return;
+    if(Date.now() - b.t >= pm) return;             // 已收盘，不本地改
+    if(S.paxg > b.h){ b.h = S.paxg; changed = true; }
+    if(S.paxg < b.l){ b.l = S.paxg; changed = true; }
+    if(b.c !== S.paxg){ b.c = S.paxg; changed = true; }
+  });
+  return changed;
 }
 function applyScale(){
   if(!S.price) return;
@@ -4819,6 +4957,98 @@ function firstFriday(y,m){
    内置只覆盖「官方日程 + 惯例推算」（FOMC、非农），其余指标靠 calendar.json。
    那个文件由 GitHub Actions 每 6 小时从 ForexFactory 周历抓一次（源不给跨域头，
    浏览器取不到，只能服务端抓完以同源静态文件交付）。 */
+/* === 金十中转产物（J3） ===
+   J2 实测 mcp.jin10.com 的 CORS 不放行（预检无 Access-Control-*，带 Origin 的 POST 被 403 拒），
+   浏览器永远不可能直连，所以由 Actions 每 5 分钟拉一次、落成同源静态文件，这里只读文件。
+   好处是零跨域、零 Token 暴露；代价是内容最多滞后 5 分钟 —— 对快讯/资讯/日历够用，
+   对 15 秒级的报价不够用，所以报价不接金十，仍是 Gold API + gold-api.cn 两层。 */
+var JN_DIR = "jin10/";
+var JN_TTL = { flash: 240000, news: 600000, cal: 1200000 };
+
+function jnRead(kind, file, ttl, done){
+  if(typeof fetch !== "function"){ done(null); return; }
+  /* URL 带时间片，和 K 线/日历一样绕开 HTTP 缓存；同片内不重复请求 */
+  var url = JN_DIR + file + "?v=" + Math.floor(Date.now() / ttl);
+  fetchJson(url, 10000).then(function(d){
+    done(d || null);
+  }).catch(function(){ done(null); });
+}
+
+/* 快讯/资讯：一次读一个文件，失败就保持上一次的内容，不做额外重试 */
+function loadJnFeed(kind){  var file = kind === "news" ? "news.json" : "flash.json";
+  var ttl = JN_TTL[kind] || 240000;
+  var atKey = kind === "news" ? "newsAt" : "flashAt";
+  var listKey = kind === "news" ? "news" : "flash";
+  if(S.jn[atKey] && Date.now() - S.jn[atKey] < ttl && S.jn[listKey]) return Promise.resolve(true);
+  return new Promise(function(res){
+    jnRead(kind, file, ttl, function(d){
+      if(d && Array.isArray(d.items) && d.items.length){
+        S.jn[listKey] = d.items;
+        S.jn[atKey] = Date.now();
+        res(true);
+      }else{
+        res(false);
+      }
+    });
+  });
+}
+
+function jnTime(t){
+  var n = Number(t) || 0;
+  if(n && n < 1e11) n *= 1000;
+  if(!n) return "--";
+  var d = new Date(n);
+  var today = new Date();
+  var same = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+             && d.getDate() === today.getDate();
+  return same ? hhmm(n) : ((d.getMonth()+1) + "-" + pad(d.getDate()));
+}
+
+function renderJn(){
+  var box = $("jnFeed");
+  if(!box) return;
+  var isNews = S.jnTab === "news";
+  var list = (isNews ? S.jn.news : S.jn.flash) || [];
+  Array.prototype.forEach.call(document.querySelectorAll("#jnChips button"), function(b){
+    b.className = b.getAttribute("data-k") === S.jnTab ? "on" : "";
+  });
+  var meta = $("jnMeta");
+  if(!list.length){
+    if(meta) meta.textContent = "";
+    box.innerHTML = '<div class="muted">' + (isNews
+      ? "暂无资讯。中转每 5 分钟拉一次，没有内容时这里会一直是空的。"
+      : "暂无快讯。中转每 5 分钟拉一次，没有内容时这里会一直是空的。") + '</div>';
+    return;
+  }
+  var rows = list.slice(0, isNews ? 6 : 8);
+  var html = "";
+  rows.forEach(function(it){
+    var t = jnTime(it.t);
+    if(isNews){
+      html += '<div class="jnrow' + (it.important ? " hot" : "") + '">' +
+        '<div class="jnb"><div class="jnt">' + escapeHtml(it.title || "") + '</div>' +
+        (it.summary ? '<div class="jns">' + escapeHtml(it.summary) + '</div>' : "") +
+        '<div class="jntm num">' + escapeHtml(t) + '</div></div></div>';
+    }else{
+      html += '<div class="jnrow' + (it.important ? " hot" : "") + '">' +
+        '<div class="jntm num">' + escapeHtml(t) + '</div>' +
+        '<div class="jnt">' + escapeHtml(it.text || "") + '</div></div>';
+    }
+  });
+  box.innerHTML = sanitizeHtml(html);
+  if(meta) meta.textContent = rows.length + " / " + list.length + " 条";
+}
+
+/* 拉取 + 渲染。只在这一个入口发请求，渲染函数本身不碰网络 */
+function refreshJn(){
+  if(document.hidden) return Promise.resolve(false);
+  return Promise.all([loadJnFeed("flash"), loadJnFeed("news")]).then(function(){
+    renderJn();
+    return true;
+  });
+}
+
+/* 日历：金十主源 → calendar.json 备源 → 内置事件（computeEvents 本来就兜底） */
 var CAL_URL = "calendar.json";
 var CAL_STALE = 3*86400000, CAL_DEAD = 7*86400000;
 
@@ -4834,6 +5064,34 @@ function calState(){
 }
 
 function loadCalendar(){
+  /* 三级：金十（中转）→ calendar.json（Actions 抓 ForexFactory）→ 内置固定事件 */
+  if(typeof fetch !== "function") return Promise.resolve(false);
+  return new Promise(function(res){
+    jnRead("cal", "calendar.json", JN_TTL.cal, function(d){
+      if(!d || !Array.isArray(d.events)){ res(false); return; }
+      var evs = d.events.filter(function(e){ return e && Number(e.t) > 0 && e.name; })
+        .map(function(e){
+          return {
+            t: Number(e.t), ccy: String(e.ccy || "").toUpperCase(), name: String(e.name),
+            impact: Math.max(1, Math.min(5, Number(e.impact) || 3)),
+            fc: e.fc || "", pv: e.pv || ""
+          };
+        });
+      if(evs.length < 3){ res(false); return; }
+      S.cal = { ok:true, events:evs, src:"jin10",
+                updatedAt: Date.parse(d.updatedAt || "") || 0, week: d.week || "" };
+      S.jn.cal = evs;
+      S.jn.calAt = Date.now();
+      srcOk("cal");
+      res(true);
+    });
+  }).then(function(ok){
+    if(ok) return true;
+    return loadCalendarFF();
+  });
+}
+
+function loadCalendarFF(){
   if(typeof fetch !== "function") return Promise.resolve(false);
   var url = CAL_URL + "?v=" + Math.floor(Date.now()/3600000);
   /* J1：加 10s 超时，避免日历请求长期悬挂 */
@@ -4849,13 +5107,13 @@ function loadCalendar(){
           };
         });
       if(evs.length < 3) throw new Error("too few events");
-      S.cal = { ok:true, events:evs,
+      S.cal = { ok:true, events:evs, src:"ff",
                 updatedAt: Date.parse(d.updatedAt || "") || 0, week: d.week || "" };
       srcOk("cal");
       return true;
     })
     .catch(function(e){
-      S.cal = { ok:false, events:[], updatedAt:0, week:"" };
+      S.cal = { ok:false, events:[], src:"none", updatedAt:0, week:"" };
       srcFail("cal", e);
       return false;
     });
@@ -8215,6 +8473,7 @@ function refreshAll(){
   renderTake();
   renderEvents();
   renderFeed();
+  renderJn();
   renderStat();
   renderDirtyBar();
   setConn();
@@ -8466,6 +8725,12 @@ function refreshTick(){
     var prev = S.price;
     S.prev = prev;
     S.price = p;
+    /* 未收盘 K 线跟着逐笔走，图上最后一根不再卡在 15 秒前 */
+    var moved = patchFormingBar();
+    if(moved){
+      applyScale();
+      renderChart();
+    }
     checkAlerts(prev, p);
     renderHero();
     setConn();
@@ -8491,14 +8756,19 @@ function flashPrice(old, p){
   }
 }
 
-function refreshData(){
+function refreshData(force){
   if(document.hidden) return;                 // J1：隐藏时不拉 K 线
   if(!srcReady("kline")) return;              // J1：429 退避期内不打
-  fetchKlines().then(function(n){
-    if(!n){ S.fail++; setConn(); return; }
-    applyScale();
-    compute();
-    refreshAll();
+  /* force 只给"回前台"用：那一刻是用户主动切回来，值得把 4 个周期都对齐一次。
+     定时器走的都是降频判据，不 force。 */
+  fetchKlines(!!force).then(function(r){
+    /* 降频后大多数轮次是"全部跳过"，此时不重算、不重渲染，只补一次报价 */
+    if(!r || !r.usable){ S.fail++; setConn(); return; }
+    if(r.got){
+      applyScale();
+      compute();
+      refreshAll();
+    }
     refreshPrice();
   });
 }
@@ -8977,6 +9247,13 @@ function bindDirtyWatch(){
 function bindUI(){
   bindTabbar();
 
+  Array.prototype.forEach.call(document.querySelectorAll("#jnChips button"), function(b){
+    b.onclick = function(){
+      S.jnTab = b.getAttribute("data-k") || "flash";
+      renderJn();
+    };
+  });
+
   Array.prototype.forEach.call(document.querySelectorAll("#klChips button"), function(b){
     b.onclick = function(){
       S.levelFilter = b.getAttribute("data-f");
@@ -9300,7 +9577,9 @@ function bindUI(){
        refreshData 内部那次 refreshPrice 会被 1 秒去重挡住，不会重复打接口 */
     refreshPrice(true);
     refreshTick();
-    refreshData();
+    /* J3：K 线降频后，定时器都不 force；回前台是用户主动切回，强制对齐一次
+       （4 个周期各一次增量，最多 4 个小请求）。 */
+    refreshData(true);
   });
 }
 
@@ -9348,6 +9627,8 @@ function boot(){
   }
   setInterval(setConn, 1000);                  // 读秒：每秒一次，秒数连续递增
   loadCalendar().then(function(ok){ if(ok) renderEvents(); });
+  refreshJn();                                  // 快讯/资讯：中转每 5 分钟更新，这里同频
+  setInterval(refreshJn, 5*60*1000);
   setInterval(refreshPrice, TICK_MS);          // 现货锚点：15 秒一次
   setInterval(refreshTick, 5000);              // 逐笔桥接：5 秒一次，报价不再卡 30 秒
   setInterval(refreshData, 5*60*1000);
@@ -9363,6 +9644,30 @@ if(/[?&]xt=1/.test(location.search)){
     refreshPrice:refreshPrice,
     refreshTick:refreshTick,
     refreshData:refreshData,
+    /* J3：金十中转与 K 线降频 */
+    refreshJn:refreshJn,
+    renderJn:renderJn,
+    jnState:function(){
+      return {
+        tab:S.jnTab,
+        flash:(S.jn.flash||[]).length, news:(S.jn.news||[]).length,
+        flashAt:S.jn.flashAt, newsAt:S.jn.newsAt, calAt:S.jn.calAt,
+        calSrc:(S.cal&&S.cal.src)||"none"
+      };
+    },
+    klState:function(){
+      var o = {};
+      PERIODS.forEach(function(p){
+        var m = S.klMeta[p.key] || {};
+        var bars = S.kl[p.key] || [];
+        o[p.key] = { at:m.at|0, mode:m.mode||"", n:bars.length,
+                     lastT:bars.length ? bars[bars.length-1].t : 0 };
+      });
+      return o;
+    },
+    klDue:function(k, t){ return klDue(k, t || Date.now()); },
+    patchFormingBar:patchFormingBar,
+    fetchKlines:fetchKlines,
     /* J1：源健康度与备源。测试注入用 setAltUrl，不写死真实端点 */
     srcState:function(){
       return {
