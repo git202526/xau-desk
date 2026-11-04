@@ -4929,11 +4929,12 @@ function firstFriday(y,m){
    内置只覆盖「官方日程 + 惯例推算」（FOMC、非农），其余指标靠 calendar.json。
    那个文件由 GitHub Actions 每 6 小时从 ForexFactory 周历抓一次（源不给跨域头，
    浏览器取不到，只能服务端抓完以同源静态文件交付）。 */
-/* === 金十中转产物（J3） ===
+/* === 金十中转产物 ===
    J2 实测 mcp.jin10.com 的 CORS 不放行（预检无 Access-Control-*，带 Origin 的 POST 被 403 拒），
-   浏览器永远不可能直连，所以由 Actions 每 5 分钟拉一次、落成同源静态文件，这里只读文件。
-   好处是零跨域、零 Token 暴露；代价是内容最多滞后 5 分钟 —— 对快讯/资讯/日历够用，
-   对 15 秒级的报价不够用，所以报价不接金十，仍是 Gold API + gold-api.cn 两层。 */
+   浏览器永远不可能直连，所以由 Actions 拉取、落成同源静态文件，这里只读文件。
+   好处是零跨域、零 Token 暴露；代价是内容滞后一个 cron 周期。
+   v6.58 起只产 calendar.json（cron 20 分钟）：金十的 K 线只有分钟级、凑不出 4H/日线，
+   报价的中转快照也救不了 15 秒实时价，两个都已停抓，详见 docs/J5-金十MCP实测记录.md。 */
 
 function jnRead(file, ttl, done){
   if(typeof fetch !== "function"){ done(null); return; }
@@ -8210,7 +8211,7 @@ function renderEvents(){
   $("evMeta").textContent = list.length + " 项" +
     (st.live ? (st.src === "ff" ? " · 备源" : " · 实时") : "");
   var calSrc = st.src === "jin10"
-    ? "其余指标来自金十财经日历（中转每 5 分钟更新）。"
+    ? "其余指标来自金十财经日历（中转每 20 分钟更新）。"
     : (st.src === "ff"
         ? "其余指标来自备源 ForexFactory 周历（每 6 小时更新）。"
         : "其余指标暂不可用。");
