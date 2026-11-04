@@ -15,21 +15,9 @@ import sys
 
 import pytest
 
-from conftest import CFG_NORMAL, PRICE, _bars
+from conftest import CFG_NORMAL
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-FLASH = {"updatedAt": "2026-11-04T01:30:00Z", "items": [
-    {"id": "f1", "t": 1762300000000, "text": "美联储官员称通胀仍在回落通道", "important": True},
-    {"id": "f2", "t": 1762299940000, "text": "COMEX 黄金期货短线上扬 5 美元", "important": False},
-    {"id": "f3", "t": 1762299880000, "text": "美元指数跌破 104 关口", "important": False},
-]}
-
-NEWS = {"updatedAt": "2026-11-04T01:30:00Z", "items": [
-    {"id": "n1", "t": 1762290000000, "title": "央行连续第 12 个月增持黄金",
-     "summary": "10 月末黄金储备较上月增加 5 万盎司"},
-    {"id": "n2", "t": 1762280000000, "title": "机构：明年金价中枢上移", "summary": ""},
-]}
 
 
 def JN_CAL(n=4):
@@ -40,22 +28,13 @@ def JN_CAL(n=4):
     ]}
 
 
-def _bar(i, t0=1762200000000, step=3600000):
-    p = 4000 + i
-    return [t0 + i * step, p, p + 6, p - 5, p + 3, 100 + i]
-
-
-def _bars_desc(n=60, t0=1762200000000, step=3600000):
-    return [_bar(i, t0, step) for i in range(n)]
-
-
 def _jl(p):
     return p.evaluate("() => window.__xt.jnState()")
 
 
-# ================================================================ 快讯 / 资讯
+# ================================================================ 中转缺失
 
-def test_j3_missing_relay_keeps_quote(make_env):
+def test_j3_missing_relay_falls_back_to_builtin(make_env):
     """中转没跑起来（全 404）：日历回落内置事件，报价与通道图照常，不报错、不白屏。"""
     e = make_env(cfg=CFG_NORMAL)          # jn=None → 全部 404
     p = e.page
@@ -282,3 +261,81 @@ def test_r2_relay_no_token_skips():
                        capture_output=True, text=True, timeout=60, env=env)
     assert r.returncode == 2, r.stdout + r.stderr
     assert "跳过" in r.stderr
+
+
+def test_k8_small_gap_also_falls_back(make_env):
+    """缺口只有 2 个周期（小于增量根数）也必须回退全量。
+
+    增量只拉 5 根，接不上的那段不会自动补齐 —— 之前判据是「缺口 > 5 个周期」，
+    于是 2~5 个周期的洞会被放过去，图上出现断档。判据应是「只要有洞就全量」。
+    """
+    e = make_env(cfg=CFG_NORMAL)
+    p = e.page
+
+    def kline(route):
+        url = route.request.url
+        lim = 5
+        if "limit=" in url:
+            try:
+                lim = int(url.split("limit=")[1].split("&")[0])
+            except Exception:
+                lim = 5
+        n = 5 if lim <= 5 else 60
+        step = 3600000
+        # 增量（limit<=5）从 now-5h 开始；全量返回 60 根
+        t0 = 1762400000000 - n * step
+        body = [[t0 + i * step, 4000 + i, 4010 + i, 3990 + i, 4005 + i, 10] for i in range(n)]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
+
+    p.route("**/data-api.binance.vision/**", kline)
+    urls = []
+    p.on("request", lambda r: urls.append(r.url) if "interval=1h" in r.url else None)
+
+    # 本地最后一根在 now-7h：增量从 now-5h 起，中间缺 1 根（2 个周期差）
+    p.evaluate("""() => {
+        var s = window.__xt.state();
+        var now = 1762400000000;
+        var bars = [];
+        for (var i = 0; i < 40; i++) {
+            var t = now - 7*3600000 - (39 - i) * 3600000;
+            bars.push({t: t, o: 4000+i, h: 4010+i, l: 3990+i, c: 4005+i, v: 10});
+        }
+        s.kl['1h'] = bars;
+        s.klMeta['1h'] = { at: Date.now() - 2*3600*1000,
+                           lastT: bars[bars.length-1].t, mode: 'full' };
+    }""")
+    urls.clear()
+    p.evaluate("() => window.__xt.refreshData()")
+    p.wait_for_timeout(900)
+
+    one_h = [u for u in urls if "interval=1h" in u]
+    assert one_h, "没有发起 1h 请求"
+    assert any("limit=1000" in u for u in one_h), one_h
+
+
+# ================================================================ 日历刷新节奏
+
+def test_j9_calendar_refreshes_periodically(make_env):
+    """日历必须按中转节奏重拉，不能只在启动时拉一次。
+
+    中继每 20 分钟出一份新的 calendar.json；页面若只在 boot 时读一次，
+    开着过夜就永远停在前一天，而底部文案却写着「每 20 分钟更新」。
+    """
+    e = make_env(cfg=CFG_NORMAL, jn={"calendar.json": JN_CAL()})
+    p = e.page
+    p.wait_for_function("() => window.__xt.jnState().calSrc === 'jin10'", timeout=6000)
+
+    assert p.evaluate("() => window.__xt.calRefreshMs()") <= 20 * 60000
+
+    hits = []
+    p.on("request", lambda r: hits.append(r.url) if "/jin10/calendar.json" in r.url else None)
+    hits.clear()
+    p.evaluate("() => window.__xt.refreshCalendar()")
+    p.wait_for_timeout(600)
+    assert hits, "再次刷新时没有重新请求日历"
+
+    # 内容没变就不该重绘（签名相同）
+    sig = p.evaluate("() => window.__xt.calSig()")
+    p.evaluate("() => window.__xt.refreshCalendar()")
+    p.wait_for_timeout(600)
+    assert p.evaluate("() => window.__xt.calSig()") == sig

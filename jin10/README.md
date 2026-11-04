@@ -1,14 +1,15 @@
 # 金十中转产物
 
 本目录由 `.github/workflows/jin10.yml` 每 20 分钟运行一次 `tools/fetch_jin10.py` 写入，勿手工编辑。
-cron 与脚本 TTL（1200s）对齐 —— 按 5 分钟跑的话每 4 次里有 3 次会 TTL 命中直接退出，白烧 Actions 分钟数。
+cron 20 分钟、脚本 TTL 1080s（18 分钟）—— TTL 比 cron 略短，是为了吸收 GitHub 定时任务的触发延迟；
+两者相等时，延迟的轮次会命中缓存直接退出，白跑一次 Actions。
 浏览器只读这里的同源静态文件，不直连 `mcp.jin10.com`（CORS 不放行，见 `docs/J2-金十MCP探测记录.md`）。
 
 ## 只有一个文件
 
 | 文件 | 来源工具 | 缓存 TTL | 页面用途 |
 |---|---|---|---|
-| `calendar.json` | `list_calendar` | 1200s | 事件雷达主源（失败回落 ForexFactory 周历） |
+| `calendar.json` | `list_calendar` | 1080s | 事件雷达主源（失败回落 ForexFactory 周历） |
 | `state.json` | — | — | 当日计数与停用标记 |
 
 `list_calendar` 不收任何参数，返回「当前自然周（周一到周日）」的财经日历，正是页面要的口径。
@@ -22,8 +23,8 @@ cron 与脚本 TTL（1200s）对齐 —— 按 5 分钟跑的话每 4 次里有 
 | K 线备源 | `get_kline` | v6.58 | 同上，也顶不了 Binance 的日线 |
 | 报价第三层 | `get_quote` | v6.58 | 中转最快 5 分钟一份快照，救不了页面的 15 秒报价 |
 
-`tools/fetch_jin10.py` 里的 `norm_flash` / `norm_news` / `norm_quote` / `norm_kline` 解析函数都保留
-（纯函数、无副作用），要恢复哪个就把对应的 `guard(...)` 加回来。
+下线时连解析函数一起删了 —— 留着只会让后来者以为那几路还在用。要恢复得重写，
+git 历史（v6.57 及之前）里有完整实现。
 
 ## J5 实测：K 线为什么不能用
 

@@ -10,10 +10,11 @@
 
 金十另外两个工具（get_quote / get_kline）经 J5 实测都不适合本页：
   * get_quote 的 time 精确到秒，报价本身是实时的，但中转最快 5 分钟一份快照，
-    救不了页面的 15 秒报价，且报价已有 Gold API + gold-api.cn 两层。
+    救不了页面的 15 秒报价。
   * get_kline 只有分钟级接口（count 上限 100、窗口 24 小时），凑不出 4H / 日线
     任何一根 bar，当备源和当校验源都不成立。
-详见 docs/J5-金十MCP实测记录.md。两个解析函数保留（纯函数），要恢复把 guard 加回来即可。
+详见 docs/J5-金十MCP实测记录.md。这两个工具连同只服务它们的解析函数已整体删除，
+要恢复得重写（git 历史里有），不是把 guard 加回来就能跑。
 
 职责边界：
   * 只做「拉取 → 归一化 → 落盘」，不做任何业务判断
@@ -58,7 +59,11 @@ TOOLS = {
     # cap 自设 110，远低于 1500：日历本身每 20 分钟才抓一次（72 次/天），
     # 110 只是防"某个 bug 导致每轮都判定过期"把额度打光的护栏。
     # 撞硬额度 = 当天彻底停摆；撞软上限 = 提前收手，第二天照常。
-    "list_calendar": {"ttl": 1200, "cap": 110, "limit": 100},
+    #
+    # TTL 取 1080 而不是 1200：cron 是 */20，GitHub 的定时任务本来就会延迟几十秒，
+    # 上一轮跑完到下一轮触发常常不足 1200s。TTL 与 cron 严格相等时，这些轮次会
+    # 命中 fresh() 直接退出 —— 白跑一次 Actions。留 2 分钟余量，保证每轮都真抓。
+    "list_calendar": {"ttl": 1080, "cap": 110},
 }
 
 # 协议版本：接入文档推荐 2025-11-25。J2 探测时用的是 2025-06-18，服务端也接受，
@@ -357,8 +362,8 @@ def parse_time(v):
 def pick_list(payload, keys):
     """按 keys 顺序在 payload 里找数组，允许下钻一层 payload.data。
 
-    金十的口径不统一：K 线是 data.klines，快讯/资讯是 data.items，
-    日历干脆 data 本身就是数组。与其在每个 norm_* 里各写一遍，不如收敛到这里。
+    金十的口径不统一：日历的 data 本身就是数组，其它列表类工具放在 data.items。
+    与其在调用处各写一遍取值，不如收敛到这里。
     """
     if isinstance(payload, list):
         return payload
@@ -379,8 +384,8 @@ def pick_list(payload, keys):
 
 
 def list_items(payload):
-    """列表类工具取数组：优先 data.items，其余交给 pick_list。"""
-    return pick_list(payload, ("items", "klines"))
+    """列表类工具取数组：data 裸数组 / data.items 两种口径都认。"""
+    return pick_list(payload, ("items",))
 
 
 def page_meta(payload):
@@ -398,15 +403,22 @@ def call_paged(mcp, name, args, max_pages=3, cap_left=None, count=None):
 
     返回 (payloads, pages)。任一页报额度用完，立刻停手并把已有结果交回。
     计数不在这里做：只要请求真的发出去，call_one 就会记一次（含失败与超时）。
+
+    cap_left 是"今天这个工具还能发几次"：页数不超过剩余额度，每页的重试次数
+    也按"扣掉已用页数后还剩多少"收紧。这不追求绝对精确（重试可能仍多发一次），
+    但能保证软上限 110 不会被翻页和重试叠加着突破 —— 而软上限离服务端硬额度
+    1500 还有十倍余量，多这一两次不会影响次日。
     """
+    limit_pages = max_pages if cap_left is None else min(max_pages, max(1, cap_left))
     out = []
     cursor = None
     pages = 0
-    while pages < max_pages:
+    while pages < limit_pages:
         a = dict(args)
         if cursor:
             a["cursor"] = cursor
-        payload = call_one(mcp, name, a, cap_left, count)
+        room = None if cap_left is None else max(1, cap_left - pages)
+        payload = call_one(mcp, name, a, room, count)
         out.append(payload)
         pages += 1
         nxt, more = page_meta(payload)
@@ -441,38 +453,6 @@ def call_one(mcp, name, args, cap_left=None, count=None):
 
 
 # ============================================================ 归一化 → 落盘格式
-def norm_flash(items):
-    out = []
-    for it in items:
-        if not isinstance(it, dict):
-            continue
-        out.append({
-            "id": str(it.get("id") or it.get("flash_id") or ""),
-            "t": int(it.get("time") or it.get("ts") or it.get("timestamp") or 0),
-            "text": (it.get("content") or it.get("text") or it.get("title") or "").strip(),
-            "important": bool(it.get("important") or it.get("is_important")),
-            "url": it.get("url") or "",
-        })
-    out = [x for x in out if x["text"]]
-    out.sort(key=lambda x: x["t"], reverse=True)
-    return out
-
-
-def norm_news(items):
-    out = []
-    for it in items:
-        if not isinstance(it, dict):
-            continue
-        out.append({
-            "id": str(it.get("id") or it.get("news_id") or ""),
-            "t": int(it.get("time") or it.get("ts") or it.get("timestamp") or 0),
-            "title": (it.get("title") or "").strip(),
-            "summary": (it.get("summary") or it.get("digest") or "").strip(),
-            "url": it.get("url") or "",
-        })
-    return [x for x in out if x["title"]]
-
-
 def norm_calendar(items):
     """日历：文档口径为 data 直接是数组，每项 pub_time / star / title /
     previous / consensus / actual / revised / affect_txt。
@@ -502,103 +482,6 @@ def norm_calendar(items):
     return [x for x in out if x["name"] and x["t"] > 0]
 
 
-def norm_quote(payload):
-    """报价：兼容单条与列表。字段对齐 J1 的备源映射规则。"""
-    if isinstance(payload, list):
-        rows = payload
-    elif isinstance(payload, dict):
-        # 文档口径：get_quote 返回单条，structuredContent 直接就是 {code, close, ...}
-        if payload.get("code") or payload.get("close") or payload.get("lastPrice"):
-            rows = [payload]
-        else:
-            rows = payload.get("items") or payload.get("data") or []
-            if isinstance(rows, dict):
-                rows = [rows]
-    else:
-        rows = []
-    out = []
-    for it in rows:
-        if not isinstance(it, dict):
-            continue
-        # 文档口径：close 是现价，ups_price 是涨跌额，ups_percent 是涨跌幅
-        price = _first_num(it.get("close"), it.get("lastPrice"), it.get("price"), it.get("last"))
-        if price is None:
-            continue
-        out.append({
-            "code": str(it.get("code") or it.get("goldId") or ""),
-            "name": str(it.get("name") or it.get("varietyName") or ""),
-            "price": price,
-            "change": pct_num(it.get("ups_percent") or it.get("changeMargin") or it.get("change")),
-            "chg": _first_num(it.get("ups_price"), it.get("changeAmount")),
-            "time": it.get("time") or it.get("updateTime") or "",
-            "open": _first_num(it.get("open")),
-            "high": _first_num(it.get("high")),
-            "low": _first_num(it.get("low")),
-        })
-    return out
-
-
-def norm_kline(payload):
-    """K 线：输出 [{t,o,h,l,c,v}]，t 为毫秒开盘时间。
-
-    文档口径：data.klines 为数组，每项 close / high / low / open / time / volume。
-    时间可能是秒级时间戳或字符串，统一走 parse_time。
-    每项是一个「周期」还是一根「bar」文档没写清，两种都试：取不到 o/h/l/c 的项直接丢。
-    """
-    rows = pick_list(payload, ("klines", "items", "bars"))
-    out = []
-    for it in rows:
-        if isinstance(it, dict):
-            try:
-                t = parse_time(it.get("time") or it.get("t"))
-                if not t:
-                    continue
-                out.append({"t": t,
-                            "o": float(it.get("open") or it.get("o") or 0),
-                            "h": float(it.get("high") or it.get("h") or 0),
-                            "l": float(it.get("low") or it.get("l") or 0),
-                            "c": float(it.get("close") or it.get("c") or 0),
-                            "v": float(it.get("volume") or it.get("v") or 0)})
-            except Exception:
-                continue
-        elif isinstance(it, (list, tuple)) and len(it) >= 5:
-            try:
-                t = parse_time(it[0])
-                if not t:
-                    continue
-                out.append({"t": t, "o": float(it[1]), "h": float(it[2]),
-                            "l": float(it[3]), "c": float(it[4]), "v": float(it[5] if len(it) > 5 else 0)})
-            except Exception:
-                continue
-    out.sort(key=lambda x: x["t"])
-    return out
-
-
-def _first_num(*vals):
-    """按顺序取第一个能转成正数的值。价格不会是 0，所以 0 视为无效。"""
-    for v in vals:
-        if v is None or v == "":
-            continue
-        try:
-            f = float(str(v).replace(",", ""))
-        except Exception:
-            continue
-        if f > 0:
-            return f
-    return None
-
-
-def pct_num(s):
-    """'1.23%' / '+1.23%' / 1.23 → 1.23（数字，不带百分号）"""
-    if isinstance(s, (int, float)):
-        return float(s)
-    txt = str(s or "").replace("%", "").replace("＋", "+").replace("－", "-").strip()
-    try:
-        return float(txt)
-    except Exception:
-        return None
-
-
 # ============================================================ 主流程
 def write_json(name, obj):
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -610,7 +493,7 @@ def write_json(name, obj):
     return path
 
 
-def ttl_of(name, dt=None):
+def ttl_of(name):
     return TOOLS[name]["ttl"]
 
 
@@ -618,7 +501,7 @@ def run(force=False, mcp=None, log=print, now=None):
     """主入口。返回每个工具的结果摘要，便于自测断言。"""
     now = now or now_utc()
     st = load_state()
-    rolled = roll_day(st)
+    roll_day(st)          # 跨日就清零计数与停用标记（副作用，返回值用不到）
     # v6.55：缓存键从工具名改为输出文件名。清掉旧键，否则 state.json 里会永久留着
     # get_kline / list_calendar 这些已经不再读取的记录。
     for k in [x for x in st.get("cache", {}) if "." not in x]:
@@ -652,7 +535,7 @@ def run(force=False, mcp=None, log=print, now=None):
         # 用工具名做键会让第一个周期刚写的时间戳把后三个判成"命中缓存"，从此再不更新。
         meta = st["cache"].get(target) or {}
         at = float(meta.get("at") or 0)
-        life = ttl if ttl is not None else ttl_of(name, now)
+        life = ttl if ttl is not None else ttl_of(name)
         if not at or (time.time() - at) > life:
             return False
         # 缓存新鲜，但输出文件可能被清理过 —— 文件不在就当未命中
@@ -689,8 +572,7 @@ def run(force=False, mcp=None, log=print, now=None):
     # ---- 快讯 / 资讯：J4 起下线 ----
     # 页面上原本只有一张「市场快讯」卡（快讯 / 资讯两个 Tab），实用价值低于直接开 App，
     # 且 list_flash + list_news 每天要吃掉 900 次额度。前端已移除，这里一并停抓，
-    # 把额度留给日历和 K 线。norm_flash / norm_news 的解析函数保留（纯函数，无副作用），
-    # 若日后要恢复，把 guard 加回来即可。
+    # 把额度留给日历。
 
     # ---- 日历 ----
     def do_cal(left):
@@ -731,7 +613,7 @@ def _selftest():
             return 202, {}, b""
         if method != "tools/call":
             return 200, {}, b"{}"
-        body = _mock_result(name, args, calls)
+        body = _mock_result(name, args)
         return 200, {"Content-Type": "application/json"}, json.dumps(
             {"jsonrpc": "2.0", "id": req["id"], "result": body}).encode()
 
@@ -784,18 +666,9 @@ def _selftest():
     check("get_quote / get_kline 已停抓（v6.58 起只跑日历）",
           "get_quote" not in r1 and "get_kline" not in r1, r1)
 
-    # ---- 已下线的解析函数：直接喂假数据，防日后恢复时踩空 ----
-    q = norm_quote({"code": "XAUUSD", "name": "现货黄金", "close": "4,072.40",
-                    "open": "4,050.10", "high": 4080.0, "low": 4045.2,
-                    "ups_price": 23.1, "ups_percent": "+1.23%"})
-    check("norm_quote 单条对象 / close 千分位 / % 去符号",
-          len(q) == 1 and q[0]["price"] == 4072.4 and q[0]["change"] == 1.23, q)
-    kb2 = norm_kline({"data": {"klines": [
-        {"time": 1762200000 + i * 60, "open": 4050, "high": 4060,
-         "low": 4045, "close": 4055, "volume": 10} for i in range(3)]}})
-    check("norm_kline data.klines / 秒级 time → 毫秒", len(kb2) == 3 and kb2[0]["t"] > 10 ** 12, kb2)
-    check("norm_news 字段映射", norm_news([{"news_id": "n1", "ts": 1762290000,
-                                            "title": "标题一", "summary": "摘要一"}])[0]["title"] == "标题一")
+    # ---- 取值口径：日历是 data 裸数组，其它列表类工具可能给 data.items ----
+    check("list_items 认 data 裸数组", list_items({"data": [{"a": 1}]}) == [{"a": 1}])
+    check("list_items 认 data.items", list_items({"data": {"items": [2]}}) == [2])
 
     print("[自测] 第二次（TTL 未过期）")
     check("list_calendar 命中缓存", r2.get("list_calendar") == "cached", r2.get("list_calendar"))
@@ -811,6 +684,19 @@ def _selftest():
     check("list_calendar 到顶即停", r3.get("list_calendar") == "capped", r3.get("list_calendar"))
     check("到顶后一个 tools/call 都没发", n_call_after == n_call_before,
           n_call_after - n_call_before)
+
+    print("[自测] 只剩 1 次额度：只许翻一页")
+    st = load_state()
+    st["day"] = day_key_gmt8()
+    st["counts"]["list_calendar"] = TOOLS["list_calendar"]["cap"] - 1
+    st["cache"] = {}
+    st["stopped"] = {}          # 上一步"到顶即停"把 stopped 写进去了，这里必须清
+    save_state(st)
+    n0 = sum(1 for m_, _n, _a in calls if m_ == "tools/call")
+    r5 = run(force=True, mcp=m, log=lambda *a: None)
+    n1 = sum(1 for m_, _n, _a in calls if m_ == "tools/call")
+    check("剩余 1 次只翻 1 页", r5.get("list_calendar") == "ok x1", r5.get("list_calendar"))
+    check("剩余 1 次只发 1 个请求", n1 - n0 == 1, n1 - n0)
 
     print("[自测] 跨日重置")
     st = load_state()
@@ -859,11 +745,11 @@ def _selftest():
     return 0 if ok else 1
 
 
-def _mock_result(name, args, calls):
-    """构造 3 个在抓工具的假响应，形状严格按金十接入文档，用来验证解析分支。
+def _mock_result(name, args):
+    """构造 list_calendar 的假响应，形状严格按金十接入文档。
 
-    故意用最"难"的形态：报价是单条对象、K 线时间戳是秒级、日历 data 是裸数组
-    且 pub_time 是字符串。这三种都能过，真实响应就不会踩空。
+    故意用最"难"的形态：data 是裸数组、pub_time 是字符串、分页字段在顶层。
+    这三种都能过，真实响应就不会踩空。
     """
     if name == "list_calendar":
         # 文档：data 为数组；分页字段在顶层（data 是数组时放不进 next_cursor）

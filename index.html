@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v6.58 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v6.59 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -851,7 +851,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.58 · 11/04</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v6.59 · 11/04</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1421,7 +1421,7 @@ var S = {
   editing:null, tab:"struct", acctFilter:null,
   acctEdit:null, acctDel:null, acctColor:null,
   /* J1：行情源健康度。spotSrc 只记录当前用哪个源，不参与价格合成 */
-  spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0,
+  spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0, altMeta:null,
   /* J3：金十中转产物（同源静态 JSON）。快讯/资讯已下线（J4），只留日历与 K 线校验 */
   jn:{ cal:null, calAt:0 },
   klMeta:{}
@@ -1642,7 +1642,6 @@ function mapKline(arr){
    改成：按周期各自的"到期"条件触发，到期也只拉最后 3/5 根，缺口过大才回退全量。
    判据一律用 UTC —— 交易所的日线/周线边界是 UTC，用本地时区会在跨时区时错位。 */
 var KL_INC = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 增量拉几根
-var KL_GAP = { "1w":3, "1d":3, "4h":5, "1h":5 };          // 缺口超过几个周期就回退全量
 var KL_FALLBACK = { "4h": 60*60000, "1h": 30*60000 };     // 兜底间隔（小时级才有）
 function klPeriodMs(k){
   var m = { "1w":7*86400000, "1d":86400000, "4h":4*3600000, "1h":3600000 };
@@ -1713,8 +1712,10 @@ function fetchKlines(force){
       if(!bars.length) throw new Error("kline empty " + p.key);
       var pm = klPeriodMs(p.key);
       var lastT = cur[cur.length-1].t;
-      if(bars[0].t - lastT > pm * (KL_GAP[p.key] || inc)){
-        /* 缺口过大（几天没开页面 / 长时间断网）：增量接不上，回退全量 */
+      /* 只要增量第一根没有紧接在本地最后一根之后，中间就有洞 —— 增量补齐不了，
+         必须回退全量。原来这里按「缺口 > 增量根数」放行，2~5 个周期的洞会被放过，
+         图上直接断档（test_k8 复现）。 */
+      if(bars[0].t - lastT > pm){
         return full();
       }
       return { key:p.key, bars:mergeBars(cur, bars, p.limit), mode:"inc" };
@@ -4937,7 +4938,9 @@ function firstFriday(y,m){
    报价的中转快照也救不了 15 秒实时价，两个都已停抓，详见 docs/J5-金十MCP实测记录.md。 */
 
 function jnRead(file, ttl, done){
-  if(typeof fetch !== "function"){ done(null); return; }
+  /* file:// 下浏览器不允许 fetch 本地同源文件，会直接抛 scheme 错误。
+     双击打开 HTML 的场景（README 里承诺的）不该看到满屏红色报错，直接当"没拿到"。 */
+  if(typeof fetch !== "function" || location.protocol === "file:"){ done(null); return; }
   /* URL 带时间片绕开 HTTP 缓存；同一时间片内不重复请求 */
   var url = JN_DIR + file + "?v=" + Math.floor(Date.now() / ttl);
   fetchJson(url, 10000).then(function(d){
@@ -4948,6 +4951,10 @@ function jnRead(file, ttl, done){
 /* 日历：金十主源 → calendar.json 备源 → 内置事件（computeEvents 本来就兜底） */
 var CAL_URL = "calendar.json";
 var CAL_STALE = 3*86400000, CAL_DEAD = 7*86400000;
+/* 中转每 20 分钟出一份新的 calendar.json，页面也要按同样的节奏重拉 ——
+   原来只在启动时 loadCalendar() 一次，页面开着过夜就永远停在前一天的事件上，
+   而底部文案却写着「每 20 分钟更新」，等于对用户说谎。 */
+var CAL_REFRESH = 20*60000;
 
 /* 日历口径提示（J4）：三级回落要让人一眼看出现在用的是哪一级，
    不能笼统说"实时日历不可用" —— 备源也是数据，只是来源不同。 */
@@ -4996,7 +5003,7 @@ function loadCalendar(){
 }
 
 function loadCalendarFF(){
-  if(typeof fetch !== "function") return Promise.resolve(false);
+  if(typeof fetch !== "function" || location.protocol === "file:") return Promise.resolve(false);
   var url = CAL_URL + "?v=" + Math.floor(Date.now()/3600000);
   /* J1：加 10s 超时，避免日历请求长期悬挂 */
   return fetchJson(url, 10000)
@@ -5021,6 +5028,26 @@ function loadCalendarFF(){
       srcFail("cal", e);
       return false;
     });
+}
+
+/* 日历签名的用途只有一个：内容真的变了才重绘列表，避免每 20 分钟闪一下。 */
+function calSig(){
+  var c = S.cal || {}, evs = c.events || [];
+  return (c.src || "none") + "|" + evs.length + "|" +
+         (evs.length ? evs[0].t + "~" + evs[evs.length - 1].t : "") + "|" + (c.updatedAt || 0);
+}
+var lastCalSig = null;
+/* 日历的唯一刷新入口：拉到新数据 → 比对签名 → 变了才重渲染。
+   由 boot 与 visibilitychange 调用，渲染函数之间不互相调用。 */
+function refreshCalendar(){
+  if(typeof fetch !== "function") return;
+  if(document.hidden) return;
+  loadCalendar().then(function(){
+    var sig = calSig();
+    if(sig === lastCalSig) return;
+    lastCalSig = sig;
+    renderEvents();
+  });
 }
 
 /* 内置事件与实时日历会重叠（FOMC 两边都有）。同一时段同一类别只留一条，
@@ -8544,7 +8571,9 @@ function fetchAltSpot(){
     return { price:p, name:d.varietyName || "", time:d.updateTime || "", change:pctNum(d.changeMargin) };
   });
 }
-/* 主源 → 备源。只有两边都失败才算一次整体失败（备源顶上不累计主源失败）。 */
+/* 主源 → 备源。只有两边都失败才算一次整体失败（备源顶上不累计主源失败）。
+   备源未配置时不要把主源的错误扔掉 —— 否则日志永远写「备源未配置」，
+   真正的原因（401 / 500 / 超时）被盖住，排查时完全看不出发生了什么。 */
 function fetchSpot(){
   if(srcReady("gold")){
     return fetchJson(API_PRICE, 9000).then(function(d){
@@ -8555,9 +8584,10 @@ function fetchSpot(){
       return p;
     }).catch(function(e){
       srcFail("gold", e);
+      if(!altUrl()) throw e;
       return fetchAltSpot().then(function(o){ return o.price; }, function(e2){
         if(!e2 || !e2.throttled) srcFail("alt", e2);
-        throw e2;
+        throw e;
       });
     });
   }
@@ -9482,6 +9512,8 @@ function bindUI(){
     /* J3：K 线降频后，定时器都不 force；回前台是用户主动切回，强制对齐一次
        （4 个周期各一次增量，最多 4 个小请求）。 */
     refreshData(true);
+    /* 日历在后台期间不会拉，回前台补一次；内容没变时不会重绘 */
+    refreshCalendar();
   });
 }
 
@@ -9528,7 +9560,8 @@ function boot(){
     });
   }
   setInterval(setConn, 1000);                  // 读秒：每秒一次，秒数连续递增
-  loadCalendar().then(function(ok){ if(ok) renderEvents(); });
+  refreshCalendar();                           // 启动拉一次，之后每 20 分钟对齐中转
+  setInterval(refreshCalendar, CAL_REFRESH);
   setInterval(refreshPrice, TICK_MS);          // 现货锚点：15 秒一次
   setInterval(refreshTick, 5000);              // 逐笔桥接：5 秒一次，报价不再卡 30 秒
   setInterval(refreshData, 5*60*1000);
@@ -9771,6 +9804,9 @@ if(/[?&]xt=1/.test(location.search)){
     setHigh:setHigh,
     setAvgHigh:setAvgHigh,
     loadCalendar:loadCalendar,
+    refreshCalendar:refreshCalendar,
+    calSig:calSig,
+    calRefreshMs:function(){ return CAL_REFRESH; },
     calState:calState,
     computeEvents:computeEvents,
     gearMeta:function(){ return S.gearMeta || null; },
