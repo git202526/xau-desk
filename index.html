@@ -1367,6 +1367,9 @@ body.tab-ov .tpx{display:none}
 "use strict";
 /* === CONST === */
 var API_PRICE = "https://api.gold-api.com/price/XAU";
+/* J1 备源。TODO(待确认)：gold-api.cn 的具体路径尚未核实，不臆造。
+   配好这一行即启用；未配置时备源逻辑整体跳过，行为与改造前一致。 */
+var API_PRICE_ALT = "";
 var API_TICK  = "https://data-api.binance.vision/api/v3/ticker/price?symbol=PAXGUSDT";
 var API_KLINE = "https://data-api.binance.vision/api/v3/klines?symbol=PAXGUSDT&interval=";
 var API_FX = "https://open.er-api.com/v6/latest/USD";
@@ -1411,8 +1414,57 @@ var S = {
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
   cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0, alpha:1, spanMode:"target", gearMarks:{} },
   editing:null, tab:"struct", acctFilter:null,
-  acctEdit:null, acctDel:null, acctColor:null
+  acctEdit:null, acctDel:null, acctColor:null,
+  /* J1：行情源健康度。spotSrc 只记录当前用哪个源，不参与价格合成 */
+  spotSrc:"gold", altSince:0, altNext:0, altDay:"", altCount:0
 };
+
+/* === 源健康度与退避（J1） ===
+   429：按源退避 30s→60s→120s→300s，成功一次重置。
+   非 429（网络抖动、5xx）：只做 5 秒短冷却，不占长退避档位。
+   备用源激活后，主源探测间隔单独按 30s（1 小时内）/120s（之后）走。 */
+var BACKOFF_STEPS = [30000, 60000, 120000, 300000];
+var SRC = {
+  gold:  { name:"gold-api",     level:0, until:0, fails:0, ok:0 },
+  alt:   { name:"gold-api.cn",  level:0, until:0, fails:0, ok:0 },
+  paxg:  { name:"binance-tick", level:0, until:0, fails:0, ok:0 },
+  kline: { name:"binance-kline",level:0, until:0, fails:0, ok:0 },
+  fx:    { name:"er-api",       level:0, until:0, fails:0, ok:0 },
+  cal:   { name:"calendar",     level:0, until:0, fails:0, ok:0 }
+};
+
+function is429(e){
+  if(!e) return false;
+  if(e.status === 429) return true;
+  return /(^|\D)429(\D|$)/.test(String(e.message || ""));
+}
+function srcReady(k){ return Date.now() >= SRC[k].until; }
+function srcOk(k){ var s = SRC[k]; s.fails = 0; s.level = 0; s.until = 0; s.ok++; }
+/* 备源激活期间主源探测间隔：1 小时内 30s，之后 120s */
+function goldProbeGap(){
+  return (S.altSince && Date.now() - S.altSince > 3600000) ? 120000 : 30000;
+}
+function srcFail(k, e){
+  var s = SRC[k];
+  s.fails++;
+  if(k === "gold" && S.altSince){
+    s.until = Date.now() + goldProbeGap();
+    s.level = 0;
+    return;
+  }
+  if(is429(e)){
+    s.level = Math.min(s.level + 1, BACKOFF_STEPS.length);
+    s.until = Date.now() + BACKOFF_STEPS[s.level - 1];
+  }else{
+    s.until = Date.now() + 5000;
+  }
+}
+/* 备源轮询间隔：1 小时内 60s，之后或日累计 ≥800 时 300s */
+function altGap(){
+  if(S.altCount >= 800) return 300000;
+  return (S.altSince && Date.now() - S.altSince > 3600000) ? 300000 : 60000;
+}
+function throttleErr(msg){ var e = new Error(msg); e.throttled = true; return e; }
 
 /* === UTIL === */
 function $(id){ return document.getElementById(id); }
@@ -1578,22 +1630,26 @@ function mapKline(arr){
   });
 }
 function fetchKlines(){
+  var firstErr = null;
   var jobs = PERIODS.map(function(p){
     var url = API_KLINE + p.key + "&limit=" + p.limit;
-    return fetch(url, {cache:"no-store"}).then(function(r){
-      if(!r.ok) throw new Error("kline " + p.key);
-      return r.json();
-    }).then(function(d){
+    /* J1：加 15s 超时。原来裸 fetch 在弱网下会一直挂起 */
+    return fetchJson(url, 15000).then(function(d){
       var bars = mapKline(d||[]);
       if(bars.length < 30) throw new Error("kline short " + p.key);
       return { key:p.key, bars:bars };
-    }).catch(function(){ return null; });
+    }).catch(function(e){
+      if(!firstErr) firstErr = e;
+      return null;
+    });
   });
   return Promise.all(jobs).then(function(res){
     var ok = 0;
     res.forEach(function(r){
       if(r){ S.kl[r.key] = r.bars; ok++; }
     });
+    if(ok) srcOk("kline");
+    else srcFail("kline", firstErr || new Error("kline all failed"));
     return ok;
   });
 }
@@ -4780,8 +4836,8 @@ function calState(){
 function loadCalendar(){
   if(typeof fetch !== "function") return Promise.resolve(false);
   var url = CAL_URL + "?v=" + Math.floor(Date.now()/3600000);
-  return fetch(url, { cache:"no-store" })
-    .then(function(r){ if(!r.ok) throw new Error("http " + r.status); return r.json(); })
+  /* J1：加 10s 超时，避免日历请求长期悬挂 */
+  return fetchJson(url, 10000)
     .then(function(d){
       if(!d || !Array.isArray(d.events)) throw new Error("bad schema");
       var evs = d.events.filter(function(e){ return e && Number(e.t) > 0 && e.name; })
@@ -4795,9 +4851,14 @@ function loadCalendar(){
       if(evs.length < 3) throw new Error("too few events");
       S.cal = { ok:true, events:evs,
                 updatedAt: Date.parse(d.updatedAt || "") || 0, week: d.week || "" };
+      srcOk("cal");
       return true;
     })
-    .catch(function(){ S.cal = { ok:false, events:[], updatedAt:0, week:"" }; return false; });
+    .catch(function(e){
+      S.cal = { ok:false, events:[], updatedAt:0, week:"" };
+      srcFail("cal", e);
+      return false;
+    });
 }
 
 /* 内置事件与实时日历会重叠（FOMC 两边都有）。同一时段同一类别只留一条，
@@ -8269,30 +8330,106 @@ function fetchJson(url, ms){
   var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
   var tid = setTimeout(function(){ if(ac) ac.abort(); }, ms || 10000);
   return fetch(url, { cache:"no-store", signal: ac ? ac.signal : undefined })
-    .then(function(r){ clearTimeout(tid); if(!r.ok) throw new Error("http "+r.status); return r.json(); },
-          function(e){ clearTimeout(tid); throw e; });
+    .then(function(r){
+      clearTimeout(tid);
+      if(!r.ok){
+        var e = new Error("http " + r.status);
+        e.status = r.status;          // J1：让 429 能被识别，退避按源分开算
+        throw e;
+      }
+      return r.json();
+    }, function(e){ clearTimeout(tid); throw e; });
 }
 
-function refreshPrice(){
+/* 备源字段对齐：lastPrice→price、changeMargin 去 % 转数字、varietyName→name、
+   updateTime→time。goldId 固定 hf_XAU，URL 里已有则不重复拼。 */
+function altUrl(){
+  if(!API_PRICE_ALT) return "";
+  if(/[?&]goldId=/.test(API_PRICE_ALT)) return API_PRICE_ALT;
+  return API_PRICE_ALT + (API_PRICE_ALT.indexOf("?") >= 0 ? "&" : "?") + "goldId=hf_XAU";
+}
+function pctNum(v){
+  if(v === null || v === undefined) return null;
+  var n = parseFloat(String(v).replace(/[%\s]/g, ""));
+  return isFinite(n) ? n : null;
+}
+function fetchAltSpot(){
+  var url = altUrl();
+  /* 未配置是「真失败」，不能标 throttled —— 否则会被上层当成节流跳过，
+     整体失败计数永远不涨，表现就是主源挂了却一直显示正常。 */
+  if(!url) return Promise.reject(new Error("备源未配置"));
+  var now = Date.now();
+  if(now < S.altNext) return Promise.reject(throttleErr("备源未到点"));
+  var day = new Date().toISOString().slice(0, 10);
+  if(S.altDay !== day){ S.altDay = day; S.altCount = 0; }
+  S.altNext = now + altGap();
+  return fetchJson(url, 9000).then(function(d){
+    var p = Number(d && d.lastPrice);
+    if(!p || isNaN(p)) throw new Error("bad alt price");
+    S.altCount++;
+    srcOk("alt");
+    S.altMeta = { name:d.varietyName || "", time:d.updateTime || "", change:pctNum(d.changeMargin) };
+    if(S.spotSrc !== "alt"){
+      S.spotSrc = "alt";
+      if(!S.altSince) S.altSince = Date.now();
+    }
+    return { price:p, name:d.varietyName || "", time:d.updateTime || "", change:pctNum(d.changeMargin) };
+  });
+}
+/* 主源 → 备源。只有两边都失败才算一次整体失败（备源顶上不累计主源失败）。 */
+function fetchSpot(){
+  if(srcReady("gold")){
+    return fetchJson(API_PRICE, 9000).then(function(d){
+      var p = Number(d && d.price);
+      if(!p || isNaN(p)) throw new Error("bad");
+      srcOk("gold");
+      if(S.spotSrc !== "gold"){ S.spotSrc = "gold"; S.altSince = 0; S.altNext = 0; }
+      return p;
+    }).catch(function(e){
+      srcFail("gold", e);
+      return fetchAltSpot().then(function(o){ return o.price; }, function(e2){
+        if(!e2 || !e2.throttled) srcFail("alt", e2);
+        throw e2;
+      });
+    });
+  }
+  return fetchAltSpot().then(function(o){ return o.price; }, function(e2){
+    if(!e2 || !e2.throttled) srcFail("alt", e2);
+    throw e2;
+  });
+}
+
+var lastPriceAt = 0;
+function refreshPrice(force){
+  if(document.hidden) return;                 // J1：隐藏时不发请求
+  var now = Date.now();
+  if(!force && now - lastPriceAt < 1000) return;   // 回前台三路并发时去重
+  lastPriceAt = now;
+  if(force) S.altNext = 0;                    // 回前台强制补一次，不等备源节流
+
   // 汇率只是折算用，慢也不能挡住价格显示；到了再补算一次
   fetchFx().then(function(){
     if(S.price !== null){ compute(); refreshAll(); }
     migrateAll();              // 汇率到位后补跑（迁移要按人民币成交价折美元）
   }, function(){});
   // 与现货价并行取一次逐笔，让锚点（现货 - PAXG）尽量来自同一时刻
-  var tickP = fetchJson(API_TICK, 6000).then(function(d){
-    var t = Number(d && d.price);
-    return (t && !isNaN(t)) ? t : null;
-  }).catch(function(){ return null; });
+  var tickP = srcReady("paxg")
+    ? fetchJson(API_TICK, 6000).then(function(d){
+        var t = Number(d && d.price);
+        /* 结构不符只跳过，不记源故障 —— 与改造前一致，避免误判成源不可用 */
+        if(!t || isNaN(t)) return null;
+        srcOk("paxg");
+        return t;
+      }).catch(function(e){ srcFail("paxg", e); return null; })
+    : Promise.resolve(null);
 
-  fetchJson(API_PRICE, 9000).then(function(d){
-    var p = Number(d && d.price);
-    if(!p || isNaN(p)) throw new Error("bad");
+  fetchSpot().then(function(p){
     return tickP.then(function(t){
       if(S.price !== null) S.prev = S.price;
       S.price = p;
       if(t) S.paxg = t;
       S.anchor = { spot:p, paxg:S.paxg || null };
+      /* 备源顶上也算成功：整体失败计数清零，灯不红 */
       S.fail = 0; S.lastOk = Date.now();
       applyScale();
       compute();
@@ -8300,6 +8437,7 @@ function refreshPrice(){
       refreshAll();
     });
   }).catch(function(e){
+    if(e && e.throttled) return;              // 本轮被节流跳过，不算失败
     if(window.console && console.warn) console.warn("刷新失败", e);
     S.fail++;
     setConn();
@@ -8312,9 +8450,11 @@ function refreshPrice(){
    位移超过锚点价 0.5% 视为异常跳变，不跟，等下一个锚点。 */
 function refreshTick(){
   if(document.hidden) return;
+  if(!srcReady("paxg")) return;               // J1：429 退避期内不打
   fetchJson(API_TICK, 6000).then(function(d){
     var t = Number(d && d.price);
-    if(!t || isNaN(t)) return;
+    if(!t || isNaN(t)) return;                 // 结构不符：静默跳过，不记源故障
+    srcOk("paxg");
     S.paxg = t;
     var a = S.anchor;
     if(!a || !a.spot) return;
@@ -8329,7 +8469,7 @@ function refreshTick(){
     checkAlerts(prev, p);
     renderHero();
     setConn();
-  }).catch(function(){});
+  }).catch(function(e){ srcFail("paxg", e); });
 }
 
 /* 价格变动：涨红跌绿闪一下，幅度很小，不打断阅读 */
@@ -8352,6 +8492,8 @@ function flashPrice(old, p){
 }
 
 function refreshData(){
+  if(document.hidden) return;                 // J1：隐藏时不拉 K 线
+  if(!srcReady("kline")) return;              // J1：429 退避期内不打
   fetchKlines().then(function(n){
     if(!n){ S.fail++; setConn(); return; }
     applyScale();
@@ -9153,7 +9295,12 @@ function bindUI(){
   }
 
   document.addEventListener("visibilitychange", function(){
-    if(!document.hidden) refreshPrice();
+    if(document.hidden) return;
+    /* J1：回前台三路各补一次。refreshPrice 强制跳过 1 秒去重与备源节流；
+       refreshData 内部那次 refreshPrice 会被 1 秒去重挡住，不会重复打接口 */
+    refreshPrice(true);
+    refreshTick();
+    refreshData();
   });
 }
 
@@ -9215,6 +9362,31 @@ if(/[?&]xt=1/.test(location.search)){
     compute:compute,
     refreshPrice:refreshPrice,
     refreshTick:refreshTick,
+    refreshData:refreshData,
+    /* J1：源健康度与备源。测试注入用 setAltUrl，不写死真实端点 */
+    srcState:function(){
+      return {
+        spotSrc:S.spotSrc, altSince:S.altSince, altNext:S.altNext,
+        altDay:S.altDay, altCount:S.altCount, lastPriceAt:lastPriceAt,
+        altMeta:S.altMeta || null,
+        gold:{ level:SRC.gold.level, until:SRC.gold.until, fails:SRC.gold.fails, ok:SRC.gold.ok },
+        alt:{ level:SRC.alt.level, until:SRC.alt.until, fails:SRC.alt.fails, ok:SRC.alt.ok },
+        paxg:{ level:SRC.paxg.level, until:SRC.paxg.until, fails:SRC.paxg.fails, ok:SRC.paxg.ok },
+        kline:{ level:SRC.kline.level, until:SRC.kline.until, fails:SRC.kline.fails, ok:SRC.kline.ok }
+      };
+    },
+    setAltUrl:function(u){ API_PRICE_ALT = u; },
+    resetSrc:function(){
+      Object.keys(SRC).forEach(function(k){
+        SRC[k].level = 0; SRC[k].until = 0; SRC[k].fails = 0; SRC[k].ok = 0;
+      });
+      S.spotSrc = "gold"; S.altSince = 0; S.altNext = 0;
+      S.altDay = ""; S.altCount = 0; S.altMeta = null; S.fail = 0; lastPriceAt = 0;
+    },
+    altGap:altGap, altUrl:altUrl, goldProbeGap:goldProbeGap,
+    /* 测试专用：直接改源状态，避免测试里穿透 IIFE 作用域 */
+    patchSrc:function(k, o){ if(o && SRC[k]) Object.assign(SRC[k], o); },
+    patchState:function(o){ if(o) Object.assign(S, o); },
     prevDayClose:prevDayClose,
     dayStats:dayStats,
     connInfo:connInfo,
