@@ -40,8 +40,9 @@ MCP_ORIGIN = os.environ.get("JIN10_ORIGIN", "https://mcp.jin10.com")
 # ttl   : 缓存有效期（秒），命中则完全不发请求
 # cap   : 每工具每自然日软上限（按 GMT+8 切日）
 # args  : 调用参数
-# TODO(待核实) 各工具的入参 schema 尚未核实（J2 配额只够 3 次请求，未调 tools/list）。
-#              下面按命名推断，联调时以 tools/list 返回的 inputSchema 为准。
+# 入参已按金十接入文档对齐（v6.57）：
+#   get_quote({code}) / get_kline({code, time?, count?}) / list_calendar({})
+# 仍待核实的是 get_kline 的 time 与 count 语义，见 docs/J5-金十接入文档对齐.md
 TOOLS = {
     # 快讯 / 资讯（list_flash / search_flash / list_news / search_news / get_news）
     # J4 起停抓：前端已移除这两个卡片，每天省下 900 次额度，留给日历与 K 线。
@@ -57,17 +58,31 @@ TOOLS = {
     # limit 是「我们请求几根」，不是「服务端最多给几根」—— 后者从未实测过（J2 只发了 3 次
     # 请求，全是 OPTIONS 与 initialize，一次 tools/call 都没打）。按 200 请求是因为不知道
     # 上限，要多了可能直接 400。探明后可以放大，同样的额度拿到更深的窗口。
-    "get_kline":     {"ttl": 240, "cap": 1100, "limit": 200},
+    "get_kline":     {"ttl": 240, "cap": 1100, "limit": 100},
 }
 
 # K 线按周期分别设 TTL：四个周期共用一个额度池，不能让周线陪着小时线一起每 5 分钟抓一遍。
 # 日耗 = 24（周）+ 96（日）+ 288（4H）+ 288（1H）= 696 次，全天覆盖。
 KLINE_TTL = {"1w": 3600, "1d": 900, "4h": 300, "1h": 300}
 
-# 金十报价代码（J1 备源也用这个 id）
-QUOTE_CODES = ["hf_XAU"]
-KLINE_CODES = ["hf_XAU"]
+# 品种代码：金十官方示例给的是 XAUUSD（现货黄金）。
+# 之前写的 hf_XAU 纯属猜测，既不是金十代码也不是任何已知标准 —— 真发出去只会 400。
+XAU_CODE = "XAUUSD"
 KLINE_PERIODS = ["1w", "1d", "4h", "1h"]
+
+# ⚠ J5 实测（2026-11-04，tools/list + 真实 get_kline）：
+#   get_kline 的 schema 是 {code, time?: 起始Unix秒, count?: 1-100}，
+#   返回的是**分钟级** K 线，count 上限 100，且只在最近 24 小时窗口内。
+#   实测 count=100 拿到 100 根 1 分钟线，首末跨度 1.65 小时。
+#
+# 这个口径凑不出 4H / 日线任何一根 bar，所以「1d/4h/1h 各 20 根对齐校验」
+# 根本无法成立 —— 原来的 KLINE_PERIODS 设计是错的。
+# 先默认停抓（不再发注定 400 的请求），等确认后整块下线或改作分钟级用途。
+ENABLE_KLINE = os.environ.get("JIN10_KLINE", "0") == "1"
+
+# 协议版本：接入文档推荐 2025-11-25。J2 探测时用的是 2025-06-18，服务端也接受，
+# 但新版本对齐官方文档，避免将来被拒。
+MCP_PROTOCOL = "2025-11-25"
 
 # 每日软上限的"到顶"判定：剩余 <= 该值时不再重试，直接降级
 RETRY_FLOOR = 2
@@ -147,10 +162,13 @@ class Mcp:
         h = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
-            "Origin": MCP_ORIGIN,
-            "Sec-Fetch-Site": "same-origin",
+            # Sec-Fetch-Site 必须与 Origin 配套：服务端拿它判断"是否跨源"，
+            # 缺了就按跨源拒（J2 实测 403）。所以 Origin 为空时这个头也一并去掉。
             "User-Agent": "xau-desk-relay/1.0",
         }
+        if MCP_ORIGIN:
+            h["Origin"] = MCP_ORIGIN
+            h["Sec-Fetch-Site"] = "same-origin"
         if with_auth and self.token:
             h["Authorization"] = "Bearer " + self.token
         if self.session_id:
@@ -204,7 +222,7 @@ class Mcp:
         payload = {
             "jsonrpc": "2.0", "id": self._id, "method": "initialize",
             "params": {
-                "protocolVersion": "2025-06-18",
+                "protocolVersion": MCP_PROTOCOL,
                 "capabilities": {},
                 "clientInfo": {"name": "xau-desk-relay", "version": "1.0"},
             },
@@ -213,7 +231,9 @@ class Mcp:
         if status == 403:
             raise SourceDown("origin rejected (403): " + body.decode("utf-8", "replace")[:120])
         if status == 401:
-            raise SourceDown("unauthorized (401) —— Token 无效或已过期")
+            # 带上响应体：服务端可能说明是"Token 格式不对"还是"已过期"，两者处理方式不同
+            raise SourceDown("unauthorized (401): " +
+                             body.decode("utf-8", "replace")[:200])
         if status >= 400:
             raise SourceDown("initialize http %d" % status)
         d = self._parse(body, (headers or {}).get("Content-Type", "")) or {}
@@ -247,7 +267,37 @@ class Mcp:
             if is_quota_text(msg):
                 raise QuotaExhausted(msg[:160])
             raise SourceDown("tools/call error: " + msg[:160])
-        return d.get("result", {})
+        res = d.get("result", {})
+        # 文档：isError=true 是工具业务错误，不是协议错误 —— 但对我们都是"这次没拿到数据"。
+        # 额度用完也会走这里，所以同样先按额度识别一次。
+        if isinstance(res, dict) and res.get("isError"):
+            msg = ""
+            for it in (res.get("content") or []):
+                if isinstance(it, dict) and it.get("type") == "text":
+                    msg = it.get("text") or ""
+                    break
+            msg = msg or json.dumps(res, ensure_ascii=False)
+            if is_quota_text(msg):
+                raise QuotaExhausted(msg[:160])
+            raise SourceDown("tools/call isError: " + msg[:200])
+        return res
+
+    def list_tools(self):
+        """拉工具清单（元数据请求，不是 tools/call）。
+
+        只给探测脚本用：确认 inputSchema 里 time / count 的类型与含义。
+        日常抓取不会调它 —— 参数是写死的，每轮多一次请求没有意义。
+        """
+        self._id += 1
+        status, headers, body = self._post(
+            {"jsonrpc": "2.0", "id": self._id, "method": "tools/list", "params": {}})
+        if status >= 400:
+            raise SourceDown("tools/list http %d" % status)
+        d = self._parse(body, (headers or {}).get("Content-Type", "")) or {}
+        if "error" in d:
+            raise SourceDown("tools/list error: " +
+                             json.dumps(d["error"], ensure_ascii=False)[:160])
+        return (d.get("result") or {}).get("tools") or []
 
 
 QUOTA_PAT = re.compile(
@@ -286,18 +336,70 @@ def unwrap(result):
     return {}, "empty"
 
 
-def list_items(payload):
-    """列表类工具统一从 data.items 取；兼容顶层 items / 裸数组。"""
+def parse_time(v):
+    """把 秒 / 毫秒 / 日期字符串 统一成毫秒时间戳。失败返回 0。
+
+    金十的字段口径文档没写全：报价与 K 线给 time，日历给 pub_time，
+    可能是数字（秒或毫秒）也可能是 "2025-11-05 20:30:00" 这类字符串。
+    无时区的字符串按北京时间解释（金十是国内站，日历时间就是北京时间）。
+    """
+    if isinstance(v, (int, float)):
+        t = int(v)
+        return t * 1000 if t < 10 ** 11 else t
+    if isinstance(v, str):
+        txt = v.strip()
+    else:
+        return 0
+    if not txt:
+        return 0
+    if re.fullmatch(r"\d{10,13}", txt):
+        t = int(txt)
+        return t * 1000 if t < 10 ** 11 else t
+    dt = None
+    try:
+        dt = datetime.fromisoformat(txt.replace("Z", "+00:00"))
+    except Exception:
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M",
+                    "%Y/%m/%d %H:%M:%S", "%Y/%m/%d %H:%M"):
+            try:
+                dt = datetime.strptime(txt, fmt)
+                break
+            except Exception:
+                dt = None
+    if dt is None:
+        return 0
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone(timedelta(hours=8)))
+    return int(dt.timestamp() * 1000)
+
+
+def pick_list(payload, keys):
+    """按 keys 顺序在 payload 里找数组，允许下钻一层 payload.data。
+
+    金十的口径不统一：K 线是 data.klines，快讯/资讯是 data.items，
+    日历干脆 data 本身就是数组。与其在每个 norm_* 里各写一遍，不如收敛到这里。
+    """
     if isinstance(payload, list):
         return payload
     if not isinstance(payload, dict):
         return []
-    for holder in (payload.get("data"), payload):
-        if isinstance(holder, dict):
-            items = holder.get("items")
-            if isinstance(items, list):
-                return items
+    d = payload.get("data")
+    if isinstance(d, list):
+        return d
+    holders = [payload]
+    if isinstance(d, dict):
+        holders.append(d)
+    for holder in holders:
+        for k in keys:
+            v = holder.get(k)
+            if isinstance(v, list):
+                return v
     return []
+
+
+def list_items(payload):
+    """列表类工具取数组：优先 data.items，其余交给 pick_list。"""
+    return pick_list(payload, ("items", "klines"))
 
 
 def page_meta(payload):
@@ -391,25 +493,30 @@ def norm_news(items):
 
 
 def norm_calendar(items):
+    """日历：文档口径为 data 直接是数组，每项 pub_time / star / title /
+    previous / consensus / actual / revised / affect_txt。
+
+    ccy 金十不给（国内站不按国家分），留空；前端渲染时缺 ccy 只显示事件名。
+    consensus 是预期值（对应前端的 fc），actual 是公布值，还没出就为空。
+    """
     out = []
     for it in items:
         if not isinstance(it, dict):
             continue
-        t = it.get("time") or it.get("ts") or it.get("timestamp") or 0
+        t = parse_time(it.get("pub_time") or it.get("time") or it.get("ts") or it.get("timestamp"))
         try:
-            t = int(t)
+            impact = int(it.get("star") or it.get("importance") or it.get("impact") or 3)
         except Exception:
-            t = 0
-        # 金十给的是秒；超过 1e12 视作毫秒
-        if t > 10 ** 12:
-            t //= 1000
+            impact = 3
         out.append({
-            "t": t * 1000,
+            "t": t,
             "ccy": (it.get("country") or it.get("currency") or it.get("ccy") or "").upper(),
-            "name": (it.get("name") or it.get("title") or "").strip(),
-            "impact": max(1, min(5, int(it.get("star") or it.get("importance") or it.get("impact") or 3))),
-            "fc": str(it.get("forecast") or it.get("fc") or ""),
+            "name": str(it.get("title") or it.get("name") or "").strip(),
+            "impact": max(1, min(5, impact)),
+            "fc": str(it.get("consensus") or it.get("forecast") or it.get("fc") or ""),
             "pv": str(it.get("previous") or it.get("pv") or ""),
+            "av": str(it.get("actual") or it.get("av") or ""),
+            "affect": str(it.get("affect_txt") or "").strip(),
         })
     return [x for x in out if x["name"] and x["t"] > 0]
 
@@ -419,44 +526,52 @@ def norm_quote(payload):
     if isinstance(payload, list):
         rows = payload
     elif isinstance(payload, dict):
-        rows = payload.get("items") or payload.get("data") or []
-        if isinstance(rows, dict):
-            rows = [rows]
+        # 文档口径：get_quote 返回单条，structuredContent 直接就是 {code, close, ...}
+        if payload.get("code") or payload.get("close") or payload.get("lastPrice"):
+            rows = [payload]
+        else:
+            rows = payload.get("items") or payload.get("data") or []
+            if isinstance(rows, dict):
+                rows = [rows]
     else:
         rows = []
     out = []
     for it in rows:
         if not isinstance(it, dict):
             continue
-        price = it.get("lastPrice") or it.get("price") or it.get("last")
-        try:
-            price = float(str(price).replace(",", ""))
-        except Exception:
+        # 文档口径：close 是现价，ups_price 是涨跌额，ups_percent 是涨跌幅
+        price = _first_num(it.get("close"), it.get("lastPrice"), it.get("price"), it.get("last"))
+        if price is None:
             continue
-        chg = it.get("changeMargin") or it.get("change") or ""
         out.append({
-            "code": it.get("goldId") or it.get("code") or "",
-            "name": it.get("varietyName") or it.get("name") or "",
+            "code": str(it.get("code") or it.get("goldId") or ""),
+            "name": str(it.get("name") or it.get("varietyName") or ""),
             "price": price,
-            "change": pct_num(chg),
-            "time": it.get("updateTime") or it.get("time") or "",
+            "change": pct_num(it.get("ups_percent") or it.get("changeMargin") or it.get("change")),
+            "chg": _first_num(it.get("ups_price"), it.get("changeAmount")),
+            "time": it.get("time") or it.get("updateTime") or "",
+            "open": _first_num(it.get("open")),
+            "high": _first_num(it.get("high")),
+            "low": _first_num(it.get("low")),
         })
     return out
 
 
 def norm_kline(payload):
-    """K 线：输出 [{t,o,h,l,c,v}]，t 为毫秒开盘时间。"""
-    if isinstance(payload, dict):
-        rows = payload.get("items") or payload.get("data") or payload.get("bars") or []
-    else:
-        rows = payload or []
+    """K 线：输出 [{t,o,h,l,c,v}]，t 为毫秒开盘时间。
+
+    文档口径：data.klines 为数组，每项 close / high / low / open / time / volume。
+    时间可能是秒级时间戳或字符串，统一走 parse_time。
+    每项是一个「周期」还是一根「bar」文档没写清，两种都试：取不到 o/h/l/c 的项直接丢。
+    """
+    rows = pick_list(payload, ("klines", "items", "bars"))
     out = []
     for it in rows:
         if isinstance(it, dict):
             try:
-                t = int(it.get("time") or it.get("t") or 0)
-                if t < 10 ** 11:
-                    t *= 1000
+                t = parse_time(it.get("time") or it.get("t"))
+                if not t:
+                    continue
                 out.append({"t": t,
                             "o": float(it.get("open") or it.get("o") or 0),
                             "h": float(it.get("high") or it.get("h") or 0),
@@ -467,15 +582,29 @@ def norm_kline(payload):
                 continue
         elif isinstance(it, (list, tuple)) and len(it) >= 5:
             try:
-                t = int(it[0])
-                if t < 10 ** 11:
-                    t *= 1000
+                t = parse_time(it[0])
+                if not t:
+                    continue
                 out.append({"t": t, "o": float(it[1]), "h": float(it[2]),
                             "l": float(it[3]), "c": float(it[4]), "v": float(it[5] if len(it) > 5 else 0)})
             except Exception:
                 continue
     out.sort(key=lambda x: x["t"])
     return out
+
+
+def _first_num(*vals):
+    """按顺序取第一个能转成正数的值。价格不会是 0，所以 0 视为无效。"""
+    for v in vals:
+        if v is None or v == "":
+            continue
+        try:
+            f = float(str(v).replace(",", ""))
+        except Exception:
+            continue
+        if f > 0:
+            return f
+    return None
 
 
 def pct_num(s):
@@ -584,11 +713,9 @@ def run(force=False, mcp=None, log=print, now=None):
 
     # ---- 日历 ----
     def do_cal(left):
-        start = (now - timedelta(days=1)).strftime("%Y-%m-%d")
-        end = (now + timedelta(days=7)).strftime("%Y-%m-%d")
-        payloads, pages = call_paged(mcp, "list_calendar",
-                                     {"start": start, "end": end,
-                                      "limit": TOOLS["list_calendar"]["limit"]}, 2, left, note)
+        # 接入文档：list_calendar({}) —— 不收任何参数。
+        # 原来的 {start, end, limit} 是照 ForexFactory 的习惯猜的，传了会被拒。
+        payloads, pages = call_paged(mcp, "list_calendar", {}, 2, left, note)
         items = []
         for p in payloads:
             items.extend(norm_calendar(list_items(p)))
@@ -598,7 +725,8 @@ def run(force=False, mcp=None, log=print, now=None):
 
     # ---- 报价（第三层，仅中转落盘；浏览器侧默认不用） ----
     def do_quote(left):
-        p = call_one(mcp, "get_quote", {"codes": QUOTE_CODES}, left, note)
+        # 文档：get_quote({code})，单数、单个品种，不是 {codes:[...]}
+        p = call_one(mcp, "get_quote", {"code": XAU_CODE}, left, note)
         return {"updatedAt": now.isoformat(), "items": norm_quote(p)}, 1
 
     guard("get_quote", "quote.json", do_quote)
@@ -608,13 +736,17 @@ def run(force=False, mcp=None, log=print, now=None):
     # guard 只按工具名记 summary，所以这里先把每周期的结果收进局部表再合并，
     # 否则后一个周期会把前一个覆盖掉。
     kl_sum = {}
-    for period in KLINE_PERIODS:
+    for period in (KLINE_PERIODS if ENABLE_KLINE else []):
         target = "kline_%s.json" % period
 
         def do_kl(left, period=period):
+            # 实测 schema：{code, time?: 起始Unix秒(integer), count?: 1-100}。
+            # time 是「从哪一刻往后取」，不是周期名 —— 传 "1h" 会被参数校验直接拒。
+            # 往回推 count 分钟作为起点，保证能取满。
+            start = int(time.time()) - TOOLS["get_kline"]["limit"] * 60
             p = call_one(mcp, "get_kline",
-                         {"code": KLINE_CODES[0], "period": period,
-                          "limit": TOOLS["get_kline"]["limit"]}, left, note)
+                         {"code": XAU_CODE, "time": start,
+                          "count": TOOLS["get_kline"]["limit"]}, left, note)
             bars = norm_kline(p)
             if len(bars) < 10:
                 raise SourceDown("kline too short: %s" % len(bars))
@@ -641,11 +773,11 @@ def _selftest():
         method = req.get("method")
         name = (req.get("params") or {}).get("name")
         args = (req.get("params") or {}).get("arguments") or {}
-        calls.append((method, name))
+        calls.append((method, name, args))
         if method == "initialize":
             return 200, {"Content-Type": "application/json", "Mcp-Session-Id": "sess-1"}, \
                 json.dumps({"jsonrpc": "2.0", "id": req["id"],
-                            "result": {"protocolVersion": "2025-06-18",
+                            "result": {"protocolVersion": MCP_PROTOCOL,
                                        "serverInfo": {"name": "mock", "version": "0"}}}).encode()
         if method == "notifications/initialized":
             return 202, {}, b""
@@ -656,7 +788,8 @@ def _selftest():
             {"jsonrpc": "2.0", "id": req["id"], "result": body}).encode()
 
     m = Mcp(MCP_URL, "test-token", opener=fake_transport)
-    global OUT_DIR, STATE_PATH
+    global OUT_DIR, STATE_PATH, ENABLE_KLINE
+    ENABLE_KLINE = True                      # 自测要覆盖 K 线分支，正式跑默认关
     OUT_DIR = "/tmp/jin10_selftest"
     STATE_PATH = os.path.join(OUT_DIR, "state.json")
     if os.path.isdir(OUT_DIR):
@@ -683,13 +816,39 @@ def _selftest():
             ok = False
 
     print("[自测] 第一次强制抓取")
-    check("list_calendar 落盘且有内容", len(read("calendar.json")["events"]) >= 3)
+    cal = read("calendar.json")["events"]
+    quo = read("quote.json")["items"]
+    kl = read("kline_1h.json")["bars"]
+
+    # ---- 入参：这三条守住"别把参数改回猜的那套" ----
+    sent = {}
+    for m_, n_, a_ in calls:
+        if m_ == "tools/call":
+            sent.setdefault(n_, a_)
+    check("list_calendar 传空对象（文档：不收参数）", sent.get("list_calendar") == {},
+          sent.get("list_calendar"))
+    check("get_quote 传 {code}，不是 {codes:[]}",
+          sent.get("get_quote") == {"code": "XAUUSD"}, sent.get("get_quote"))
+    kb = sent.get("get_kline") or {}
+    check("get_kline 入参严格按 schema（code/time:数字/count，无 period/limit）",
+          kb.get("code") == "XAUUSD" and isinstance(kb.get("time"), int)
+          and 1 <= kb.get("count", 0) <= 100
+          and "period" not in kb and "limit" not in kb, kb)
+
+    # ---- 解析：按文档字段 ----
+    check("list_calendar 落盘且有内容", len(cal) >= 3, len(cal))
     check("list_calendar 翻页 2 页（cursor）", r1.get("list_calendar", "").endswith("x2"),
           r1.get("list_calendar"))
-    check("list_calendar 秒转毫秒", read("calendar.json")["events"][0]["t"] > 10 ** 12)
-    check("get_quote 读了 structuredContent", read("quote.json")["items"][0]["price"] == 4072.4)
-    check("get_quote changeMargin 去 %", read("quote.json")["items"][0]["change"] == 1.23)
-    check("kline_1h 有 bars", len(read("kline_1h.json")["bars"]) >= 10)
+    check("日历 pub_time 字符串 → 毫秒", cal[0]["t"] > 10 ** 12, cal[0]["t"])
+    check("日历 consensus → fc", cal[0]["fc"] == "18万", cal[0].get("fc"))
+    check("日历 title → name", cal[0]["name"] in ("非农就业", "事件0"), cal[0]["name"])
+    check("get_quote close 千分位解析", quo[0]["price"] == 4072.4, quo[0]["price"])
+    check("get_quote ups_percent 去 %", quo[0]["change"] == 1.23, quo[0]["change"])
+    check("get_quote 带上 open/high/low", (quo[0].get("open"), quo[0].get("high")) == (4050.1, 4080.0),
+          quo[0])
+    check("kline data.klines → bars", len(kl) >= 10, len(kl))
+    check("K 线秒级 time → 毫秒", kl[0]["t"] > 10 ** 12, kl[0]["t"])
+    check("K 线字段 o/h/l/c 齐全", all(kl[0].get(x) for x in "ohlc"), kl[0])
     check("快讯/资讯已停抓", "list_flash" not in r1 and "list_news" not in r1, r1)
     # 解析函数保留（前端已不用），单独验一下字段映射，防日后恢复时踩空
     check("norm_news 字段映射", norm_news([{"news_id": "n1", "ts": 1762290000,
@@ -763,38 +922,53 @@ def _selftest():
     check("无 cursor 视为末页", page_meta({"data": {"items": []}}) == (None, False))
 
     print("[自测] 总请求数（不含 initialize）")
-    n = sum(1 for m_, _n in calls if m_ == "tools/call")
+    n = sum(1 for m_, _n, _a in calls if m_ == "tools/call")
     print("  tools/call 次数：%d" % n)
     print("结果：%s" % ("全部通过" if ok else "有失败项"))
     return 0 if ok else 1
 
 
 def _mock_result(name, args, calls):
-    """构造 3 个在抓工具的假响应，用来验证解析分支。"""
+    """构造 3 个在抓工具的假响应，形状严格按金十接入文档，用来验证解析分支。
+
+    故意用最"难"的形态：报价是单条对象、K 线时间戳是秒级、日历 data 是裸数组
+    且 pub_time 是字符串。这三种都能过，真实响应就不会踩空。
+    """
     if name == "list_calendar":
-        # 两页：第一页带 next_cursor，用来验证翻页与合并
+        # 文档：data 为数组；分页字段在顶层（data 是数组时放不进 next_cursor）
         page2 = bool(args.get("cursor"))
+        base = 2 if page2 else 0
         rows = [
-            {"time": 1762350000 + (i + (2 if page2 else 0)) * 60, "country": "us" if i % 2 == 0 else "cn",
-             "name": ("非农就业" if i == 0 and not page2 else "事件%d" % (i + (2 if page2 else 0))),
+            {"pub_time": "2025-11-06 20:30:00" if i == 0 else "2025-11-07 21:00:00",
              "star": 5 if i == 0 else 3,
-             "forecast": "18万", "previous": "15万"}
+             "title": ("非农就业" if i == 0 and not page2 else "事件%d" % (i + base)),
+             "previous": "15万", "consensus": "18万",
+             "actual": "", "revised": "", "affect_txt": "利好美元"}
             for i in range(2)
         ]
-        return {"structuredContent": {"data": {
-            "items": rows,
-            "has_more": not page2,
-            "next_cursor": None if page2 else "cur-2"}}}
+        return {"structuredContent": {"data": rows,
+                                      "has_more": not page2,
+                                      "next_cursor": None if page2 else "cur-2"}}
+
     if name == "get_quote":
-        return {"structuredContent": {"items": [
-            {"goldId": "hf_XAU", "varietyName": "伦敦金", "lastPrice": "4,072.40",
-             "changeMargin": "+1.23%", "updateTime": "2026-11-04 09:40:00"}]}}
+        # 文档：单条对象，close 是现价（可能带千分位），ups_percent 带 %
+        return {"structuredContent": {
+            "code": "XAUUSD", "name": "现货黄金", "time": "2026-11-04 09:40:00",
+            "open": "4,050.10", "close": "4,072.40", "high": 4080.0, "low": 4045.2,
+            "volume": 12345, "ups_price": 23.1, "ups_percent": "+1.23%"}}
+
     if name == "get_kline":
+        # 文档：data.klines 为数组，每项 open/high/low/close/time/volume；time 秒级
+        # 实测口径：60 秒一根，最多 100 根，且原样是倒序（新的在前）
         bars = []
-        for i in range(20):
-            bars.append({"time": 1762200000 + i * 3600, "open": 4050 + i, "high": 4060 + i,
-                         "low": 4045 + i, "close": 4055 + i, "volume": 100 + i})
-        return {"structuredContent": {"items": bars}}
+        for i in range(100):
+            bars.append({"time": 1762200000 + (99 - i) * 60, "open": 4050 + i * 0.1,
+                         "high": 4060 + i * 0.1, "low": 4045 + i * 0.1,
+                         "close": 4055 + i * 0.1, "volume": 100 + i})
+        return {"structuredContent": {"data": {"code": "XAUUSD", "klines": bars,
+                                               "name": "现货黄金"},
+                                      "status": 200, "message": ""}}
+
     return {"structuredContent": {}}
 
 
