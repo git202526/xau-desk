@@ -47,8 +47,16 @@ TOOLS = {
     # J4 起停抓：前端已移除这两个卡片，每天省下 900 次额度，留给日历与 K 线。
     "list_calendar": {"ttl": 1200, "cap": 110, "limit": 100},
     "get_quote":     {"ttl": 60, "cap": 200, "limit": 1},
-    "get_kline":     {"ttl": 240, "cap": 200, "limit": 200},
+    # cap 是本脚本自设的软上限，不是金十给的配额 —— 服务端真实额度至今未探明（J2 只够 3 次请求）。
+    # 800 是按「周期级 TTL 下的理论日耗 696」+ 重试余量定的；ttl 只在没传 override 时兜底。
+    # 若哪天的 state.json 出现 get_kline 的 quota / stopped 标记，说明真实配额低于 800，
+    # 应该回调 cap，而不是让它每天撞一次墙停到次日。
+    "get_kline":     {"ttl": 240, "cap": 800, "limit": 200},
 }
+
+# K 线按周期分别设 TTL：四个周期共用一个额度池，不能让周线陪着小时线一起每 5 分钟抓一遍。
+# 日耗 = 24（周）+ 96（日）+ 288（4H）+ 288（1H）= 696 次，全天覆盖。
+KLINE_TTL = {"1w": 3600, "1d": 900, "4h": 300, "1h": 300}
 
 # 金十报价代码（J1 备源也用这个 id）
 QUOTE_CODES = ["hf_XAU"]
@@ -495,6 +503,10 @@ def run(force=False, mcp=None, log=print, now=None):
     now = now or now_utc()
     st = load_state()
     rolled = roll_day(st)
+    # v6.55：缓存键从工具名改为输出文件名。清掉旧键，否则 state.json 里会永久留着
+    # get_kline / list_calendar 这些已经不再读取的记录。
+    for k in [x for x in st.get("cache", {}) if "." not in x]:
+        st["cache"].pop(k, None)
     mcp = mcp or Mcp(MCP_URL, os.environ.get("JIN10_TOKEN", "").strip())
     summary = {}
 
@@ -517,17 +529,20 @@ def run(force=False, mcp=None, log=print, now=None):
         # 一次翻页 = 一次 tools/call，按页计数才和真实额度对得上
         st["counts"][name] = int(st["counts"].get(name, 0)) + max(1, int(n or 1))
 
-    def fresh(name, target):
+    def fresh(name, target, ttl=None):
         if force:
             return False
-        meta = st["cache"].get(name) or {}
+        # 缓存键必须是 target（文件名），不能是工具名 —— 四个 K 线周期共用 get_kline，
+        # 用工具名做键会让第一个周期刚写的时间戳把后三个判成"命中缓存"，从此再不更新。
+        meta = st["cache"].get(target) or {}
         at = float(meta.get("at") or 0)
-        if not at or (time.time() - at) > ttl_of(name, now):
+        life = ttl if ttl is not None else ttl_of(name, now)
+        if not at or (time.time() - at) > life:
             return False
         # 缓存新鲜，但输出文件可能被清理过 —— 文件不在就当未命中
         return os.path.exists(os.path.join(OUT_DIR, target))
 
-    def guard(name, target, fn):
+    def guard(name, target, fn, ttl=None):
         used, cap, left = budget(name)
         if name in st["stopped"]:
             summary[name] = "stopped"
@@ -537,14 +552,14 @@ def run(force=False, mcp=None, log=print, now=None):
             log("[jin10] %s 已达软上限 %d，今日停用" % (name, cap))
             summary[name] = "capped"
             return
-        if fresh(name, target):
+        if fresh(name, target, ttl):
             summary[name] = "cached"
             return
         try:
             obj, pages = fn(left)
             # 计数已在 call_one 内按"实际发出的请求"记过，这里不再补记
             write_json(target, obj)
-            st["cache"][name] = {"at": time.time(), "pages": pages}
+            st["cache"][target] = {"at": time.time(), "pages": pages}
             summary[name] = "ok x%d" % pages
         except QuotaExhausted as e:
             # 额度用完：立即停到次日，不重试
@@ -599,7 +614,7 @@ def run(force=False, mcp=None, log=print, now=None):
                 raise SourceDown("kline too short: %s" % len(bars))
             return {"updatedAt": now.isoformat(), "period": period, "bars": bars}, 1
 
-        guard("get_kline", target, do_kl)
+        guard("get_kline", target, do_kl, KLINE_TTL.get(period))
         kl_sum[period] = summary.pop("get_kline", "")
     summary["get_kline"] = kl_sum
 
@@ -677,6 +692,19 @@ def _selftest():
     print("[自测] 第二次（TTL 未过期）")
     check("list_calendar 命中缓存", r2.get("list_calendar") == "cached", r2.get("list_calendar"))
     check("get_quote 命中缓存", r2.get("get_quote") == "cached", r2.get("get_quote"))
+
+    print("[自测] K 线周期级 TTL 与独立缓存")
+    st = load_state()
+    st["cache"]["kline_1w.json"] = {"at": time.time(), "pages": 1}          # 周线刚抓过
+    st["cache"]["kline_1h.json"] = {"at": time.time() - 400, "pages": 1}    # 1H 超过 300s
+    save_state(st)
+    r2b = run(force=False, mcp=m, log=lambda *a: None)
+    kl = r2b.get("get_kline", {})
+    check("周线在 1h TTL 内 → cached", kl.get("1w") == "cached", kl)
+    check("1H 超 300s → 重抓", str(kl.get("1h", "")).startswith("ok"), kl)
+    check("四个周期各有独立缓存键（不会互相顶掉）",
+          all("kline_%s.json" % k in load_state()["cache"] for k in KLINE_PERIODS),
+          list(load_state()["cache"].keys()))
 
     print("[自测] 软上限：把 list_calendar 预置为 110")
     st = load_state()
