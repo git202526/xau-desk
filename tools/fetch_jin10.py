@@ -43,18 +43,12 @@ MCP_ORIGIN = os.environ.get("JIN10_ORIGIN", "https://mcp.jin10.com")
 # TODO(待核实) 各工具的入参 schema 尚未核实（J2 配额只够 3 次请求，未调 tools/list）。
 #              下面按命名推断，联调时以 tools/list 返回的 inputSchema 为准。
 TOOLS = {
-    "list_flash":    {"ttl": 240, "cap": 600, "limit": 50},
-    "search_flash":  {"ttl": 600, "cap": 300, "limit": 30},
-    "list_news":     {"ttl": 600, "cap": 300, "limit": 30},
-    "search_news":   {"ttl": 600, "cap": 300, "limit": 30},
-    "get_news":      {"ttl": 3600, "cap": 300, "limit": 1},
+    # 快讯 / 资讯（list_flash / search_flash / list_news / search_news / get_news）
+    # J4 起停抓：前端已移除这两个卡片，每天省下 900 次额度，留给日历与 K 线。
     "list_calendar": {"ttl": 1200, "cap": 110, "limit": 100},
     "get_quote":     {"ttl": 60, "cap": 200, "limit": 1},
     "get_kline":     {"ttl": 240, "cap": 200, "limit": 200},
 }
-
-# 非交易时段 list_flash 放宽到 300 秒（消息本来就少，没必要按交易时段频率打）
-TTL_NONTRADING = {"list_flash": 300}
 
 # 金十报价代码（J1 备源也用这个 id）
 QUOTE_CODES = ["hf_XAU"]
@@ -83,21 +77,6 @@ def day_key_gmt8(dt=None):
     """按 GMT+8 切自然日 —— 用户在东八区，额度按用户的"今天"重置。"""
     dt = dt or now_utc()
     return (dt + timedelta(hours=8)).strftime("%Y-%m-%d")
-
-
-def is_trading(dt=None):
-    """伦敦金交易时段（近似）：周一 00:00 至周五 22:00 UTC。
-
-    TODO(待核实) 未扣除每日 21:00-22:00 UTC 的结算暂停与节假日；
-    这里只影响 list_flash 的 TTL 与抓取节奏，不影响数据正确性。
-    """
-    dt = dt or now_utc()
-    wd = dt.weekday()          # 0=周一
-    if wd >= 5:
-        return False
-    if wd == 4 and dt.hour >= 22:
-        return False
-    return True
 
 
 # ============================================================ 状态
@@ -317,10 +296,11 @@ def page_meta(payload):
     return cur, more
 
 
-def call_paged(mcp, name, args, max_pages=3, cap_left=None):
-    """按 cursor 翻页，最多 max_pages 页；每页算一次额度消耗。
+def call_paged(mcp, name, args, max_pages=3, cap_left=None, count=None):
+    """按 cursor 翻页，最多 max_pages 页。
 
     返回 (payloads, pages)。任一页报额度用完，立刻停手并把已有结果交回。
+    计数不在这里做：只要请求真的发出去，call_one 就会记一次（含失败与超时）。
     """
     out = []
     cursor = None
@@ -329,7 +309,7 @@ def call_paged(mcp, name, args, max_pages=3, cap_left=None):
         a = dict(args)
         if cursor:
             a["cursor"] = cursor
-        payload = call_one(mcp, name, a, cap_left)
+        payload = call_one(mcp, name, a, cap_left, count)
         out.append(payload)
         pages += 1
         nxt, more = page_meta(payload)
@@ -339,11 +319,19 @@ def call_paged(mcp, name, args, max_pages=3, cap_left=None):
     return out, pages
 
 
-def call_one(mcp, name, args, cap_left=None):
+def call_one(mcp, name, args, cap_left=None, count=None):
+    """发一次 tools/call，失败按 MAX_RETRY 重试。
+
+    count 在每次真正发出请求前调用 —— 超时、5xx、额度用完同样消耗服务端额度，
+    所以失败也要计。剩余额度 <= RETRY_FLOOR 时只试一次，把最后的额度留给
+    下一轮，而不是在这一轮烧光。
+    """
     # 剩余额度 <= RETRY_FLOOR 时不重试：一次不成就降级，省着用
     tries = 1 if (cap_left is not None and cap_left <= RETRY_FLOOR) else (1 + MAX_RETRY)
     last = None
     for i in range(tries):
+        if count:
+            count(name, 1)
         try:
             return unwrap(mcp.call(name, args))[0]
         except QuotaExhausted:
@@ -499,8 +487,6 @@ def write_json(name, obj):
 
 
 def ttl_of(name, dt=None):
-    if name == "list_flash" and not is_trading(dt):
-        return TTL_NONTRADING["list_flash"]
     return TOOLS[name]["ttl"]
 
 
@@ -556,7 +542,7 @@ def run(force=False, mcp=None, log=print, now=None):
             return
         try:
             obj, pages = fn(left)
-            note(name, pages)
+            # 计数已在 call_one 内按"实际发出的请求"记过，这里不再补记
             write_json(target, obj)
             st["cache"][name] = {"at": time.time(), "pages": pages}
             summary[name] = "ok x%d" % pages
@@ -569,32 +555,11 @@ def run(force=False, mcp=None, log=print, now=None):
             log("[jin10] %s 失败：%s" % (name, e))
             summary[name] = "fail"
 
-    # ---- 快讯（列表 + 翻页） ----
-    def do_flash(left):
-        payloads, pages = call_paged(mcp, "list_flash", {"limit": TOOLS["list_flash"]["limit"]}, 2, left)
-        items = []
-        for p in payloads:
-            items.extend(norm_flash(list_items(p)))
-        seen, uniq = set(), []
-        for x in items:
-            k = x["id"] or (x["t"], x["text"][:20])
-            if k in seen:
-                continue
-            seen.add(k)
-            uniq.append(x)
-        return {"updatedAt": now.isoformat(), "items": uniq[:120]}, pages
-
-    guard("list_flash", "flash.json", do_flash)
-
-    # ---- 资讯 ----
-    def do_news(left):
-        payloads, pages = call_paged(mcp, "list_news", {"limit": TOOLS["list_news"]["limit"]}, 2, left)
-        items = []
-        for p in payloads:
-            items.extend(norm_news(list_items(p)))
-        return {"updatedAt": now.isoformat(), "items": items[:60]}, pages
-
-    guard("list_news", "news.json", do_news)
+    # ---- 快讯 / 资讯：J4 起下线 ----
+    # 页面上原本只有一张「市场快讯」卡（快讯 / 资讯两个 Tab），实用价值低于直接开 App，
+    # 且 list_flash + list_news 每天要吃掉 900 次额度。前端已移除，这里一并停抓，
+    # 把额度留给日历和 K 线。norm_flash / norm_news 的解析函数保留（纯函数，无副作用），
+    # 若日后要恢复，把 guard 加回来即可。
 
     # ---- 日历 ----
     def do_cal(left):
@@ -602,7 +567,7 @@ def run(force=False, mcp=None, log=print, now=None):
         end = (now + timedelta(days=7)).strftime("%Y-%m-%d")
         payloads, pages = call_paged(mcp, "list_calendar",
                                      {"start": start, "end": end,
-                                      "limit": TOOLS["list_calendar"]["limit"]}, 2, left)
+                                      "limit": TOOLS["list_calendar"]["limit"]}, 2, left, note)
         items = []
         for p in payloads:
             items.extend(norm_calendar(list_items(p)))
@@ -612,7 +577,7 @@ def run(force=False, mcp=None, log=print, now=None):
 
     # ---- 报价（第三层，仅中转落盘；浏览器侧默认不用） ----
     def do_quote(left):
-        p = call_one(mcp, "get_quote", {"codes": QUOTE_CODES}, left)
+        p = call_one(mcp, "get_quote", {"codes": QUOTE_CODES}, left, note)
         return {"updatedAt": now.isoformat(), "items": norm_quote(p)}, 1
 
     guard("get_quote", "quote.json", do_quote)
@@ -628,7 +593,7 @@ def run(force=False, mcp=None, log=print, now=None):
         def do_kl(left, period=period):
             p = call_one(mcp, "get_kline",
                          {"code": KLINE_CODES[0], "period": period,
-                          "limit": TOOLS["get_kline"]["limit"]}, left)
+                          "limit": TOOLS["get_kline"]["limit"]}, left, note)
             bars = norm_kline(p)
             if len(bars) < 10:
                 raise SourceDown("kline too short: %s" % len(bars))
@@ -697,28 +662,31 @@ def _selftest():
             ok = False
 
     print("[自测] 第一次强制抓取")
-    check("list_flash 落盘且有内容", len(read("flash.json")["items"]) >= 3)
-    check("list_flash 翻页 2 页（cursor）", r1.get("list_flash", "").endswith("x2"), r1.get("list_flash"))
-    check("list_flash 去重后无重复 id", len({x["id"] for x in read("flash.json")["items"]}) ==
-          len(read("flash.json")["items"]))
-    check("list_news 走 content.text 兜底", len(read("news.json")["items"]) >= 2)
+    check("list_calendar 落盘且有内容", len(read("calendar.json")["events"]) >= 3)
+    check("list_calendar 翻页 2 页（cursor）", r1.get("list_calendar", "").endswith("x2"),
+          r1.get("list_calendar"))
     check("list_calendar 秒转毫秒", read("calendar.json")["events"][0]["t"] > 10 ** 12)
     check("get_quote 读了 structuredContent", read("quote.json")["items"][0]["price"] == 4072.4)
     check("get_quote changeMargin 去 %", read("quote.json")["items"][0]["change"] == 1.23)
     check("kline_1h 有 bars", len(read("kline_1h.json")["bars"]) >= 10)
+    check("快讯/资讯已停抓", "list_flash" not in r1 and "list_news" not in r1, r1)
+    # 解析函数保留（前端已不用），单独验一下字段映射，防日后恢复时踩空
+    check("norm_news 字段映射", norm_news([{"news_id": "n1", "ts": 1762290000,
+                                            "title": "标题一", "summary": "摘要一"}])[0]["title"] == "标题一")
 
     print("[自测] 第二次（TTL 未过期）")
-    check("list_flash 命中缓存", r2.get("list_flash") == "cached", r2.get("list_flash"))
     check("list_calendar 命中缓存", r2.get("list_calendar") == "cached", r2.get("list_calendar"))
+    check("get_quote 命中缓存", r2.get("get_quote") == "cached", r2.get("get_quote"))
 
-    print("[自测] 软上限：把 list_flash 预置为 600")
+    print("[自测] 软上限：把 list_calendar 预置为 110")
     st = load_state()
     st["day"] = day_key_gmt8()
-    st["counts"]["list_flash"] = 600
+    st["counts"]["list_calendar"] = TOOLS["list_calendar"]["cap"]
     save_state(st)
     r3 = run(force=True, mcp=m, log=lambda *a: None)
-    check("list_flash 到顶即停", r3.get("list_flash") == "capped", r3.get("list_flash"))
-    check("其它工具不受影响（list_news 仍可抓）", r3.get("list_news") in ("ok x2", "ok x1"), r3.get("list_news"))
+    check("list_calendar 到顶即停", r3.get("list_calendar") == "capped", r3.get("list_calendar"))
+    check("其它工具不受影响（get_quote 仍可抓）",
+          r3.get("get_quote") in ("ok x1", "cached"), r3.get("get_quote"))
 
     print("[自测] 跨日重置")
     st = load_state()
@@ -746,8 +714,8 @@ def _selftest():
     save_state(st)
     m2 = Mcp(MCP_URL, "t", opener=quota_transport)
     r4 = run(force=True, mcp=m2, log=lambda *a: None)
-    check("额度用完标 quota", r4.get("list_news") == "quota", r4.get("list_news"))
-    check("已停用写入 stopped", "list_news" in load_state()["stopped"])
+    check("额度用完标 quota", r4.get("list_calendar") == "quota", r4.get("list_calendar"))
+    check("已停用写入 stopped", "list_calendar" in load_state()["stopped"])
 
     print("[自测] 结构化优先级")
     sc, src = unwrap({"structuredContent": {"data": {"items": [1]}},
@@ -768,30 +736,21 @@ def _selftest():
 
 
 def _mock_result(name, args, calls):
-    """构造 9 个工具的假响应，用来验证解析分支。"""
-    if name == "list_flash":
-        page2 = bool(args.get("cursor"))
-        items = []
-        for i in range(3):
-            idx = (9 if page2 else 0) + i
-            items.append({"id": "f%d" % idx, "time": 1762300000 - idx * 60,
-                          "content": "快讯内容 %d" % idx, "important": idx == 0})
-        return {"structuredContent": {"data": {"items": items,
-                                               "has_more": not page2,
-                                               "next_cursor": None if page2 else "cur-2"}}}
-    if name == "list_news":
-        # 只有 content.text，用来验证兜底路径
-        payload = {"data": {"items": [
-            {"news_id": "n1", "ts": 1762290000, "title": "标题一", "summary": "摘要一"},
-            {"news_id": "n2", "ts": 1762280000, "title": "标题二"},
-        ]}}
-        return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
+    """构造 3 个在抓工具的假响应，用来验证解析分支。"""
     if name == "list_calendar":
-        return {"structuredContent": {"data": {"items": [
-            {"time": 1762350000, "country": "us", "name": "非农就业", "star": 5,
-             "forecast": "18万", "previous": "15万"},
-            {"time": 1762360000, "country": "cn", "name": "财新PMI", "star": 3},
-        ]}}}
+        # 两页：第一页带 next_cursor，用来验证翻页与合并
+        page2 = bool(args.get("cursor"))
+        rows = [
+            {"time": 1762350000 + (i + (2 if page2 else 0)) * 60, "country": "us" if i % 2 == 0 else "cn",
+             "name": ("非农就业" if i == 0 and not page2 else "事件%d" % (i + (2 if page2 else 0))),
+             "star": 5 if i == 0 else 3,
+             "forecast": "18万", "previous": "15万"}
+            for i in range(2)
+        ]
+        return {"structuredContent": {"data": {
+            "items": rows,
+            "has_more": not page2,
+            "next_cursor": None if page2 else "cur-2"}}}
     if name == "get_quote":
         return {"structuredContent": {"items": [
             {"goldId": "hf_XAU", "varietyName": "伦敦金", "lastPrice": "4,072.40",

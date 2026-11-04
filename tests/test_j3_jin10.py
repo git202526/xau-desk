@@ -1,8 +1,9 @@
-"""J3：金十中转接入 + 路由 + K 线降频。
+"""J3/J4：金十中转接入 + 路由 + K 线降频 + K 线源校验。
 
-三块分别验证：
-  j* 金十快讯/资讯/日历（经同源静态文件，浏览器只读）
+四块分别验证：
+  j* 日历三级回落（金十 → ForexFactory → 内置）；快讯/资讯已于 J4 下线，不再有卡片
   k* K 线降频、增量、缺口回退、金十备源、未收盘本地推进
+  v* K 线源校验（J4）：金十对 Binance，只比收益率，不写回 S.kl
   r* 中转脚本自身的自测（真跑 tools/fetch_jin10.py --selftest，不联网）
 """
 import json
@@ -12,7 +13,7 @@ import sys
 
 import pytest
 
-from conftest import CFG_NORMAL, PRICE
+from conftest import CFG_NORMAL, PRICE, _bars
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -52,50 +53,15 @@ def _jl(p):
 
 # ================================================================ 快讯 / 资讯
 
-def test_j1_flash_renders(make_env):
-    """中转快讯落盘后，总览的快讯卡按时间倒序显示，重要条目高亮。"""
-    e = make_env(cfg=CFG_NORMAL, jn={"flash.json": FLASH})
-    p = e.page
-    p.wait_for_function("() => window.__xt.jnState().flash > 0", timeout=6000)
-    p.evaluate("() => window.__xt.gotoTab('sig')")       # 快讯卡在「事件雷达」页
-    p.wait_for_timeout(250)
-    txt = p.inner_text("#jnFeed")
-    assert "通胀仍在回落通道" in txt
-    assert "美元指数跌破 104" in txt
-    hot = p.evaluate("""() => [...document.querySelectorAll('#jnFeed .jnrow')]
-        .filter(n => n.classList.contains('hot')).length""")
-    assert hot == 1
-    assert _jl(p)["flash"] == 3
-
-
-def test_j2_news_tab_switch(make_env):
-    """点「资讯」切到资讯列表，标题与摘要都在；切回快讯内容不变。"""
-    e = make_env(cfg=CFG_NORMAL, jn={"flash.json": FLASH, "news.json": NEWS})
-    p = e.page
-    p.wait_for_function("() => window.__xt.jnState().news > 0", timeout=6000)
-    p.evaluate("() => window.__xt.gotoTab('sig')")
-    p.wait_for_timeout(250)
-    p.click('#jnChips button[data-k="news"]')
-    p.wait_for_timeout(200)
-    txt = p.inner_text("#jnFeed")
-    assert "央行连续第 12 个月增持黄金" in txt
-    assert "5 万盎司" in txt
-    p.click('#jnChips button[data-k="flash"]')
-    p.wait_for_timeout(200)
-    assert "COMEX" in p.inner_text("#jnFeed")
-
-
-def test_j3_missing_relay_is_empty_not_broken(make_env):
-    """中转没跑起来（全 404）：显示空态文案，不报错、不阻塞其它模块。"""
+def test_j3_missing_relay_keeps_quote(make_env):
+    """中转没跑起来（全 404）：校验显示"未就绪"，报价照常，不报错、不阻塞其它模块。"""
     e = make_env(cfg=CFG_NORMAL)          # jn=None → 全部 404
     p = e.page
-    p.wait_for_timeout(700)
-    p.evaluate("() => window.__xt.gotoTab('sig')")
-    p.wait_for_timeout(250)
-    txt = p.inner_text("#jnFeed")
-    assert "暂无快讯" in txt
-    # 报价照常
+    p.wait_for_timeout(800)
     assert p.inner_text("#pNow").replace(",", "") == "4072.40"
+    st = p.evaluate("() => window.__xt.klChkState()")
+    assert st["state"] == "", st
+    assert "未就绪" in p.inner_text("#chVerify")
 
 
 # ================================================================ 日历三级
@@ -288,6 +254,111 @@ def test_k7_closed_bar_not_patched(make_env):
     last = p.evaluate("() => { var b = window.__xt.state().kl['1h']; return b[b.length-1]; }")
     assert last["c"] == 4002, last
     assert last["h"] == 4010, last
+
+
+# ================================================================ K 线源校验（J4）
+
+def _jn_kl(k, n=30, scale=1.0, flip=False, sec=False):
+    """按 Binance 的同一批 bar 造金十数据，只动收益率，用来控制"一致 / 偏离 / 反向"。
+
+    金十是 hf_XAU、Binance 是 PAXG，绝对价本来就不同，所以校验比的是
+    r = c/o - 1，按 t 对齐。
+    """
+    out = []
+    for b in _bars(k)[-n:]:
+        t, o, c = int(b[0]), float(b[1]), float(b[4])
+        r = (c / o - 1) * scale
+        if flip:
+            r = -r
+        out.append({"t": t // 1000 if sec else t, "o": o,
+                    "h": float(b[2]), "l": float(b[3]),
+                    "c": round(o * (1 + r), 2), "v": 10})
+    return {"bars": out}
+
+
+def _jn3(**kw):
+    return {"kline_%s.json" % k: _jn_kl(k, **kw) for k in ("1d", "4h", "1h")}
+
+
+def test_v1_consistent_with_jin10(make_env):
+    """两边收益率一致 → state=ok，卡片上一行写"与金十一致"。"""
+    e = make_env(cfg=CFG_NORMAL, jn=_jn3())
+    p = e.page
+    p.wait_for_function("() => window.__xt.klChkState().state === 'ok'", timeout=8000)
+    st = p.evaluate("() => window.__xt.klChkState()")
+    assert set(st["per"].keys()) == {"1d", "4h", "1h"}, st
+    assert all(v["n"] >= 20 for v in st["per"].values()), st
+    assert "与金十一致" in p.inner_text("#chVerify")
+
+
+def test_v2_drift_marks_warn(make_env):
+    """金十收益率被放大 4 倍（模拟主源失真）→ state=warn，文案带偏离幅度。"""
+    e = make_env(cfg=CFG_NORMAL, jn=_jn3(scale=4.0))
+    p = e.page
+    p.wait_for_function("() => window.__xt.klChkState().state === 'warn'", timeout=8000)
+    txt = p.inner_text("#chVerify")
+    assert "偏离" in txt and "%" in txt, txt
+
+
+def test_v3_direction_flip_marks_warn(make_env):
+    """方向整体反向：收益率差不一定大，但方向一致率为 0，同样判 warn。"""
+    e = make_env(cfg=CFG_NORMAL, jn=_jn3(flip=True))
+    p = e.page
+    p.wait_for_function("() => window.__xt.klChkState().state === 'warn'", timeout=8000)
+    st = p.evaluate("() => window.__xt.klChkState()")
+    assert st["worst"]["dir"] <= 0.1, st
+
+
+def test_v4_seconds_timestamp_aligns(make_env):
+    """金十给秒级时间戳时按量级归一成毫秒，仍能逐根对齐。"""
+    e = make_env(cfg=CFG_NORMAL, jn=_jn3(sec=True))
+    p = e.page
+    p.wait_for_function("() => window.__xt.klChkState().state === 'ok'", timeout=8000)
+    assert p.evaluate("() => window.__xt.klChkState().per['1h'].n") >= 20
+
+
+def test_v5_verify_does_not_touch_bars(make_env):
+    """校验只读：跑完校验，S.kl 一个字都不许变（不参与指标、不参与价格合成）。"""
+    e = make_env(cfg=CFG_NORMAL, jn=_jn3(scale=4.0))
+    p = e.page
+    p.wait_for_function("() => window.__xt.klChkState().state !== ''", timeout=8000)
+    p.evaluate("() => { window.__xt.state().paxg = null; }")   # 关掉逐笔推进，排除干扰
+    before = p.evaluate("() => JSON.stringify(window.__xt.state().kl['1h'])")
+    p.evaluate("() => window.__xt.klVerify()")
+    p.wait_for_timeout(500)
+    after = p.evaluate("() => JSON.stringify(window.__xt.state().kl['1h'])")
+    assert before == after
+
+
+def test_v6_too_few_bars_not_judged(make_env):
+    """金十每周期只给 3 根，对不齐 → 不判定，保持"未就绪"，不误报 warn。"""
+    jn = {"kline_%s.json" % k: {"bars": _jn_kl(k)["bars"][:3]} for k in ("1d", "4h", "1h")}
+    e = make_env(cfg=CFG_NORMAL, jn=jn)
+    p = e.page
+    p.wait_for_timeout(900)
+    assert p.evaluate("() => window.__xt.klChkState().state") == ""
+    assert "未就绪" in p.inner_text("#chVerify")
+
+
+def test_v7_cal_fallback_note_ff(make_env):
+    """金十日历拿不到、落 FF → 事件雷达底部要写明"已切换到备源"。"""
+    ff = {"updatedAt": "2026-11-04T00:00:00Z", "week": "2026-11-02",
+          "events": [{"t": 1762400000000 + i * 3600000, "ccy": "USD",
+                      "name": "FF事件%d" % i, "impact": 3} for i in range(4)]}
+    e = make_env(cfg=CFG_NORMAL, calendar=ff)
+    p = e.page
+    p.wait_for_function("() => window.__xt.jnState().calSrc === 'ff'", timeout=6000)
+    p.evaluate("() => window.__xt.refreshAll()")
+    assert "已切换到备源" in p.inner_text("#evNote")
+
+
+def test_v8_cal_builtin_note(make_env):
+    """两级都拿不到 → 写明"已降级为内置事件"，而不是含糊的"不可用"。"""
+    e = make_env(cfg=CFG_NORMAL)
+    p = e.page
+    p.wait_for_function("() => window.__xt.jnState().calSrc === 'none'", timeout=6000)
+    p.evaluate("() => window.__xt.refreshAll()")
+    assert "已降级为内置事件" in p.inner_text("#evNote")
 
 
 # ================================================================ 中转脚本自测

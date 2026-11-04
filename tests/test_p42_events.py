@@ -108,7 +108,9 @@ def test_ev1_all_events_rendered(make_env):
     rows = items(page)
     for kw in ("GDP", "核心PCE", "初请失业金", "零售销售"):
         assert find(rows, kw), kw
-    assert "实时" in txt(page, "#evMeta"), txt(page, "#evMeta")
+    # J4 起口径区分来源：金十主源标「实时」，ForexFactory 备源标「备源」。
+    # 这条用例走的是 calendar.json（FF），所以看到的是备源标记。
+    assert "备源" in txt(page, "#evMeta"), txt(page, "#evMeta")
     assert find(rows, "GDP")["src"] == "实时日历"
 
 
