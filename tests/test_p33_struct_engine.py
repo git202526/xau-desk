@@ -269,3 +269,71 @@ def test_e12_one_hour_not_voting(page):
 
     c = struct_of(page, {"1w": "up", "1d": "rg", "4h": "up", "1h": "up"})
     assert c["trig"] == "na", c
+
+
+# —— 震荡态的展示口径（v7.0 遗留项）：条件未满 3 条不等于 0 条 ——
+
+def conds(hit):
+    """造 5 条条件，前 hit 条为真。"""
+    return [{"k": "条件%d" % (i + 1), "v": i < hit, "d": "说明%d" % (i + 1)}
+            for i in range(5)]
+
+
+def struct_p(up=2, dn=1, state="rg"):
+    """四个周期都给全字段，只为跑渲染：日线取指定 state 与命中条数。"""
+    def one(st, u, d):
+        return {"state": st, "upN": u, "dnN": d, "adx": {"adx": 22, "pdi": 20, "mdi": 18},
+                "bars": 900, "upC": conds(u), "dnC": conds(d),
+                "c": 4010, "ma20": 4000, "rsi": 55, "rsiState": "中性"}
+    return {"1w": one("up", 3, 1), "1d": one(state, up, dn),
+            "4h": one("up", 3, 1), "1h": one("up", 3, 1)}
+
+
+def test_e13_range_card_shows_majority_side(page):
+    """日线震荡时卡片写多数侧的 n/5，不写 0/5（旧版 fmt 固定给 0）。"""
+    for up, dn, want in ((2, 1, "2/5"), (1, 2, "2/5"), (2, 2, "2/5")):
+        txt = page.evaluate("""(p) => {
+          window.__xt.setStruct(p);
+          const c = Array.from(document.querySelectorAll('.pcard'))
+            .find(e => e.querySelector('.k').textContent === '日线');
+          return c.querySelector('.m').textContent;
+        }""", struct_p(up, dn))
+        assert txt.startswith(want), (up, dn, txt)
+        assert not txt.startswith("0/5"), (up, dn, txt)
+
+
+def test_e14_range_reasons_use_majority_side(page):
+    """日线震荡时依据区按多数侧列，并给出「均未达 3 条」的说明。"""
+    out = page.evaluate("""(p) => {
+      window.__xt.setStruct(p);
+      const rows = Array.from(document.querySelectorAll('#reasons .rz'));
+      return { first: rows[0].textContent.replace(/\\s+/g, ' ').trim(),
+               ok: rows.slice(1, 6).filter(e => e.querySelector('.ok').classList.contains('y')).length,
+               detail: rows.length };
+    }""", struct_p(up=2, dn=1))
+    assert "震荡" in out["first"], out
+    assert "上行 2 条" in out["first"] and "下行 1 条" in out["first"], out
+    assert "上行侧" in out["first"], out
+    # 展示上行侧：五条里应有 2 条命中
+    assert out["ok"] == 2, out
+    # 1 行震荡说明 + 5 条条件 + 1 行反向汇总
+    assert out["detail"] == 7, out
+
+    # 下行占多数时翻过来，命中的是下行侧
+    out2 = page.evaluate("""(p) => {
+      window.__xt.setStruct(p);
+      const rows = Array.from(document.querySelectorAll('#reasons .rz'));
+      return { first: rows[0].textContent.replace(/\\s+/g, ' ').trim(),
+               ok: rows.slice(1, 6).filter(e => e.querySelector('.ok').classList.contains('y')).length };
+    }""", struct_p(up=1, dn=2))
+    assert "下行侧" in out2["first"], out2
+    assert out2["ok"] == 2, out2
+
+    # 反向对照：有方向时不写震荡说明，首行就是第一条条件
+    out3 = page.evaluate("""(p) => {
+      window.__xt.setStruct(p);
+      const rows = Array.from(document.querySelectorAll('#reasons .rz'));
+      return { first: rows[0].textContent.replace(/\\s+/g, ' ').trim(), n: rows.length };
+    }""", struct_p(up=3, dn=1, state="up"))
+    assert "震荡" not in out3["first"], out3
+    assert out3["n"] == 6, out3
