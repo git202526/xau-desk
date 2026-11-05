@@ -185,7 +185,11 @@ def test_sc7_no_target_card(make_env):
     assert c["dot"] is None
     assert c["go"] == 1, "仍要给一个去设置目标的口子"
     assert c["setMode"] == 0, "旧的双模式开关已删除"
-    assert c["align"] == 0, "没目标时不该出现对齐按钮"
+    assert c["align"] == 1, "按钮常驻：没设目标时也在"
+    p.click("#avgCard [data-align]")
+    p.wait_for_timeout(200)
+    assert "先在设置页填" in p.evaluate(
+        "() => document.getElementById('toast').textContent"), "没目标也应给出具体提示"
 
 
 # ---------------------------------------------------------------- 自由度归属
@@ -246,7 +250,10 @@ def test_sc9b_align_button_pulls_span_to_target(make_env):
     assert b["alpha"] == pytest.approx(D_3950 / a, abs=0.02), b["alpha"]
     assert b["d"] == pytest.approx(D_3950, abs=1.0), b["d"]
     assert meta(p)["hit"] is True, meta(p)
-    assert card(p)["align"] == 0, "对齐后按钮应收起"
+    assert card(p)["align"] == 1, "按钮常驻：对齐成功后不收起"
+    assert "已对齐" in p.evaluate(
+        "() => document.getElementById('toast').textContent"), \
+        p.evaluate("() => document.getElementById('toast').textContent")
 
 
 def test_sc12_go_button_lands_on_target_input(make_env):

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.1 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.3 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -909,7 +909,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.1 · 11/05</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.3 · 11/05</span></div>
       </div>
     </div>
     <div class="stat">
@@ -7378,8 +7378,8 @@ function renderAvgCardStruct(box, m){
   if(gg.length >= 2){
     spanTxt = num(gg[0].pct, 1) + "…" + num(gg[gg.length - 1].pct, 1) + "%";
   }
-  var needAlign = !!(T && m.spanSrc === "atr" && a14 &&
-                     Math.abs(a14 - T) > 1);
+  /* 「对齐目标」常驻：不因命中 / 已达 / 档距方式 / α 状态而隐藏。
+     点它是用户的主动对齐请求，不能对齐时由 alignSpanToTarget 给具体原因。 */
 
   var tips = [];
   var ri = reachInfo();
@@ -7443,26 +7443,89 @@ function renderAvgCardStruct(box, m){
     (tips.length ? '<div class="tip">' + tips.join("<br>") + '</div>' : '') +
     '<div class="btnrow">' +
       '<button class="btn-ghost" data-go="avgt">' + (T ? "调整目标均价" : "去设置目标均价") + '</button>' +
-      (needAlign ? '<button class="btn-ghost" data-align="1">对齐目标</button>' : '') +
+      '<button class="btn-ghost" data-align="1">对齐目标</button>' +
     '</div>' +
     '</div>';
   bindAvgCard(box);
 }
 
-/* 把 α 调到「正好命中目标档距」——alpha 模式下的快捷出口（§4.6） */
+/* 把档距反解到「锚定档位价 = 名义目标均价」（P9 口径），落成 α 模式。
+   锚定均价（1..k 档）与全档均价（全 n 档）是另外两个统计口径，只在这里回报
+   命中与差额，不参与反解 —— 反解用 m.target，不用已持仓折算后的 m.targetEff。
+   按钮常驻：任何不能对齐的情形都给具体原因，不静默夹取 α、不谎报已对齐。 */
 function alignSpanToTarget(){
   var m = S.gearMeta || {};
-  if(!m.target || !m.he) return;
-  var tt = (m.targetEff !== null && m.targetEff !== undefined) ? m.targetEff : m.target;
-  var r = spanForTarget(m.he, tt, curW());
-  if(r.d === null || !(r.alpha > 0)){ toast("当前分布无法反解档距，先加重 3–6 档"); return; }
-  var a = Math.max(ALPHA_MIN, Math.min(ALPHA_MAX, r.alpha));
-  S.cfg.alpha = Math.round(a * 100) / 100;
+  if(!(m.target > 0)){ toast("先在设置页填「目标均价」，再点对齐目标"); return; }
+  if(!(m.he > 0)){ toast("还没有有效建仓高点，无法反解档距"); return; }
+
+  var T = m.target, band = m.band || 20, k = m.anchorK || 1;
+  var p1 = p1Of(m.he);
+  /* 反解重心：显式锚定第 k 档时 c=k−1（整数），自动时 c=权重重心（可为小数）。
+     报数必须用同一个 c，否则自动模式会拿 round(c)+1 当档号，误报未命中。 */
+  var c = anchorCenter(curW());
+  var anchorSet = Math.round(Number(S.cfg && S.cfg.avgAnchor)) >= 2;
+  var r = spanForTarget(m.he, T, curW());
+
+  if(r.hint === "flat"){
+    toast("当前分布全压第 1 档，档距调不动锚定档位价，请加重 3–6 档"); return;
+  }
+  if(r.d === null){
+    toast("目标均价或建仓高点无效，无法反解档距"); return;
+  }
+  if(!(r.d > 0)){
+    toast("目标 " + num(T, 0) + " 高于第 1 档价 " + num(p1, 0) +
+          "，档距收到 0 也够不到；请下调目标均价或提高建仓高点"); return;
+  }
+
+  /* α 超任一边界时不能精确反解，但按边界值排仍可能落进目标区间。
+     用户要的是「锚定档位落进区间」，不是「α 精确等于反解值」：能进就按边界写入，
+     进不去才报够不到，并给出需要的 α、边界能排到哪、差多少。 */
+  var useA = r.alpha, exact = true, note = "";
+  if(r.alpha > ALPHA_MAX || r.alpha < ALPHA_MIN){
+    useA = Math.max(ALPHA_MIN, Math.min(ALPHA_MAX, r.alpha));
+    var pK = p1 - c * useA * r.base;
+    var gap = Math.abs(pK - T);
+    var posLab = anchorSet ? ("第 " + k + " 档价") : "全档均价";
+    if(gap > band){
+      var why = r.alpha > ALPHA_MAX
+        ? "超过上限 " + num(ALPHA_MAX, 1) : "低于下限 " + num(ALPHA_MIN, 1);
+      toast("反解需 α=" + num(r.alpha, 2) + "，" + why + "；按 α=" + num(useA, 2) +
+            " 排，" + posLab + " " + num(pK, 0) + "，距目标 " + num(gap, 0) +
+            " 美元，够不到 ±" + num(band, 0) + " 区间。可调整目标均价或建仓高点");
+      return;
+    }
+    exact = false;
+    note = "反解需 " + num(r.alpha, 2);
+  }
+
+  S.cfg.alpha = Math.round(useA * 100) / 100;
   S.cfg.spanMode = "alpha";
   saveCfg(); compute(); refreshAll();
+
   var mm = S.gearMeta || {};
-  toast("已对齐 α=" + num(S.cfg.alpha, 2) + " · 锚定 " + num(mm.avgAnchor, 0) +
-        " / " + gearCount() + " 档 " + num(mm.avgAll, 0));
+  var hitTxt = function(v){
+    if(v === null || v === undefined) return "—";
+    var d = v - T;
+    return num(v, 0) + (Math.abs(d) <= band
+      ? " ✓命中" : (d > 0 ? " 偏高 " : " 偏低 ") + num(Math.abs(d), 0));
+  };
+  var parts = [];
+  if(anchorSet){
+    var pK2 = p1 - c * (mm.d || 0);
+    parts.push("第 " + k + " 档价 " + num(pK2, 0) +
+      (Math.abs(pK2 - T) <= band ? " ✓命中" : " 未命中"));
+  }
+  parts.push("锚定均价 " + hitTxt(mm.avgAnchor));
+  parts.push("全档均价 " + hitTxt(mm.avgAll));
+  var msg = (exact ? "已对齐" : "已按边界对齐") + " α=" + num(S.cfg.alpha, 2) +
+            (note ? "（" + note + "）" : "") + "：" + parts.join(" · ");
+  /* 几何对齐与「整体均价能否达标」是两回事：剩余仓位不足时一并说清 */
+  if(mm.targetEff === null){
+    msg += "；无多余仓位可分配（目标总克重已等于持仓），可提高上限或减仓";
+  } else if(mm.targetEff <= 0){
+    msg += "；剩余仓位不足以把整体均价压到目标，可提高目标总克重";
+  }
+  toast(msg);
 }
 
 /* 卡片里的两个动作：回退高点到反解、跳去设置页填目标 */

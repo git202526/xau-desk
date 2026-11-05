@@ -458,4 +458,7 @@ def test_align_button_snaps_alpha_to_target(env):
     assert p.evaluate("() => window.__xt.state().cfg.spanMode") == "alpha"
     assert p.evaluate("() => window.__xt.state().cfg.alpha") == pytest.approx(1.54, abs=0.02)
     assert p.evaluate("() => window.__xt.gearMeta().avgAll") == pytest.approx(3900, abs=1.0)
-    assert p.evaluate("() => !!document.querySelector('#avgCard [data-align]')") is False
+    assert p.evaluate("() => !!document.querySelector('#avgCard [data-align]')") is True, \
+        "按钮常驻：对齐后不收起"
+    assert "已对齐" in p.evaluate(
+        "() => document.getElementById('toast').textContent")
