@@ -67,7 +67,9 @@ def bars_range(low, n=240, close=PX):
 
 
 def cfg(**kw):
-    c = dict(CFG_EMPTY, H_BASE=H, TOTAL=TOTAL, gearMarks={}, swingGears=[1, 2],
+    # TOTAL=400：让 200g 未标记「底仓」不再是满仓（planBudget = 总仓 − 未标记持仓 = 200），
+    # 档位计划与状态照常渲染；b11 仍用 book=200 对账。满仓→计划全 0 的空态由 b13 的 p2 单独覆盖。
+    c = dict(CFG_EMPTY, H_BASE=H, TOTAL=400, gearMarks={}, swingGears=[1, 2],
              buys=[{"id": "b0", "name": "底仓", "gram": 200, "priceCny": 900,
                     "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": None}])
     c.update(kw)

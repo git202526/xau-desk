@@ -52,7 +52,7 @@ def _plan_table():
 
 
 def _versions_in(text):
-    return re.findall(r"v(\d+)\.(\d+)", text)
+    return re.findall(r"v(\d+\.\d+(?:\.\d+)?)", text)
 
 
 # ---------- d1：旧术语不回流 ----------
@@ -134,19 +134,19 @@ def test_d4b_exempt_plan_declared():
 # ---------- d5：三处版本一致 ----------
 
 def _ver_html():
-    m = re.search(r"<!-- XAU Desk v(\d+\.\d+) ·", INDEX)
+    m = re.search(r"<!-- XAU Desk v(\d+\.\d+(?:\.\d+)?) ·", INDEX)
     assert m, "index.html 首行注释缺少版本号"
     return m.group(1)
 
 
 def _ver_tag():
-    m = re.search(r'id="verTag">v(\d+\.\d+)', INDEX)
+    m = re.search(r'id="verTag">v(\d+\.\d+(?:\.\d+)?)', INDEX)
     assert m, "index.html 缺少 #verTag"
     return m.group(1)
 
 
 def _ver_log():
-    m = re.search(r"^## v(\d+\.\d+) · ", CHANGELOG, re.M)
+    m = re.search(r"^## v(\d+\.\d+(?:\.\d+)?) · ", CHANGELOG, re.M)
     assert m, "CHANGELOG 缺少版本条目标题"
     return m.group(1)
 
@@ -162,9 +162,9 @@ def test_d5_version_consistent():
 def test_d6_table_versions_exist_in_changelog():
     """期次表写的每个 **vX.Y** 都要在 CHANGELOG 里有对应条目。"""
     table = _plan_table()
-    # 只认 **vX.Y**：未落地的期次写成「计划 vX.Y」，不参与本断言
-    listed = ["v" + x for x in re.findall(r"\*\*v(\d+\.\d+)\*\*", table)]
-    logged = {"v" + ".".join(x) for x in _versions_in(CHANGELOG)}
+    # 只认 **vX.Y** / **vX.Y.Z**：未落地的期次写成「计划 vX.Y」，不参与本断言
+    listed = ["v" + x for x in re.findall(r"\*\*v(\d+\.\d+(?:\.\d+)?)\*\*", table)]
+    logged = {"v" + x for x in _versions_in(CHANGELOG)}
     missing = [v for v in listed if v not in logged]
     assert missing == [], "期次表写了 CHANGELOG 里没有的版本：" + str(sorted(set(missing)))
 

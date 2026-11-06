@@ -59,10 +59,11 @@ def _marks(grams=None):
 
 
 def _cfg(**kw):
-    """200g 六档 + 一笔 200g 底仓：卖出校验看账本持仓，没有记录会被「超过剩余持仓」挡掉。"""
+    """200g 六档 + 一笔 200g 底仓（已标第1档，不减少计划预算）：卖出校验看账本持仓，
+    且未标记持仓为 0，planBudget 恒等于 TOTAL，计划合计 = TOTAL。"""
     c = dict(CFG_EMPTY, H_BASE=H, TOTAL=TOTAL, swingGears=[1, 2], gearMarks=_marks(),
              buys=[{"id": "b0", "name": "底仓", "gram": 200, "priceCny": 900,
-                    "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": None}])
+                    "time": "2026-08-01T02:00:00.000Z", "note": "", "gear": "第1档"}])
     c.update(kw)
     return c
 
