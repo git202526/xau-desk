@@ -126,13 +126,19 @@ def test_f6_setspan_clamp_flag_and_consistency(env):
 
 
 def test_f7_drop_note_follows_mode(env):
-    """说明行跟着档距方式走：非区间标出哪个值不参与，区间标出都参与。"""
+    """说明行跟着档距方式走：非区间说「终止是最大深度（越界会压）」，区间说「两个值都参与」。
+
+    v7.4.2 §3.3.1 起终止跌幅是全局上限，旧文案「切到区间后生效」已不成立（P0）。
+    """
     p = env(spanMode="alpha").page
     open_set(p)
-    assert "只用起始跌幅" in p.text_content("#setDropNote")
+    note = p.text_content("#setDropNote")
+    assert "定第 1 档" in note and "最大深度" in note
+    assert "切到「区间」后生效" not in note
     p.click('#setSpanMode [data-span="range"]')
     p.wait_for_timeout(300)
-    assert "都参与计算" in p.text_content("#setDropNote")
+    note2 = p.text_content("#setDropNote")
+    assert "都参与计算" in note2 and "上限" in note2
 
 
 def test_f8_no_target_says_fallback_without_switching(env):

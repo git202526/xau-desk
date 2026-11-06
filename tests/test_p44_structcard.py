@@ -42,7 +42,7 @@ def bars_calm(n=240, px=PRICE, amp=24.0):
 BARS = bars_calm()
 
 CFG_T = dict(CFG_EMPTY, **{"H_BASE": H, "TOTAL": TOTAL,
-                           "avgTarget": T, "avgBand": BAND})
+                           "avgTarget": T, "avgBand": BAND, "endDrop": 60})
 CFG_NO_T = dict(CFG_EMPTY, **{"H_BASE": H, "TOTAL": TOTAL})
 CFG_AUTO = dict(CFG_EMPTY, **{"TOTAL": TOTAL})
 

@@ -46,7 +46,7 @@ def bars_calm(n=240, px=PRICE, amp=24.0):
 
 
 def cfg(**kw):
-    c = dict(CFG_EMPTY, H_BASE=H, TOTAL=W)
+    c = dict(CFG_EMPTY, H_BASE=H, TOTAL=W, endDrop=60)
     c.update(kw)
     return c
 

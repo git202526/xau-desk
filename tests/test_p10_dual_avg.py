@@ -46,7 +46,7 @@ def cfg(**kw):
     c = dict(CFG_EMPTY, H_BASE=H, TOTAL=TOTAL, planOnly=True,
              swingGears=[1, 2], gearMarks={},
              gearCount=8, wPct=W8, avgTarget=T, avgBand=20,
-             spanMode="target", avgAnchor=5, alpha=1, startDrop=13, endDrop=25)
+             spanMode="target", avgAnchor=5, alpha=1, startDrop=13, endDrop=60)
     c.update(kw)
     return c
 

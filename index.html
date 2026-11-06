@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.4.1 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.4.2 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -744,6 +744,7 @@ body.tab-ov .tpx{display:none}
 .avgc .off{color:#E0913F}
 .avgc .tip{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.05);font-size:11px;color:var(--tx3);line-height:1.6}
 .avgc .tip strong{color:#E0913F;font-weight:600}
+.avgc .tip .tw{color:var(--up)}
 .avgc .a2{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 7px;font-size:11px;color:var(--tx3)}
 .avgc .a2 .vv{display:inline-flex;align-items:baseline;gap:6px}
 .avgc .a2 b{font-size:13px;font-weight:650;color:var(--tx);font-variant-numeric:tabular-nums}
@@ -809,7 +810,8 @@ body.tab-ov .tpx{display:none}
 .btn-primary{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(150deg,#D9AC5C,#B98A34);color:#1A1206;font-size:15px;font-weight:650;cursor:pointer;margin-top:4px}
 .btn-ghost{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--tx2);font-size:13px;cursor:pointer;margin-top:8px}
 /* 卡内并排两个次级按钮：320px 下不换行、不溢出 */
-.btnrow{display:flex;gap:8px;margin-top:9px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.btnrow.riskrow{margin-top:6px}
 .btnrow .btn-ghost{margin-top:0;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:12px 6px}
 .syncbar{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--tx3);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;max-width:100%;min-width:0}
 .syncbar .sdot{width:6px;height:6px;border-radius:50%;background:#4B5563;flex:0 0 auto;transition:background .2s}
@@ -915,7 +917,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.4.1 · 11/06</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.4.2 · 11/06</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1164,6 +1166,8 @@ body.tab-ov .tpx{display:none}
         <div class="wgrid" id="setAnchor"></div>
         <div class="wn" id="setAnchorLive">—</div>
       </div>
+      <!-- §3.3.1 验收项：终止跌幅是「上限」，改了不一定动价；这行常驻给余量反馈 -->
+      <div class="wn" id="dropDepthNote" style="margin-top:10px">—</div>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>分布与执行 <span class="cnt" id="sumExec">—</span></h2></div>
@@ -3314,12 +3318,36 @@ function gearBase(){
     }
   }
   out.d = span.d; out.alpha = span.alpha; out.spanSrc = span.src;
-  out.feasible = span.feasible !== false;
+
+  /* §3.3.1 终止跌幅 = 上限，只压不拉：
+     各模式先算自己的名义档距 d₀，最后统一 min 一次。
+     capD = (终止 − 起始)/100 × H /(n−1)，即「最深档恰好落在终止跌幅」的档距。
+     未越界时 min 取回 d₀，档位价一个字节不改；区间模式的 d 本就等于 capD，结果不变。
+     α=1.0 排到 −16% 时 capD 更大，min 不会把档距拉深（只压不拉）。 */
+  var nG = gearCount();
+  var capD = (endDropOf() - startDropOf()) / 100 * he / Math.max(1, nG - 1);
+  var d0 = (span.d === null || span.d === undefined) ? null : Number(span.d);
+  out.d0 = d0;
+  out.capD = capD > 0 ? capD : 0;
+  out.clamped = false;
+  out.alpha0 = span.alpha;
+  out.alphaEff = span.alpha;
+  if(d0 !== null && out.capD > 0 && d0 - out.capD > 0.005){
+    out.clamped = true;
+    out.dClampFrom = d0;
+    out.d = out.capD;
+    out.alphaEff = out.capD / Math.max(1e-9, Number(span.base) || 1);
+  } else {
+    out.d = d0;
+  }
+  out.alpha = out.clamped ? out.alphaEff : span.alpha;
+  out.feasible = (span.feasible !== false) && !out.clamped;
   out.hint = span.hint || "";
 
   if(T_eff !== null && T_eff <= 0) out.hint = "done";
   else if(T_eff !== null && T_eff > p1Of(he)) out.hint = "above-p1";
   else if(!out.hint && span.hint) out.hint = span.hint;
+  if(out.clamped) out.hint = "clamped";
   return out;
 }
 
@@ -4389,6 +4417,20 @@ function computeGears(){
   var aK = anchorKOf(w);
   var aAnchor = avgOfFront(pr, plan, aK);
 
+  /* §3.3.1 夹取读数：d₀ 下的深档（用户「需」到的深度）、最终深档（夹取后实际），
+     以及 target 夹取后「当前可达」的锚定均价（p1 − 前 k 档重心 × capD）。 */
+  var deepest0 = null, d0v = base.d0;
+  if(d0v !== null && Number(d0v) >= 0 && pr.length){
+    var pn0 = pr[0] - (pr.length - 1) * Number(d0v);
+    deepest0 = he > 0 ? (pn0 / he - 1) * 100 : null;
+  }
+  var deepest = (pr.length && he > 0) ? (pr[pr.length - 1] / he - 1) * 100 : null;
+  var reach = null;
+  if(T && base.clamped){
+    var cF = frontCenter(w, aK);
+    if(cF > 0) reach = p1Of(he) - cF * Number(base.capD);
+  }
+
   /* 整体均价 = 已持仓 + 后续按计划补满。目标口径是六档全计入（§0.5.1）。 */
   var mix = null;
   if(T){
@@ -4423,6 +4465,9 @@ function computeGears(){
     target: T, targetEff: base.targetEff, band: band,
     d: base.d, alpha: base.alpha, spanSrc: base.spanSrc,
     feasible: base.feasible, hint: base.hint,
+    clamped: !!base.clamped, capD: base.capD, d0: base.d0,
+    alpha0: base.alpha0, alphaEff: base.alphaEff,
+    deepest0Pct: deepest0, deepestPct: deepest, reach: reach,
     avgAll: aAll, avg14: aAll,
     avgSel: aAll, anchorK: aK, avgAnchor: aAnchor,
     diffSel: (T && aAll) ? (aAll - T) : null,
@@ -7499,15 +7544,98 @@ function renderAvgCardStruct(box, m){
     }
     tips.push(line);
   }
-  if(T){
+  /* §3.3.1 终止跌幅 = 上限：夹取时必须说明「需多少 / 收到多少 / 现在可达多少」，
+     并给互不串改的一键路径（目标改为可达值 / 放开终止），不替用户选。 */
+  var riskBtn = "";
+  if(m.clamped){
+    var needPct = (m.deepest0Pct === null || m.deepest0Pct === undefined) ? null : (-m.deepest0Pct);
+    /* 两个上限会叠在一起：α 上限 3.5 先把 d 截短，终止跌幅再截一次。
+       此时「需 −X%」只是 α 封顶后能到的深度，不是目标真正需要的深度。
+       但按钮仍要给两条路 —— 只留「改目标」，用户就看不到「是谁把它压到 25%」，
+       因果链必须写完：目标要多深 → α 先封顶到多深 → 终止再收到多深 → 放开后能到多少。 */
+    var alphaTrue = null, cFc = 0;
+    if(T && Number(m.alpha0) > 0 && Number(m.d0) > 0 && Number(m.he) > 0){
+      cFc = frontCenter(curW(), m.anchorK || anchorKOf(curW()));
+      var baseA = Number(m.d0) / Number(m.alpha0);
+      if(cFc > 0 && baseA > 0) alphaTrue = ((p1Of(m.he) - T) / cFc) / baseA;
+    }
+    var alphaBind = (alphaTrue !== null && alphaTrue > ALPHA_MAX + 0.005);
+    if(T){
+      if(alphaBind){
+        tips.push('<span class="tw">目标 ' + num(T, 0) + ' 需 α≈' + num(alphaTrue, 2) + '，超过上限 ' +
+          num(ALPHA_MAX, 1) + '；按 ' + num(ALPHA_MAX, 1) + ' 排，最深档只能到 −' + num(needPct, 2) + '%</span>');
+        tips.push('<span class="tw">终止 ' + endDropOf() + '% 再把它收到 −' + num(endDropOf(), 2) +
+          '%：现档表等同「区间 ' + startDropOf() + '~' + endDropOf() + '%」，' +
+          (m.hitAnchor ? '目标仍落在容差内' : '目标未命中') +
+          (m.reach !== null && m.reach !== undefined ? '（当前可达 ' + num(m.reach, 0) + '）' : '') + '</span>');
+        /* 第三行讲清「放开终止会发生什么」：只解除第二道限制，不是让目标变可达 */
+        var reachA = (cFc > 0) ? (p1Of(m.he) - cFc * Number(m.d0)) : null;
+        tips.push("放开终止只解除第二道限制：档表回到 α " + num(ALPHA_MAX, 1) + " 的极限 −" +
+          num(needPct, 2) + "%" +
+          (reachA !== null ? "，锚定均价最多 " + num(reachA, 0) + "，仍够不到 " + num(T, 0) : "") +
+          "；要真命中得降目标或减档数");
+      } else {
+        tips.push('<span class="tw">目标 ' + num(T, 0) + ' 需最深档 −' + num(needPct, 2) + '%，已按终止 ' +
+          endDropOf() + '% 收到 −' + num(endDropOf(), 2) + '%</span>');
+        tips.push('<span class="tw">现档表等同「区间 ' + startDropOf() + '~' + endDropOf() + '%」，' +
+          (m.hitAnchor ? '目标仍落在容差内' : '目标未命中') +
+          (m.reach !== null && m.reach !== undefined ? '（当前可达 ' + num(m.reach, 0) + '）' : '') + '</span>');
+      }
+    } else {
+      tips.push('<span class="tw">α ' + num(m.alpha0, 2) + ' 会让最深档到 −' + num(needPct, 2) + '%，已按终止 ' +
+        endDropOf() + '% 收到 α ' + num(m.alphaEff, 2) + '</span>');
+    }
+    if(needPct !== null && needPct > 0){
+      var needUp = Math.ceil(needPct * 10) / 10;
+      if(needUp <= END_DROP_MAX){
+        if(T && m.reach !== null && m.reach !== undefined){
+          riskBtn += '<button class="btn-ghost" data-retarget="' + Math.ceil(m.reach) + '">目标改为 ' + num(Math.ceil(m.reach), 0) + '</button>';
+        }
+        /* α 先封顶时也要给「放开终止」：它解的是第二道限制，点完档位会真的变深，
+           只是仍命中不了目标 —— 那是第三行文案的职责，不能靠撤按钮来表达。 */
+        riskBtn += '<button class="btn-ghost" data-release="' + needUp + '">' +
+          (T ? "或放开终止至 " : "放开终止至 ") + num(needUp, 1) + '%</button>';
+      } else {
+        tips.push('<span class="tw">需 −' + num(needPct, 1) + '% 才能命中，超过终止上限 ' + END_DROP_MAX + '%，请减少档数或降低 α</span>');
+      }
+    }
+    if(T){
+      tips.push("对齐目标是让第 1–" + (aK || gearCount()) + " 档买完的锚定均价落入区间；" +
+                "全 " + gearCount() + " 档均价只是选定档位试算，不作对齐依据");
+    }
+  } else if(T){
     if(m.hint === "cap") tips.push("该均价在档距上限内做不到，档距已按 α=" + num(ALPHA_MAX, 1) + " 封顶");
     else if(m.hint === "above-p1") tips.push("目标高于第 1 档价，档距已收窄到 0，" + gearCount() + " 档同价");
     else if(m.hint === "done") tips.push("已持仓成本优于目标，剩余额度建议留作回调加仓");
     else if(m.hint === "flat") tips.push("当前分布全在第 1 档，档距无法调节均价，请加重 3–6 档");
+    else if(m.hint === "narrow"){
+      /* α 低于下限（0.6）：按「只压不拉」不动档距（目标仍然准），但档位会挤成一团，
+         一档全成交、分配失去意义 —— 必须说出来并给方向，不能让它静默发生。 */
+      var nSp = Math.max(0, gearCount() - 1) * (Number(m.d) || 0);
+      var gapPx = Math.max(0, p1Of(m.he) - T);
+      tips.push("反解 α=" + num(m.alpha, 2) + " 低于下限 " + num(ALPHA_MIN, 2) +
+        "：目标只比第 1 档价低 " + num(gapPx, 0) + " 美元，" + gearCount() + " 档总跨度仅 " +
+        num(nSp, 0) + " 美元（" + num(m.he > 0 ? nSp / m.he * 100 : 0, 2) +
+        "%），各档价几乎相同，实际会一档全成交；建议减少档数或下调目标均价");
+    }
     tips.push("对齐目标是让第 1–" + (aK || gearCount()) + " 档买完的锚定均价落入区间；" +
               "全 " + gearCount() + " 档均价只是选定档位试算，不作对齐依据");
+  } else if((S.cfg && S.cfg.spanMode) === "range"){
+    /* 区间方式本来就不看目标均价：说成「按波动率 α=1 排列」是假话（实测 α 可为 0.11） */
+    tips.push("当前按「区间」方式均分 " + gearCount() + " 档，没设目标均价；" +
+              "想按目标反解档距，把「档距方式」切成「目标均价」");
   } else {
     tips.push("还没设目标均价，档距按波动率排列（α=1）。填一个目标就会拉伸到该均价。");
+  }
+
+  /* 区间退化：起止差 < 3pp 时 n 档间距只剩几美元（与 α 下限同族：档位挤成一团）。
+     起始 40% + 终止 ≤ 40% 时 endDropOf() 会把终止抬到 41%，区间只剩 1pp，也在这里讲清。 */
+  if((S.cfg && S.cfg.spanMode) === "range" && (endDropOf() - startDropOf()) < 3){
+    var rgap = endDropOf() - startDropOf();
+    var rSp = Math.max(0, gearCount() - 1) * (Number(m.d) || 0);
+    tips.push('<span class="tw">区间只有 ' + num(rgap, 1) + 'pp（' + startDropOf() + '% ~ ' + endDropOf() +
+      '%）：' + gearCount() + ' 档间距仅 ' + num(m.d, 1) + ' 美元，总跨度 ' + num(rSp, 0) +
+      ' 美元，各档价几乎相同，实际会一档全成交；建议拉开起止跌幅或减少档数</span>');
   }
 
   /* 选定档位试算行：全 n 档买满的均价，只试算落在什么价 / 差多少 / 是否同样命中，
@@ -7550,6 +7678,9 @@ function renderAvgCardStruct(box, m){
       '<button class="btn-ghost" data-go="avgt">' + (T ? "调整目标均价" : "去设置目标均价") + '</button>' +
       '<button class="btn-ghost" data-align="1">对齐目标</button>' +
     '</div>' +
+    /* 夹取修正路径单独一行：和常规操作混排时 390px 一行塞 4 个按钮会被 ellipsis 截成
+       「目标改…」「或放开…」，等于把路径又藏回去。 */
+    (riskBtn ? '<div class="btnrow riskrow">' + riskBtn + '</div>' : '') +
     '</div>';
   bindAvgCard(box);
 }
@@ -7580,6 +7711,23 @@ function alignSpanToTarget(){
   if(!(r.d > 0)){
     toast("目标 " + num(T, 0) + " 高于第 1 档价 " + num(p1, 0) +
           "，档距收到 0 也够不到；请下调目标均价或提高建仓高点"); return;
+  }
+
+  /* §3.3.1 终止跌幅是上限：反解出的 d 若会被夹，点「对齐」也命中不了。
+     直接说明需多少 / 收到多少 / 现在可达多少，指向卡片上的两条一键路径，不写 α。 */
+  var nG = gearCount();
+  var capD = (endDropOf() - startDropOf()) / 100 * m.he / Math.max(1, nG - 1);
+  if(capD > 0 && r.d - capD > 0.005){
+    var need = -((p1 - (nG - 1) * r.d) / m.he - 1) * 100;
+    var reach = (c > 0) ? (p1 - c * capD) : null;
+    var needUp = Math.ceil(need * 10) / 10;
+    toast("目标 " + num(T, 0) + " 需最深档 −" + num(need, 2) + "%，已按终止 " + endDropOf() +
+          "% 收到 −" + num(endDropOf(), 2) + "%；现档表等同「区间 " + startDropOf() + "~" + endDropOf() +
+          "%」，目标未命中" + (reach !== null ? "（当前可达 " + num(reach, 0) + "）" : "") +
+          (needUp <= END_DROP_MAX
+            ? "。可用卡片上的「目标改为 " + (reach !== null ? num(reach, 0) : "—") + "」或「放开终止至 " + num(needUp, 1) + "%」"
+            : "。需 −" + num(need, 1) + "% 超过终止上限 " + END_DROP_MAX + "%，请减少档数或降低 α"));
+    return;
   }
 
   /* α 超任一边界时不能精确反解，但按边界值排仍可能让「前 1..k 档均价」落进区间。
@@ -7644,9 +7792,46 @@ function bindAvgCard(box){
   Array.prototype.forEach.call(box.querySelectorAll("[data-set-mode]"), function(b){
     b.onclick = function(){ setGearMode(b.getAttribute("data-set-mode")); };
   });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-release]"), function(b){
+    b.onclick = function(){ releaseEndDrop(b.getAttribute("data-release")); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-retarget]"), function(b){
+    b.onclick = function(){ changeTargetTo(b.getAttribute("data-retarget")); };
+  });
   Array.prototype.forEach.call(box.querySelectorAll("[data-go]"), function(b){
     b.onclick = function(){ gotoTab("set", { anchor:"setAvgT" }); };
   });
+}
+
+/* §3.3.1 一键「目标改为可达值」：只写 avgTarget，不碰终止跌幅（验收 #16 互不串改）。 */
+function changeTargetTo(v){
+  var x = Number(v);
+  if(!(x > 0)) return;
+  S.cfg = S.cfg || {};
+  if(Math.abs((Number(S.cfg.avgTarget) || 0) - x) < 0.5){ toast("目标均价已经是 " + num(x, 0)); return; }
+  S.cfg.avgTarget = x;
+  saveCfg(); compute(); refreshAll();
+  toast("目标均价已改为 " + num(x, 0));
+}
+
+/* §3.3.1 一键「放开终止」：把上限抬到当前名义档距所需的深度，让目标重新可达。
+   只写 endDrop，不动目标均价（验收 #16 互不串改）；夹取是 min，放开后 d 回到 d₀。 */
+function releaseEndDrop(v){
+  var d = Number(v);
+  if(!(d > 0)) return;
+  S.cfg = S.cfg || {};
+  var want = Math.ceil(d * 10) / 10;
+  var lo = Math.min(END_DROP_MAX, startDropOf() + 1);   /* 终止必须严格大于起始 */
+  var val = Math.min(END_DROP_MAX, Math.max(want, lo));
+  if(Math.abs((Number(S.cfg.endDrop) || 0) - val) < 0.05){
+    toast("终止跌幅已经是 " + val + "%");
+    return;
+  }
+  S.cfg.endDrop = val;
+  saveCfg(); compute(); refreshAll();
+  toast(val < want - 0.05
+    ? "终止跌幅已放到上限 " + val + "%，仍小于所需 −" + num(want, 1) + "%，请减少档数或降低 α"
+    : "终止跌幅已放开到 " + val + "%");
 }
 
 /* 高点设定：null = 跟随自动（结构算 / 目标反解），数值 = 锁死；两种模式共用同一个值 */
@@ -7739,6 +7924,26 @@ function renderSetSummary(){
     var re = S.cfg && S.cfg.realloc;
     if(re && re.on) parts.push("下沉开");
     se.textContent = parts.join(" · ");
+  }
+
+  /* §3.3.1 验收项：终止跌幅是「上限」，未越界时改它不动价格。
+     这行常驻显示「最深档 · 终止 · 余量」，让 25→40 的改动能被立刻看见。 */
+  var dd = $("dropDepthNote");
+  if(dd){
+    var mm = S.gearMeta || {};
+    var deep = (mm.deepestPct === null || mm.deepestPct === undefined) ? null : Number(mm.deepestPct);
+    if(deep === null || !(Number(mm.he) > 0)){
+      dd.textContent = "—";
+      dd.className = "wn";
+    } else {
+      var edv = endDropOf();
+      var margin = edv + deep;              /* 终止 − |最深|（deep 为负） */
+      /* 夹取后 margin 恒 ≥ 0（最深档最浅也只到终止），所以没有 warn 态；
+         余量 0 就是「已经顶到终止上限」，直接说出来比留一个永不触发的红字有用。 */
+      dd.textContent = "最深档 −" + num(-deep, 2) + "% · 终止 " + edv + "% · 余量 " + num(margin, 2) + "pp" +
+        (mm.clamped && margin < 0.05 ? " · 已到终止上限" : "");
+      dd.className = "wn";
+    }
   }
   renderSetNav();
 }
@@ -7850,15 +8055,18 @@ function renderSpanUI(){
   if(sd && document.activeElement !== sd) sd.value = String(startDropOf());
   if(ed2 && document.activeElement !== ed2) ed2.value = String(endDropOf());
 
-  /* 起止跌幅什么时候真的参与计算，直接写在输入框下面，别让用户改完以为生效了。
-     起始跌幅在所有方式下都决定第 1 档；终止跌幅只有「区间」方式会读到。 */
+  /* 起止跌幅各自管什么，直接写在输入框下面，别让用户改完以为生效、或以为没生效。
+     起始跌幅在所有方式下决定第 1 档；终止跌幅在所有方式下都是「最深档的上限」——
+     区间方式里它同时是深端（此时恰好不被夹），另外两种方式越界就压到它并给放开入口。 */
   var dn = $("setDropNote");
   if(dn){
     var modeName = mode === "range" ? "区间" : (mode === "alpha" ? "波动率" : "目标均价");
     dn.textContent = mode === "range"
-      ? ("当前「区间」方式：起始 " + startDropOf() + "% ~ 终止 " + endDropOf() + "% 均分 " + gearCount() + " 档，两个值都参与计算")
-      : ("当前「" + modeName + "」方式只用起始跌幅 " + startDropOf() + "% 定第 1 档；终止跌幅 " + endDropOf() + "% 已保存，切到「区间」后生效");
-    dn.className = "wn" + (mode === "range" ? "" : " warn");
+      ? ("当前「区间」方式：起始 " + startDropOf() + "% ~ 终止 " + endDropOf() + "% 均分 " + gearCount() +
+         " 档，两个值都参与计算；终止同时是最深档的上限")
+      : ("当前「" + modeName + "」方式：起始 " + startDropOf() + "% 定第 1 档，终止 " + endDropOf() +
+         "% 是从此往下的最大深度；算出更深会自动压到 " + endDropOf() + "% 并给出放开入口");
+    dn.className = "wn";
   }
 
   var ab = $("setAnchor");

@@ -27,7 +27,7 @@ BAND = 50.0
 BASE = dict(CFG_EMPTY, **{
     "H_BASE": H, "TOTAL": 330, "alpha": 2.0, "spanMode": "alpha",
     "gearCount": 10, "wPct": [4, 5, 8, 11, 14, 16, 17, 13, 8, 4],
-    "avgBand": BAND, "startDrop": 14, "endDrop": 25, "avgAnchor": 5,
+    "avgBand": BAND, "startDrop": 14, "endDrop": 60, "avgAnchor": 5,
 })
 # 1050 元/克 ≈ 4600 $/oz，高于名义目标：T_eff =（T×330 − 4600×300）/30 < 0，
 # 用来复现用户现场「折算目标已为负」，而几何反解仍应按名义目标进行。

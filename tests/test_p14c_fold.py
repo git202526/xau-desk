@@ -160,11 +160,15 @@ def test_f9_warn_btn_opens_cloud(env):
 # ---------------------------------------------------------------- 高度与稳定性
 
 def test_f10_page_height(env):
-    """10 档 + 计划模式（最长配置）下，设置页总高 ≤ 3000px。"""
+    """10 档 + 计划模式（最长配置）下，设置页总高 ≤ 3060px。
+
+    v7.4.2 §3.3.1 在档位形态卡底部加了常驻「最深档·终止·余量」摘要行（验收项），
+    比原先多一行，预算从 3000 调到 3060。
+    """
     p = env(width=390, height=844).page
     open_set(p)
     h = state(p)["total"]
-    assert h <= 3000, h
+    assert h <= 3060, h
 
 
 def test_f11_fold_not_persisted(env):
