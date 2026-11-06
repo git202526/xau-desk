@@ -3,11 +3,14 @@
 背景：P9 之后档位可以设到 10 档、目标均价可以锚定某一档，但建仓页卡片只给
 「n 档均价」（全部档位买满）。用户要看两个口径：
 
-  · 锚定均价        = 只买 1..k 档的加权均价（k = 目标均价锚定档位，自动时取权重重心档）
-  · 选定档位试算均价 = 全部 n 档买满的加权均价（= 旧版「n 档均价」，命中判定仍以它为准）
+  · 锚定均价        = 只买 1..k 档的加权均价（k = 目标均价锚定档位，自动时取权重重心档），
+                       v7.4 起这是「对齐目标」的第一对象
+  · 选定档位试算均价 = 全部 n 档买满的加权均价（= 旧版「n 档均价」），
+                       只试算落在什么价 / 差值 / 是否同样命中，不作对齐依据
 
 口径：H=4700、总仓 200g、8 档、startDrop=13 → p1=4089；
-目标 3900 + 锚定第 5 档 → d=(4089−3900)/4=47.25、p5=3900。
+目标 3900 + 锚定第 5 档 → 反解让「前 1–5 档买完的锚定均价」= 3900
+（d=(4089−3900)/frontCenter(W8,5)≈71.03），第 5 档单档价与全档均价都只作试算。
 """
 import math
 
@@ -109,31 +112,35 @@ def test_d1_anchor_k_follows_setting(env):
     assert m["avgAll"] == pytest.approx(c["all"], abs=0.01)
 
 
-def test_d2_anchor_sits_above_its_gear_price(env):
-    """1..k 档均价必然高于第 k 档价（前 k−1 档都更贵），也低于第 1 档价。"""
+def test_d2_anchor_avg_is_the_alignment_target(env):
+    """v7.4：第一对齐对象是「前 1..k 档买完的锚定均价」，它精确落到目标；
+    第 k 档单档价不再被钉到目标，全档均价只作试算。"""
     p = env().page
     c = calc(p)
     m = meta(p)
-    assert c["prices"][4] == pytest.approx(T, abs=0.5), "目标价应钉在第 5 档"
+    assert m["avgAnchor"] == pytest.approx(T, abs=0.05), m
+    assert m["avgAnchor"] == pytest.approx(c["front"][4], abs=0.01)
+    assert c["prices"][4] < T - 20, "第 5 档价不再等于目标"
     assert m["avgAnchor"] > c["prices"][4]
     assert m["avgAnchor"] < c["prices"][0]
-    # 全档口径含更深档，必然低于锚定口径
+    # 全档口径含更深档，必然低于锚定口径（不作对齐依据）
     assert m["avgSel"] < m["avgAnchor"]
 
 
-def test_d3_anchor_switch_changes_value(env):
-    """锚定档位改到第 3 档 → 截断更早、均价更高。"""
+def test_d3_anchor_switch_realigns_front_avg(env):
+    """锚定档位改到第 3 档：档距重新反解，让「前 1–3 档买完的均价」仍落到目标。"""
     p = env().page
-    before = meta(p)["avgAnchor"]
+    d0 = p.evaluate("() => window.__xt.gearBase().d")
     p.evaluate("() => window.__xt.setSpan(undefined, undefined, undefined, 3)")
     p.wait_for_timeout(200)
     m = meta(p)
     c = calc(p)
     assert m["anchorK"] == 3, m
+    assert m["avgAnchor"] == pytest.approx(T, abs=0.05), m
     assert m["avgAnchor"] == pytest.approx(c["front"][2], abs=0.01)
-    assert m["avgAnchor"] > before, "截断越早，均价越高"
-    # 锚定档位同时也会挪动档距：目标价钉在「第 k 档的价」上（P9 口径）
-    assert c["prices"][2] == pytest.approx(T, abs=0.5)
+    # 截断更早 → 前 k 档重心更浅 → 同样目标需要更大档距
+    assert p.evaluate("() => window.__xt.gearBase().d") > d0
+    assert m["hitAnchor"] is True
 
 
 def test_d4_auto_anchor_uses_weight_center(env):
@@ -198,15 +205,16 @@ def test_d8_card_shows_both_names(env):
 
 
 def test_d9_card_hit_verdicts_are_separate(env):
-    """两个口径各自判命中：全档命中（目标模式），锚定口径高于目标。"""
+    """两个口径各自判命中：第一对象（锚定均价）命中，全档均价只是试算、偏低未命中。"""
     p = env().page
     open_plan(p)
     m = meta(p)
-    assert m["hitSel"] is True, m
-    assert m["hitAnchor"] is False, m
-    assert m["diffAnchor"] > 0, m
+    assert m["hitAnchor"] is True, m
+    assert m["hitSel"] is False, m
+    assert m["diffSel"] < 0, m
     t = card_text(p)
     assert "命中" in t, t
+    assert "不作对齐依据" in t, t
 
 
 def test_d10_anchor_row_follows_setting(env):
@@ -249,7 +257,7 @@ def test_d12_bar_marks_anchor_separately(env):
 # ---------------------------------------------------------------- 对齐目标
 
 def test_d13_align_recomputes_both(env):
-    """点「对齐目标」→ 两个均价一起重算（α 模式拉回目标）。"""
+    """点「对齐目标」→ 第一对象（前 1–5 档均价）命中目标，全档均价只试算。"""
     p = env().page
     p.evaluate("() => window.__xt.setAlpha(1.5)")
     p.wait_for_timeout(250)
@@ -263,13 +271,13 @@ def test_d13_align_recomputes_both(env):
     p.wait_for_timeout(400)
     m1 = meta(p)
     c1 = calc(p)
-    # 对齐把「第 5 档价」拉到目标（P9 口径），全档均价随之落在目标附近
-    assert c1["prices"][4] == pytest.approx(T, abs=1.0), c1["prices"]
-    assert m1["avgSel"] == pytest.approx(T, abs=5.0), m1
-    assert m1["avgSel"] != pytest.approx(before_sel, abs=1.0)
+    # v7.4：对齐的是前 1–5 档买完的均价，不是第 5 档单档价、也不是全档均价
+    assert m1["avgAnchor"] == pytest.approx(T, abs=0.05), m1
     assert m1["avgAnchor"] == pytest.approx(c1["front"][4], abs=0.01)
+    assert abs(c1["prices"][4] - T) > 20, "第 5 档单档价不再被钉到目标"
+    assert m1["hitAnchor"] is True, m1
+    assert m1["avgSel"] != pytest.approx(before_sel, abs=1.0)
     assert m1["avgAnchor"] != pytest.approx(before_anc, abs=1.0)
-    assert m1["hitSel"] is True, m1
 
     t = card_text(p)
     assert "%.1f" % m1["avgAnchor"] in t, t
@@ -282,5 +290,5 @@ def test_d14_settings_hint_mentions_anchor_scope(env):
     p.click('.tabbar button[data-tab="set"]')
     p.wait_for_timeout(300)
     txt = p.evaluate("() => (document.getElementById('setAnchorLive')||{}).textContent || ''")
-    assert "第 5 档" in txt, txt
+    assert "前 1–5 档" in txt, txt
     assert "锚定均价" in txt, txt

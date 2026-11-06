@@ -2,16 +2,17 @@
 
 用户口径：
   · 按钮任何时候不能隐藏；
-  · 点它是要让「锚定档位价」落到目标均价区间内 —— 用名义目标，不用已持仓折算目标；
+  · 点它是要让「前 1..k 档买完的锚定均价」落到目标均价区间内 —— 用名义目标，
+    不用已持仓折算目标；不能对齐第 k 档单档价；
   · 不能对齐时（没目标 / α 超上下限 / 目标高于首档 / 重心为零）都给具体提示，
     不静默夹取 α、不谎报「已对齐」；
-  · 锚定均价（1..k 档）与全档均价（全 n 档）是两个独立统计口径，照常显示命中与差额。
+  · 全档均价（选定档位试算）只回报落在什么价 / 差值 / 是否同样命中，不作对齐对象。
 
-夹具：H=4696、起始跌幅 14% → p1=4038.56；10 档、显式锚定第 5 档 → c=4。
-合成 K 线的 ATR 基准约 20.11 美元，故：
-  T=3900 → d=34.64 → α≈1.72（可对齐）
-  T=3500 → d=134.64 → α≈6.69（超上限）
-  T=4030 → d=2.14  → α≈0.11（低于下限）
+夹具：H=4696、起始跌幅 14% → p1=4038.56；10 档、显式锚定第 5 档
+→ frontCenter(前5档)=2.619。合成 K 线的 ATR 基准约 20.11 美元，故：
+  T=3900 → d=52.89 → α≈2.63（可对齐）
+  T=3500 → d=205.6 → α≈10.2（超上限）
+  T=4030 → d=3.26  → α≈0.16（低于下限）
   T=4100 → d<0（目标高于第 1 档价）
 """
 import pytest
@@ -57,12 +58,9 @@ def click_align(p):
     return toast(p)
 
 
-def p5(p):
-    """第 5 档价（显式锚定 c=4）。"""
-    return p.evaluate("""() => {
-        const m = window.__xt.gearMeta();
-        return window.__xt.p1Of(m.he) - 4 * m.d;
-    }""")
+def anchor_avg(p):
+    """第一对齐对象：前 1..k 档买完的锚定均价。"""
+    return p.evaluate("() => window.__xt.gearMeta().avgAnchor")
 
 
 # ---------------------------------------------------------------- 按钮常驻
@@ -94,7 +92,7 @@ def test_a3_button_stays_after_success(make_env):
 # ---------------------------------------------------------------- 对齐口径
 
 def test_a4_uses_nominal_target_even_with_holdings(make_env):
-    """有持仓导致折算目标为负时，仍按名义目标把第 5 档价对齐到 3900。"""
+    """有持仓导致折算目标为负时，仍按名义目标把前 1–5 档买完的均价对齐到 3900。"""
     p = make_env(cfg(avgTarget=T_OK, buys=BUY), price=4120.90).page
     open_plan(p)
     m0 = p.evaluate("() => window.__xt.gearMeta()")
@@ -102,11 +100,11 @@ def test_a4_uses_nominal_target_even_with_holdings(make_env):
 
     t = click_align(p)
     assert "已对齐" in t, t
-    assert "第 5 档价" in t and "命中" in t, t
-    assert p5(p) == pytest.approx(T_OK, abs=1.0), p5(p)
+    assert "锚定均价·第 1–5 档" in t and "命中" in t, t
+    assert anchor_avg(p) == pytest.approx(T_OK, abs=1.0), anchor_avg(p)
     assert "剩余仓位不足以把整体均价压到目标" in t, t
-    # 两个均价口径照常回报
-    assert "锚定均价" in t and "全档均价" in t, t
+    # 全档均价只作试算回报
+    assert "全档均价·试算" in t, t
 
 
 def test_a5_two_avg_metrics_keep_hit_and_diff(make_env):
@@ -139,7 +137,7 @@ def test_a7_alpha_below_min_aligns_at_boundary(make_env):
     t = click_align(p)
     assert "已按边界对齐" in t and "0.60" in t and "命中" in t, t
     assert p.evaluate("() => window.__xt.state().cfg.alpha") == 0.6
-    assert p5(p) == pytest.approx(T_NARROW, abs=BAND), p5(p)
+    assert abs(anchor_avg(p) - T_NARROW) <= BAND, anchor_avg(p)
 
 
 def test_a8_target_above_first_gear_reports_reason(make_env):

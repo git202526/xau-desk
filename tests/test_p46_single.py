@@ -2,14 +2,15 @@
 
 口径（见 docs/开发计划书-P5-单引擎重写.md）：
   p_i  = 0.87·H − (i−1)·d          i = 1…6，第 1 档恒 0.87H
-  ī    = Σw_i·i / Σw_i             默认 [8,12,24,36,12,8] → 2.56
-  d    = (0.87·H − T) / ī          目标反解，一步除法
+  k    = anchorKOf(w)              自动时取权重重心档（默认 6 档 → k=4）
+  c    = frontCenter(w,k)          前 1..k 档权重重心（默认 → 2.1）
+  d    = (0.87·H − T) / c          目标反解：让前 1..k 档买完的均价 = T
   plan_i = w_i/Σw × totalGrams()   与已买标记无关
   state  = plan / bought / pending / over
 
 基准参数：H=4700、W=200、ATR14≈1.18%（≈48 美元）、现价 4072.4。
-K 线由 bars_calm() 造：每日振幅 48 美元、末根收盘正好等于现价，使 ATR$≈48，
-与计划书 §4.3/§4.5 的实测值对齐（d=73.8 对应 α=1.54）。
+K 线由 bars_calm() 造：每日振幅 48 美元、末根收盘正好等于现价，使 ATR$≈48。
+v7.4 口径：d=90 对应 α=1.88（旧口径 ī=2.56 / d=73.8 / α=1.54 已废弃）。
 """
 import math
 
@@ -20,10 +21,10 @@ from conftest import CFG_EMPTY, PRICE
 H = 4700.0
 W = 200
 T = 3900.0
-D_3900 = 73.828125          # (0.87*4700 - 3900) / 2.56
+D_3900 = 90.0                # (0.87*4700 - 3900) / frontCenter(默认,4)=2.1
 
 DEFAULT_W = [8, 12, 24, 36, 12, 8]
-PRICES_3900 = [4089.0, 4015.171875, 3941.34375, 3867.515625, 3793.6875, 3719.859375]
+PRICES_3900 = [4089.0, 3999.0, 3909.0, 3819.0, 3729.0, 3639.0]
 
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
@@ -94,7 +95,7 @@ def test_wcenter_is_weighted_mean_of_index(env):
 
 def test_first_gear_anchored_at_087h(env):
     p = env().page
-    cases = [(4700, 73.828125), (4700, 0), (4700, 300), (3200, 12), (6000, 150)]
+    cases = [(4700, 90.0), (4700, 0), (4700, 300), (3200, 12), (6000, 150)]
     for h, d in cases:
         pr = p.evaluate("([h, d]) => window.__xt.gearPrices(h, d)", [h, d])
         assert len(pr) == 6
@@ -104,11 +105,11 @@ def test_first_gear_anchored_at_087h(env):
 
 def test_prices_are_arithmetic_sequence(env):
     p = env().page
-    pr = p.evaluate("() => window.__xt.gearPrices(4700, 73.828125)")
+    pr = p.evaluate("() => window.__xt.gearPrices(4700, 90.0)")
     for i, v in enumerate(PRICES_3900):
         assert near(pr[i], v, 0.01), "第 %d 档 %s != %s" % (i + 1, pr[i], v)
     for i in range(1, 6):
-        assert near(pr[i - 1] - pr[i], 73.828125, 1e-6)
+        assert near(pr[i - 1] - pr[i], 90.0, 1e-6)
 
 
 def test_gear_prices_negative_d_clamped(env):
@@ -125,9 +126,10 @@ def test_target_3900_hits_exactly(env):
     p.evaluate("() => window.__xt.setTargetT(3900)")
     base = p.evaluate("() => window.__xt.gearBase()")
     assert near(base["d"], D_3900, 0.01)
-    assert near(base["alpha"], D_3900 / 47.98, 0.06)      # ≈1.54
+    assert near(base["alpha"], D_3900 / 47.98, 0.06)      # ≈1.88
     meta = p.evaluate("() => window.__xt.gearMeta()")
-    assert near(meta["avgAll"], 3900.0, 0.05)
+    assert near(meta["avgAnchor"], 3900.0, 0.05)   # 第一对象：前 1..4 档买完的均价
+    assert meta["avgAll"] < 3900.0 - 20             # 全档均价只作试算，不参与对齐
     assert meta["spanSrc"] == "target"
     assert meta["feasible"] is True
 
@@ -158,9 +160,9 @@ def test_monotonic_in_target_and_alpha(env):
 def test_alpha_cap_bounds(env):
     p = env().page
     atr = p.evaluate("() => window.__xt.atrUsd()")
-    p.evaluate("() => window.__xt.setTargetT(3700)")
+    p.evaluate("() => window.__xt.setTargetT(3800)")
     b = p.evaluate("() => window.__xt.gearBase()")
-    assert near(b["alpha"], 151.953 / atr, 0.02)          # 3.17 @ATR48
+    assert near(b["alpha"], ((4089 - 3800) / 2.1) / atr, 0.02)   # 2.87 @ATR48
     assert b["feasible"] is True and b["hint"] == ""
 
     p.evaluate("() => window.__xt.setTargetT(3600)")
@@ -203,24 +205,26 @@ def test_normalized_weights_equivalent(env):
 def test_heavier_middle_shrinks_span(env):
     p = env().page
     r = p.evaluate("() => window.__xt.spanForTarget(4700, 3900, [6,8,28,40,10,8])")
-    assert near(r["d"], 189.0 / 2.64, 1e-6)               # 71.59
+    assert near(r["d"], 189.0 * 82 / 184, 1e-6)           # 84.23
     assert r["d"] < D_3900
-    assert near(r["alpha"], 71.59 / 47.98, 0.06)
+    assert near(r["alpha"], (189.0 * 82 / 184) / 47.98, 0.06)
 
 
 def test_single_fourth_gear(env):
     p = env().page
     r = p.evaluate("() => window.__xt.spanForTarget(4700, 3900, [0,0,10,80,10,0])")
-    assert near(r["d"], 63.0, 1e-6)
-    assert near(r["alpha"], 63.0 / 47.98, 0.06)
+    assert near(r["d"], 189.0 * 90 / 260, 1e-6)
+    assert near(r["alpha"], (189.0 * 90 / 260) / 47.98, 0.06)
 
 
 def test_shallow_weights_need_large_alpha(env):
     p = env().page
     r = p.evaluate("() => window.__xt.spanForTarget(4700, 3900, [30,25,20,15,5,5])")
-    assert near(r["alpha"], (189 / 1.55) / 47.98, 0.06)   # ≈2.54
-    assert 2.0 < r["alpha"] <= 3.5
-    assert r["feasible"] is True
+    # 浅权重在前 k 档口径下重心更浅（0.867），档距需求更大 → 直接撞 α 上限
+    assert near(r["alpha"], (189 * 75 / 65) / 47.98, 0.06)   # ≈4.54
+    assert r["alpha"] > 3.5
+    assert r["feasible"] is False and r["hint"] == "cap"
+
 
 
 def test_flat_weights_cannot_steer(env):
@@ -260,9 +264,9 @@ def test_held_cost_folded_into_target(env):
     p.evaluate("() => window.__xt.setTargetT(3980)")
     b = p.evaluate("() => window.__xt.gearBase()")
     assert near(b["targetEff"], 3928.571, 0.2)
-    assert near(b["d"], (4089 - 3928.571) / 2.56, 0.2)
+    assert near(b["d"], (4089 - 3928.571) / 2.1, 0.2)
     meta = p.evaluate("() => window.__xt.gearMeta()")
-    assert near(meta["mix"]["avg"], 3980.0, 1.0)
+    assert near(meta["mix"]["avg"], 3955.4, 1.0)
     assert meta["mix"]["held"] == pytest.approx(60, abs=0.01)
 
 
@@ -400,13 +404,13 @@ def test_avg_bought_single_and_multi(env):
     p.evaluate("() => window.__xt.setTargetT(3900)")
     p.evaluate("() => window.__xt.markGear(4, 20)")
     s = p.evaluate("() => window.__xt.planSummary()")
-    assert near(s["avgBought"], 3867.515625, 0.05)        # 第 4 档价
+    assert near(s["avgBought"], 3819.0, 0.05)             # 第 4 档价（d=90）
 
     p.evaluate("() => window.__xt.clearAllMarks()")
     p.evaluate("() => { window.__xt.markGear(1,16); window.__xt.markGear(2,24); window.__xt.markGear(3,10); }")
     s2 = p.evaluate("() => window.__xt.planSummary()")
     assert s2["bought"] == pytest.approx(50, abs=0.01)
-    assert near(s2["avgBought"], (16 * 4089 + 24 * 4015.171875 + 10 * 3941.34375) / 50, 0.05)
+    assert near(s2["avgBought"], (16 * 4089 + 24 * 3999 + 10 * 3909) / 50, 0.05)
 
 
 def test_illegal_marks_are_cleaned(env):

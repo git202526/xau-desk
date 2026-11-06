@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.3 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.4 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -426,6 +426,11 @@ body.tab-ov .tpx{display:none}
 .chkline{display:flex;align-items:flex-start;gap:9px;margin-top:12px;font-size:12px;color:var(--tx2);cursor:pointer;line-height:1.5}
 .chkline input{width:17px;height:17px;margin-top:1px;accent-color:#C9973F;flex:0 0 auto}
 .chkline em{display:block;font-style:normal;font-size:10.5px;color:var(--tx3);margin-top:2px}
+/* 「不设仓位上限」：挂在「目标总克重」标签行右侧的小开关 */
+.capline{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.capline .cl{display:block;font-size:11.5px;color:var(--tx3);line-height:1.45;margin:0}
+.fld .capsw{display:inline-flex;align-items:center;gap:5px;margin:0;font-size:10.5px;color:var(--tx2);cursor:pointer;white-space:nowrap;line-height:1.2}
+.fld .capsw input{width:15px;height:15px;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font-size:inherit;accent-color:#C9973F;flex:0 0 auto}
 /* v6.18 档位分布六格 + 计划模式标记
    用 #setWGrid 提权：.fld input 在下面，同权重会盖掉这里的 padding，320px 下数字被裁 */
 .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:5px}
@@ -484,6 +489,7 @@ body.tab-ov .tpx{display:none}
 #setSwingGrid .swg.on,.swg.on{border-color:rgba(212,162,76,.55);background:rgba(212,162,76,.14);color:var(--gold);font-weight:600}
 #setSwingGrid .swg:disabled,.swg:disabled{opacity:.45;cursor:not-allowed}
 .wn.warn{color:var(--amber)}
+.wgrid.off{opacity:.42}
 .circ{font-size:10.5px;color:var(--tx3);margin-left:2px}
 .tplan{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:7px;margin-bottom:10px}
 .tplan .bi{min-width:0;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
@@ -909,7 +915,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.3 · 11/05</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.4 · 11/06</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1060,7 +1066,7 @@ body.tab-ov .tpx{display:none}
     <div id="ladder"></div>
     <div id="avgCard"></div>
     <div class="note">触发价 = 高点 ×（1 − 起始跌幅）− (档号 − 1) × 档距；档距由「档距方式」决定（α×ATR / 目标均价反解 / 区间均分），全部以 $/oz 计算。到价只提示，买了要到「持仓」页记一笔，再到档位面板标记一次，档位执行才会累加。
-      <br>均价卡给两个口径：<strong>锚定均价</strong> = 只买 1–锚定档位（设置页「目标均价锚定档位」，自动时取权重重心档）；<strong>选定档位试算均价</strong> = 全部档位买满。点「对齐目标」两个数一起重算。
+      <br>均价卡给两个口径：<strong>锚定均价</strong> = 只买 1–锚定档位（设置页「目标均价锚定档位」，自动时取权重重心档）的加权均价，是「对齐目标」的第一对象；<strong>选定档位试算均价</strong> = 全部档位买满的均价，只作试算，看落在什么价、差多少、是否同样命中，不作对齐依据。点「对齐目标」按锚定均价反解档距，两个数一起回报。
       <br>档位上的「<strong>+2.2g 下沉入</strong>」是<strong>克重</strong>：已跌破的档买不到了，它的待补额度挪给现价附近的档，这一档因此多出 2.2 克；「−1.5g 下沉出」是让出去的克重。点一下看全额明细。
       <br>买过的档位会一直标着<strong>已买入</strong>，减仓也不会掉；点这枚标签可取消标记，该档回到待买、按计划重算克重——反弹到高位再落回来时，靠它重新接。
       <br>「重算档位」按当前持仓从第 1 档往上重排一遍，适合整体减仓后重来。
@@ -1112,7 +1118,10 @@ body.tab-ov .tpx{display:none}
     <div class="sech"><h2>仓位 <span class="cnt" id="sumPos">—</span></h2></div>
     <div class="card" id="cardPos">
       <div class="row2">
-        <div class="fld"><label>目标总克重</label><input type="number" id="setTotal" step="1" inputmode="decimal"></div>
+        <div class="fld">
+          <div class="capline"><label class="cl" for="setTotal">目标总克重</label><label class="capsw" for="setNoCap"><input type="checkbox" id="setNoCap">不设仓位上限</label></div>
+          <input type="number" id="setTotal" step="1" inputmode="decimal">
+        </div>
         <div class="fld"><label>底仓保留（g，涨到位也不动）</label><input type="number" id="setKeep" step="1" min="0" inputmode="decimal" placeholder="10"></div>
       </div>
       <div class="row2">
@@ -1121,6 +1130,7 @@ body.tab-ov .tpx{display:none}
       </div>
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
       <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
+      <div class="note" style="margin-top:8px" id="setNoCapNote">「不设仓位上限」：持仓已达目标总克重、剩余仓位不足时开启，建仓档距仍按名义目标均价反解，不被已持仓折算打断；目标总克重本身仍用于每档计划克重与仓位进度。</div>
     </div>
 
     <div class="sech" style="margin-top:20px"><h2>档位形态 <span class="cnt" id="sumShape">—</span></h2></div>
@@ -1148,6 +1158,7 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>起始跌幅 %</label><input type="number" id="setStartDrop" step="1" min="5" max="40" inputmode="decimal" placeholder="13"></div>
         <div class="fld"><label>终止跌幅 %</label><input type="number" id="setEndDrop" step="1" min="8" max="60" inputmode="decimal" placeholder="25"></div>
       </div>
+      <div class="wn" id="setDropNote" style="margin-top:6px"></div>
       <div class="fld" style="margin-top:12px">
         <label>目标均价锚定档位</label>
         <div class="wgrid" id="setAnchor"></div>
@@ -1279,7 +1290,7 @@ body.tab-ov .tpx{display:none}
     <div class="note" style="margin-top:14px">
       <b style="color:var(--tx2)">运行说明</b><br>
       · 独立运行：数据直接取自公开行情接口，不依赖任何定时任务<br>
-      · 周期：周线 / 日线 / 4小时 / 1小时，日线回溯 800 根<br>
+      · 周期：周线 / 日线 / 4小时 / 1小时；周线最多 220 根，日线 / 4小时 / 1小时各最多 1000 根<br>
       · 全部点位以美元/盎司计算，不做人民币换算<br>
       · 可导出 JSON 做本地存档<br>
       · 不构成投资建议
@@ -1481,7 +1492,7 @@ var S = {
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
   cal:{ ok:false, events:[], updatedAt:0, week:"" },
   H_BASE:null, TOTAL:100, GRAMS:0, COST:0,
-  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0, alpha:1, spanMode:"target", gearMarks:{} },
+  cfg:{ H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[], buys:[], sells:[], cutRatio:70, keepGram:null, stopMode:true, noCap:false, takePlan:{}, marks:[], alerts:[], gearCleared:{}, avgTarget:null, avgBand:20, wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0, alpha:1, spanMode:"target", gearMarks:{} },
   editing:null, tab:"struct", acctFilter:null,
   acctEdit:null, acctDel:null, acctColor:null,
   /* J1：行情源健康度。spotSrc 只记录当前用哪个源，不参与价格合成 */
@@ -2879,7 +2890,9 @@ function endDropOf(){
   return v;
 }
 function p1Of(H){ return Number(H) * (1 - startDropOf() / 100); }
-/* 均价锚定：k 有效（2..n）就用 k−1 当重心，否则回退到权重重心（= P5 起的旧行为） */
+/* 锚定档号推导：k 有效（2..n）返回 k−1，否则回退全档权重重心。
+   v7.4 起它只用于 anchorKOf 定「前 1..k 档」的 k；档距反解改用 frontCenter(w,k)，
+   不再拿 k−1 / 全档重心当反解重心。 */
 function anchorCenter(w){
   var k = Math.round(Number(S.cfg && S.cfg.avgAnchor));
   if(isFinite(k) && k >= 2 && k <= gearCount()) return k - 1;
@@ -2895,7 +2908,7 @@ var DEAD_GAP = 0.01, REVIVE_GAP = 0.003;
 /* P9-2 价格层：起始跌幅（第 1 档距高点多远）、终止跌幅（第 n 档），区间模式下均分 */
 var START_DROP_DEF = 13, START_DROP_MIN = 5, START_DROP_MAX = 40;
 var END_DROP_DEF = 25, END_DROP_MIN = 8, END_DROP_MAX = 60;
-var ANCHOR_DEF = 0;                     /* 0 = 自动（权重重心），k = 均价精确落在第 k 档 */
+var ANCHOR_DEF = 0;                     /* 0 = 自动（权重重心落点档），k = 前 1..k 档买完的锚定均价对齐目标 */
 var REALLOC_MAXDROP_DEF = 3;
 
 function totalGrams(){ return Number(S.TOTAL) > 0 ? Number(S.TOTAL) : 100; }
@@ -2975,7 +2988,9 @@ function setAlertGears(arr){
 function swingOf(){ return normSwing(S.cfg && S.cfg.swingGears); }
 function isSwingGear(i){ return swingOf().indexOf(Number(i)) >= 0; }
 
-/* 设置入口：切换档位数量（6–10）。权重按模板适配（扩档补尾、缩档并入末档），
+/* 设置入口：切换档位数量（6–10）。
+   权重按模板补齐，但不推倒用户已调的值：切走前把「本档数下用户真正改过的分布」
+   记进 wPctByCount，切回来原样恢复。没改过的档数仍用模板，老存档无此字段也兼容。
    已买标记与循环档设置一律保留 —— 切回来还在。 */
 function setGearCount(n){
   n = Math.round(Number(n));
@@ -2983,10 +2998,19 @@ function setGearCount(n){
     toast("档位数量只能在 " + GCFG_MIN + "-" + GCFG_MAX + " 之间"); return gearCount();
   }
   S.cfg = S.cfg || {};
-  if(gearCount() === n) return n;
+  var oldN = gearCount();
+  if(oldN === n) return n;
+
+  var byCount = S.cfg.wPctByCount;
+  if(!byCount || typeof byCount !== "object" || Array.isArray(byCount)) byCount = (S.cfg.wPctByCount = {});
+  var cur = normW(S.cfg.wPct), tplOld = gearTemplate(oldN);
+  var customized = cur.some(function(v, i){ return Math.abs(v - (tplOld[i] || 0)) > 0.001; });
+  if(customized) byCount[oldN] = cur.slice();
+  else delete byCount[oldN];
+
   S.cfg.gearCount = n;
   S.ladderExpand = false;                /* 换档数后回到折叠态，避免上一次的展开残留 */
-  S.cfg.wPct = gearTemplate(n);          /* 模板按档数自动匹配，之后可改 */
+  S.cfg.wPct = normW(byCount[n]).slice();/* 该档数有自定义就用它，否则按模板补齐 */
   saveCfg(); compute(); refreshAll();
   toast("已切换为 " + n + " 档");
   return n;
@@ -2996,21 +3020,37 @@ function setGearCount(n){
 function setSpan(mode, sd, ed, anchor){
   S.cfg = S.cfg || {};
   if(mode === "alpha" || mode === "target" || mode === "range") S.cfg.spanMode = mode;
-  if(sd !== undefined && sd !== null && sd !== ""){
+  var sdTouched = (sd !== undefined && sd !== null && sd !== "");
+  var edTouched = (ed !== undefined && ed !== null && ed !== "");
+  if(sdTouched){
     var a = Number(sd);
     S.cfg.startDrop = (isFinite(a) && a >= START_DROP_MIN && a <= START_DROP_MAX) ? a : START_DROP_DEF;
   }
-  if(ed !== undefined && ed !== null && ed !== ""){
+  if(edTouched){
     var b = Number(ed);
     S.cfg.endDrop = (isFinite(b) && b >= END_DROP_MIN && b <= END_DROP_MAX) ? b : END_DROP_DEF;
   }
-  if(S.cfg.endDrop <= S.cfg.startDrop) S.cfg.endDrop = Math.min(END_DROP_MAX, S.cfg.startDrop + 1);
+  /* 只在起止跌幅真的被改动时校准，且一律以 startDropOf() 的规范值为基准。
+     旧版拿可能缺省的 S.cfg.startDrop 比较：用户填 10 时照样存 10，
+     endDropOf() 却悄悄夹到 14、输入框回填 14，用户不知道自己填的值去哪了。 */
+  var endClamped = false;
+  if(sdTouched || edTouched){
+    var aEff = startDropOf();
+    var bEff = Number(S.cfg.endDrop);
+    if(!isFinite(bEff) || !(bEff > 0)) bEff = END_DROP_DEF;
+    if(!(bEff > aEff)){
+      bEff = Math.min(END_DROP_MAX, aEff + 1);
+      endClamped = true;
+    }
+    S.cfg.endDrop = bEff;
+  }
   if(anchor !== undefined && anchor !== null && anchor !== ""){
     var k = Math.round(Number(anchor));
     S.cfg.avgAnchor = (isFinite(k) && k >= 2 && k <= gearCount()) ? k : ANCHOR_DEF;
   }
   saveCfg(); compute(); refreshAll();
-  return { mode:S.cfg.spanMode, startDrop:S.cfg.startDrop, endDrop:S.cfg.endDrop, avgAnchor:S.cfg.avgAnchor };
+  return { mode:S.cfg.spanMode, startDrop:startDropOf(), endDrop:endDropOf(),
+           avgAnchor:S.cfg.avgAnchor, endClamped:endClamped };
 }
 
 /* 设置入口：写 cfg.swingGears 并重算。返回规范化后的值，便于调用方回读 */
@@ -3132,8 +3172,24 @@ function wCenter(w){
   return c > 1e-9 ? c : null;
 }
 
+/* 前 1..k 档（索引 0..k−1）的权重重心，从 0 起。
+   p_i = p1 − i·d ⇒ 前 k 档加权均价 = p1 − d·c_front（w 与 plan 成比例，重心相同）。
+   「对齐目标」的反解重心就用它：让这 k 档全部买完的均价落到目标，
+   而不是把某一档的单档价钉到目标。c_front=0（前段全压第 1 档）时档距调不动均价。 */
+function frontCenter(w, k){
+  w = w || curW();
+  k = Math.min(gearCount(), Math.max(1, Math.floor(Number(k) || 1)));
+  var s = 0, a = 0;
+  for(var i = 0; i < k; i++){ var x = Number(w[i]) || 0; s += x; a += x * i; }
+  if(!(s > 0)) return null;
+  var c = a / s;
+  return c > 1e-9 ? c : 0;
+}
+
 function resetW(){
-  S.cfg.wPct = DEFAULT_W.slice();
+  S.cfg.wPct = gearTemplate(gearCount()).slice();
+  /* 恢复默认就该真的回默认：清掉本档数的自定义快照，否则切走再切回来又变回旧值 */
+  if(S.cfg.wPctByCount) delete S.cfg.wPctByCount[gearCount()];
   saveCfg(); compute(); refreshAll();
   toast("档位分布已恢复默认");
 }
@@ -3155,19 +3211,26 @@ function gearPrices(H, d){
   return out;
 }
 
-/* 目标 → 档距：d = (0.87H − T)/ī，纯函数（§4.2） */
+/* 目标 → 档距（v7.4）：让「第 1..k 档全部买完的加权均价」= T。
+   前 k 档均价 = p1 − d·c_front，c_front = frontCenter(w,k) 是前 k 档权重重心，
+   故 d = (p1 − T)/c_front。旧版用 anchorCenter（显式=k−1 / 自动=全档重心）反解，
+   实际对齐到的是「第 k 档单档价」或「全档均价」，都不是用户要的前段买完均价。
+   返回 k、c 供报数与 α 边界判定复用，避免调用方另算一套重心口径。 */
 function spanForTarget(H, T, w){
   H = Number(H); T = Number(T);
-  var c = anchorCenter(w);
-  if(!(H > 0) || !(T > 0)) return { d:null, alpha:null, feasible:false, hint:"no-target", base:null, src:"target" };
-  if(c === null)            return { d:null, alpha:null, feasible:false, hint:"flat", base:null, src:"target" };
+  w = w || curW();
+  var k = anchorKOf(w);
+  var c = frontCenter(w, k);
+  var ctx = { k:k, c:c, src:"target" };
+  if(!(H > 0) || !(T > 0)) return Object.assign({ d:null, alpha:null, feasible:false, hint:"no-target", base:null }, ctx);
+  if(!(c > 0))             return Object.assign({ d:null, alpha:null, feasible:false, hint:"flat", base:null }, ctx);
   var atr = atrUsd();
   var base = (atr > 0) ? atr : 0.01 * H;
   var d = (p1Of(H) - T) / c;
   var alpha = d / base;
-  if(!(d > 0))              return { d:0, alpha:0, feasible:false, hint:"above-p1", base:base, src:"target" };
-  if(alpha > ALPHA_MAX)     return { d:d, alpha:alpha, feasible:false, hint:"cap", base:base, src:"target" };
-  return { d:d, alpha:alpha, feasible:true, hint:(alpha < ALPHA_MIN ? "narrow" : ""), base:base, src:"target" };
+  if(!(d > 0))          return Object.assign({ d:0, alpha:0, feasible:false, hint:"above-p1", base:base }, ctx);
+  if(alpha > ALPHA_MAX) return Object.assign({ d:d, alpha:alpha, feasible:false, hint:"cap", base:base }, ctx);
+  return Object.assign({ d:d, alpha:alpha, feasible:true, hint:(alpha < ALPHA_MIN ? "narrow" : ""), base:base }, ctx);
 }
 
 /* 区间模式（P9-2）：起止跌幅之间等分 n 档。10 档首选 —— α 模式堆到 10 档会跑到 -27% */
@@ -3210,7 +3273,11 @@ function gearBase(){
      P20：判据从「模式」改成「有没有真实持仓」—— 名义上分开两套，实际只有一种情形
      需要折算（手里有货），与模式无关。没有持仓时下面的 heldG 判断会直接跳过。 */
   var T_eff = T;
-  if(T){
+  /* 「不设仓位上限」：开启后不做已持仓折算，档距一律按名义目标反解。
+     仓位已满（rest≤0）时旧逻辑把 T_eff 置 null、hint="full"、档距退回 α，
+     建仓计划因此对不齐目标；开关就是让「目标总克重」不再约束对齐这条链路。
+     注意 totalGrams() 本身不变 —— 计划克重、进度条、满仓成本仍按原口径。 */
+  if(T && !cfg.noCap){
     var hs = holdStats();
     var heldG = hs.grams || 0;
     if(heldG > 0.01){
@@ -4320,6 +4387,12 @@ function computeGears(){
     }
   }
 
+  /* v7.4：卡片「总命中」以第一对象（锚定均价 1..k 档）为准，与 headline 同源。
+     全档均价（选定档位试算）与 mix（整体均价）是另外两个独立口径，各自保留
+     hitSel / mix.hit，但不再决定总命中 —— 用户要对齐的是前 k 档买完的均价。
+     有持仓折算时档距按 T_eff 排，锚定均价本就不等于名义 T，这里如实判未命中，
+     需要按名义目标对齐可开启「不设仓位上限」。 */
+  var hitAnchorV = (T && aAnchor) ? Math.abs(aAnchor - T) <= band : null;
   var meta = {
     he: he, H: he, highManual: !!base.highManual, auto: base.auto, src: base.src,
     target: T, targetEff: base.targetEff, band: band,
@@ -4330,11 +4403,11 @@ function computeGears(){
     diffSel: (T && aAll) ? (aAll - T) : null,
     diffAnchor: (T && aAnchor) ? (aAnchor - T) : null,
     hitSel: (T && aAll) ? Math.abs(aAll - T) <= band : null,
-    hitAnchor: (T && aAnchor) ? Math.abs(aAnchor - T) <= band : null,
+    hitAnchor: hitAnchorV,
     diffAll: (T && aAll) ? (aAll - T) : null,
     diff14: (T && aAll) ? (aAll - T) : null,
     mix: mix,
-    hit: mix ? mix.hit : ((T && aAll) ? Math.abs(aAll - T) <= band : null),
+    hit: hitAnchorV,
     needMain: 0, suggest: null, short: false,
     far: (T && S.price && he) ? Math.abs(he / S.price - 1) : null
   };
@@ -4544,7 +4617,7 @@ function renderReview(){
   var box = $("posReview");
   if(!box) return;
 
-  /* 收起时只算 summary（O(n)，n ≤ 10），不跑 800 根扫描 —— test b2 用调用计数锁住 */
+  /* 收起时只算 summary（O(n)，n ≤ 10），不跑全量 K 线扫描 —— test b2 用调用计数锁住 */
   var sm = planSummary();
   var head = '<div class="rv-h" data-rv="h">' +
     '<span>执行复盘</span>' +
@@ -5470,6 +5543,8 @@ function normCfg(){
   if(!Number(S.cfg.cutRatio)) S.cfg.cutRatio = 70;
   if(S.cfg.keepGram === undefined) S.cfg.keepGram = null;
   if(S.cfg.stopMode === undefined) S.cfg.stopMode = true;
+  /* 不设仓位上限：老存档没这字段 = 关；任何非布尔脏值都规整成布尔 */
+  S.cfg.noCap = !!S.cfg.noCap;
   /* 回本加点（P32）：值域夹取。**这里不造 accounts** —— 造账户是迁移的职责，
      否则 schemaVersion=99（未来版本）也会被凭空塞一个账户出来。 */
   var cbv = Number(S.cfg.comeback);
@@ -5485,7 +5560,7 @@ function loadCfg(){
   // 不再从浏览器读业务数据：内存里只放一份默认值，等云端数据到达后覆盖
   S.cfg = {
     H_BASE:null, TOTAL:100, GRAMS:0, COST:0, gearsDone:[], takesDone:[],
-    buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, takePlan:{},
+    buys:[], sells:[], del:[], cutRatio:70, keepGram:null, stopMode:true, noCap:false, takePlan:{},
     marks:[], alerts:[], gearCleared:{},
     avgTarget:null, avgBand:20,
     wPct:[8,12,24,36,12,8], gearCount:6, startDrop:13, endDrop:25, avgAnchor:0,
@@ -5670,6 +5745,7 @@ function isEmptyCfg(c){
   if(c.gearCleared && Object.keys(c.gearCleared).length) return false;
   if(Number(c.avgTarget) > 0) return false;
   if(c.H_BASE || c.TOTAL !== undefined) return false;
+  if(c.noCap) return false;              /* 只开了「不设仓位上限」也算有配置，别被云端空档盖回 */
   return true;
 }
 
@@ -7325,24 +7401,29 @@ function renderAvgCard(){
 
 /* 结构基准的推导卡：不设目标也能看落点；设了目标就给出「差多少 + 基准该调到哪」。
    这里不换任何档位价，只把「按现在这套基准买完，均价会落在哪」摊开。
-   P10 起给两个口径：
-     · 选定档位试算均价 = 全部 n 档按计划买满（= 旧版「n 档均价」，也用于命中判定）
-     · 锚定均价        = 只买 1..k 档（k = 目标均价锚定档位，自动时取权重重心档） */
+   v7.4 起两个口径有主次：
+     · 锚定均价（第一对象） = 只买 1..k 档（k = 锚定档位，自动时取权重重心档）的加权均价，
+       命中判据与对齐反解都以它为准；
+     · 选定档位试算均价 = 全部 n 档买满，只试算落在什么价 / 差多少 / 是否同样命中，不作对齐依据 */
 function renderAvgCardStruct(box, m){
-  var T = m.target, band = m.band || 20, a14 = m.avg14, aAll = m.avgAll;
+  var T = m.target, band = m.band || 20, aAll = m.avgAll;
   var aK = m.anchorK, aAnc = m.avgAnchor;
-  var diff = (T && a14) ? a14 - T : null;
+  /* v7.4：第一对齐对象 = 锚定均价（前 1..k 档买完）。命中色 / 命中判据以它为准；
+     全 n 档的「选定档位试算均价」只作试算，报落在什么价、差值、是否同样命中。 */
+  var diff = (T && aAnc) ? aAnc - T : null;
   var hit = (diff === null) ? null : Math.abs(diff) <= band;
   var col = (hit === null) ? "#9AA4B2" : (hit ? "#3FBF7F" : "#E0913F");
   var vcls = (hit === null) ? "" : (hit ? "ok" : "off");
-  var dAnc = (T && aAnc) ? aAnc - T : null;
-  var hitAnc = (dAnc === null) ? null : Math.abs(dAnc) <= band;
-  var ancCls = (hitAnc === null) ? "" : (hitAnc ? "ok" : "off");
+  var dSel = (T && aAll) ? aAll - T : null;
+  var hitSel = (dSel === null) ? null : Math.abs(dSel) <= band;
+  var selCls = (hitSel === null) ? "" : (hitSel ? "ok" : "off");
   var vf = function(d, h){
     if(d === null) return "";
     return h ? "✓ 命中" : ((d > 0 ? "偏高 " : "偏低 ") + Math.abs(d).toFixed(1));
   };
   var verdict = vf(diff, hit);
+  var ancTxt = (aAnc === null || aAnc === undefined) ? "—" : num(aAnc, 1);
+  var selTxt = (aAll === null || aAll === undefined) ? "—" : num(aAll, 1);
 
   var how = m.highManual ? "手动高点" : ("自动 " + ((m.auto && m.auto.win) || ""));
   var farPct = (S.price && m.he) ? (m.he / S.price - 1) * 100 : null;
@@ -7351,15 +7432,15 @@ function renderAvgCardStruct(box, m){
   var bar = "";
   if(T){
     var lo = T - band, hi = T + band;
-    var pts = [lo, hi]; if(a14) pts.push(a14); if(aAnc) pts.push(aAnc);
+    var pts = [lo, hi]; if(aAnc) pts.push(aAnc); if(aAll) pts.push(aAll);
     var vmin = Math.min.apply(null, pts), vmax = Math.max.apply(null, pts);
     var pad = Math.max(1, (vmax - vmin) * 0.14); vmin -= pad; vmax += pad;
     var W = 300, L = 8, R = 292, Y = 18;
     var X = function(v){ return L + (Math.min(vmax, Math.max(vmin, v)) - vmin) / (vmax - vmin || 1) * (R - L); };
-    /* 锚定均价的刻度：与试算均价重合（≤2 美元）就不画，免得两条线叠在一起看不清 */
-    var ancMark = (aAnc && a14 && Math.abs(aAnc - a14) > 2)
-      ? '<line x1="' + X(aAnc).toFixed(1) + '" y1="' + (Y-7) + '" x2="' + X(aAnc).toFixed(1) + '" y2="' + (Y+6) +
-        '" stroke="#D4A24C" stroke-width="1.3" stroke-dasharray="2 2"/>'
+    /* 选定档位试算均价的刻度（虚线，非对齐对象）：与锚定均价重合（≤2 美元）就不画 */
+    var selMark = (aAll && aAnc && Math.abs(aAll - aAnc) > 2)
+      ? '<line x1="' + X(aAll).toFixed(1) + '" y1="' + (Y-7) + '" x2="' + X(aAll).toFixed(1) + '" y2="' + (Y+6) +
+        '" stroke="#7E8CA0" stroke-width="1.3" stroke-dasharray="2 2"/>'
       : '';
     bar = '<div class="bar"><svg viewBox="0 0 ' + W + ' 34" aria-hidden="true">' +
       '<rect x="' + L + '" y="' + (Y-1) + '" width="' + (R-L) + '" height="3" rx="1.5" fill="rgba(255,255,255,.10)"/>' +
@@ -7367,8 +7448,8 @@ function renderAvgCardStruct(box, m){
         '" height="13" rx="3" fill="rgba(212,162,76,.20)" stroke="rgba(212,162,76,.42)" stroke-width="1"/>' +
       '<line x1="' + X(T).toFixed(1) + '" y1="' + (Y-9) + '" x2="' + X(T).toFixed(1) + '" y2="' + (Y+7) +
         '" stroke="' + col + '" stroke-width="1.4"/>' +
-      ancMark +
-      (a14 ? '<circle cx="' + X(a14).toFixed(1) + '" cy="' + Y + '" r="3.8" fill="' + col + '"/>' : '') +
+      selMark +
+      (aAnc ? '<circle cx="' + X(aAnc).toFixed(1) + '" cy="' + Y + '" r="3.8" fill="' + col + '"/>' : '') +
       '</svg></div>';
   }
 
@@ -7398,20 +7479,19 @@ function renderAvgCardStruct(box, m){
     else if(m.hint === "above-p1") tips.push("目标高于第 1 档价，档距已收窄到 0，" + gearCount() + " 档同价");
     else if(m.hint === "done") tips.push("已持仓成本优于目标，剩余额度建议留作回调加仓");
     else if(m.hint === "flat") tips.push("当前分布全在第 1 档，档距无法调节均价，请加重 3–6 档");
-    /* 锚定口径天然高于目标：目标价钉在第 k 档，1..k−1 档必然更贵，差额就是「前段溢价」 */
-    if(aK >= 2 && dAnc !== null && dAnc > 0 && m.spanSrc === "target")
-      tips.push("锚定均价高于目标属正常：目标价钉在第 " + aK + " 档，前 " + (aK - 1) + " 档更贵，差额 " +
-                Math.abs(dAnc).toFixed(0) + " 美元就是前段溢价");
+    tips.push("对齐目标是让第 1–" + (aK || gearCount()) + " 档买完的锚定均价落入区间；" +
+              "全 " + gearCount() + " 档均价只是选定档位试算，不作对齐依据");
   } else {
     tips.push("还没设目标均价，档距按波动率排列（α=1）。填一个目标就会拉伸到该均价。");
   }
 
-  /* 锚定均价行：只算 1..k 档。目标区间带上有虚线刻度对应它 */
-  var ancRow = "";
-  if(aAnc !== null && aAnc !== undefined){
-    ancRow = '<div class="a2"><span><em></em>锚定均价 · 第 1–' + (aK || gearCount()) + ' 档</span>' +
-      '<span class="vv"><b class="' + ancCls + '">' + num(aAnc, 1) + '</b>' +
-      (T ? '<i class="' + ancCls + '">' + vf(dAnc, hitAnc) + '</i>' : '') +
+  /* 选定档位试算行：全 n 档买满的均价，只试算落在什么价 / 差多少 / 是否同样命中，
+     明确标注「不作对齐依据」—— 第一对象是上面的锚定均价。 */
+  var selRow = "";
+  if(aAll !== null && aAll !== undefined){
+    selRow = '<div class="a2"><span><em></em>选定档位试算 · 全 ' + gearCount() + ' 档均价（不作对齐依据）</span>' +
+      '<span class="vv"><b class="' + selCls + '">' + selTxt + '</b>' +
+      (T ? '<i class="' + selCls + '">' + vf(dSel, hitSel) + '</i>' : '') +
       '</span></div>';
   }
 
@@ -7429,9 +7509,9 @@ function renderAvgCardStruct(box, m){
 
   box.innerHTML = '<div class="avgc">' +
     '<div class="hd"><span>高点 <b>' + num(m.he, 0) + '</b> · ' + how + '</span>' +
-      '<span class="' + vcls + '">选定档位试算 · ' + gearCount() + ' 档均价 <b class="' + vcls + '">' + num(a14, 1) + '</b> ' + verdict + '</span></div>' +
+      '<span class="' + vcls + '">锚定均价 · 第 1–' + (aK || gearCount()) + ' 档 <b class="' + vcls + '">' + ancTxt + '</b> ' + verdict + '</span></div>' +
     bar +
-    ancRow +
+    selRow +
     costRow +
     '<div class="ft">' +
       '<span>目标 <b>' + (T ? num(T, 0) + " ±" + num(band, 0) : "未设") + '</b></span>' +
@@ -7449,25 +7529,25 @@ function renderAvgCardStruct(box, m){
   bindAvgCard(box);
 }
 
-/* 把档距反解到「锚定档位价 = 名义目标均价」（P9 口径），落成 α 模式。
-   锚定均价（1..k 档）与全档均价（全 n 档）是另外两个统计口径，只在这里回报
-   命中与差额，不参与反解 —— 反解用 m.target，不用已持仓折算后的 m.targetEff。
+/* 把档距反解到「第 1..k 档买完的锚定均价 = 名义目标均价」，落成 α 模式（v7.4）。
+   第一对齐对象是锚定均价（前 1..k 档加权均价）；全 n 档的「选定档位试算均价」
+   只回报落在什么价、差多少、是否同样命中，不参与反解、不作为对齐对象。
+   反解用名义 m.target，不用已持仓折算后的 m.targetEff。
    按钮常驻：任何不能对齐的情形都给具体原因，不静默夹取 α、不谎报已对齐。 */
 function alignSpanToTarget(){
   var m = S.gearMeta || {};
   if(!(m.target > 0)){ toast("先在设置页填「目标均价」，再点对齐目标"); return; }
   if(!(m.he > 0)){ toast("还没有有效建仓高点，无法反解档距"); return; }
 
-  var T = m.target, band = m.band || 20, k = m.anchorK || 1;
+  var T = m.target, band = m.band || 20;
   var p1 = p1Of(m.he);
-  /* 反解重心：显式锚定第 k 档时 c=k−1（整数），自动时 c=权重重心（可为小数）。
-     报数必须用同一个 c，否则自动模式会拿 round(c)+1 当档号，误报未命中。 */
-  var c = anchorCenter(curW());
-  var anchorSet = Math.round(Number(S.cfg && S.cfg.avgAnchor)) >= 2;
   var r = spanForTarget(m.he, T, curW());
+  var k = r.k || m.anchorK || 1;
+  var c = r.c;                          /* 前 1..k 档权重重心，与反解同源 */
+  var noCap = !!(S.cfg && S.cfg.noCap);
 
   if(r.hint === "flat"){
-    toast("当前分布全压第 1 档，档距调不动锚定档位价，请加重 3–6 档"); return;
+    toast("前 " + k + " 档的权重全压在第 1 档，档距调不动买入均价，请加重 3–6 档或调高锚定档位"); return;
   }
   if(r.d === null){
     toast("目标均价或建仓高点无效，无法反解档距"); return;
@@ -7477,20 +7557,19 @@ function alignSpanToTarget(){
           "，档距收到 0 也够不到；请下调目标均价或提高建仓高点"); return;
   }
 
-  /* α 超任一边界时不能精确反解，但按边界值排仍可能落进目标区间。
-     用户要的是「锚定档位落进区间」，不是「α 精确等于反解值」：能进就按边界写入，
-     进不去才报够不到，并给出需要的 α、边界能排到哪、差多少。 */
+  /* α 超任一边界时不能精确反解，但按边界值排仍可能让「前 1..k 档均价」落进区间。
+     对齐对象是锚定均价而非第 k 档单档价：用同一个 c 算出边界 α 下的前段均价，
+     能进区间就按边界写入，进不去才报够不到并给出需要的 α、边界能到哪、差多少。 */
   var useA = r.alpha, exact = true, note = "";
   if(r.alpha > ALPHA_MAX || r.alpha < ALPHA_MIN){
     useA = Math.max(ALPHA_MIN, Math.min(ALPHA_MAX, r.alpha));
-    var pK = p1 - c * useA * r.base;
-    var gap = Math.abs(pK - T);
-    var posLab = anchorSet ? ("第 " + k + " 档价") : "全档均价";
+    var ancBound = p1 - c * useA * r.base;    /* 边界 α 下前 1..k 档买完的均价 */
+    var gap = Math.abs(ancBound - T);
     if(gap > band){
       var why = r.alpha > ALPHA_MAX
         ? "超过上限 " + num(ALPHA_MAX, 1) : "低于下限 " + num(ALPHA_MIN, 1);
       toast("反解需 α=" + num(r.alpha, 2) + "，" + why + "；按 α=" + num(useA, 2) +
-            " 排，" + posLab + " " + num(pK, 0) + "，距目标 " + num(gap, 0) +
+            " 排，前 1–" + k + " 档买完的均价 " + num(ancBound, 0) + "，距目标 " + num(gap, 0) +
             " 美元，够不到 ±" + num(band, 0) + " 区间。可调整目标均价或建仓高点");
       return;
     }
@@ -7503,27 +7582,25 @@ function alignSpanToTarget(){
   saveCfg(); compute(); refreshAll();
 
   var mm = S.gearMeta || {};
-  var hitTxt = function(v){
-    if(v === null || v === undefined) return "—";
-    var d = v - T;
-    return num(v, 0) + (Math.abs(d) <= band
-      ? " ✓命中" : (d > 0 ? " 偏高 " : " 偏低 ") + num(Math.abs(d), 0));
-  };
   var parts = [];
-  if(anchorSet){
-    var pK2 = p1 - c * (mm.d || 0);
-    parts.push("第 " + k + " 档价 " + num(pK2, 0) +
-      (Math.abs(pK2 - T) <= band ? " ✓命中" : " 未命中"));
-  }
-  parts.push("锚定均价 " + hitTxt(mm.avgAnchor));
-  parts.push("全档均价 " + hitTxt(mm.avgAll));
+  /* 第一对齐对象：前 1..k 档买完的锚定均价，报命中与差额 */
+  var dAnc = (mm.avgAnchor === null || mm.avgAnchor === undefined) ? null : mm.avgAnchor - T;
+  parts.push("锚定均价·第 1–" + k + " 档 " +
+    (dAnc === null ? "—" : num(mm.avgAnchor, 0) +
+      (Math.abs(dAnc) <= band ? " ✓命中" : (dAnc > 0 ? " 偏高 " : " 偏低 ") + num(Math.abs(dAnc), 0))));
+  /* 选定档位试算：全 n 档买满的均价，只试算落在什么价 / 差多少 / 是否同样命中，不参与反解 */
+  var dAll = (mm.avgAll === null || mm.avgAll === undefined) ? null : mm.avgAll - T;
+  parts.push("全档均价·试算 " +
+    (dAll === null ? "—" : num(mm.avgAll, 0) +
+      (Math.abs(dAll) <= band ? " 同样命中" : (dAll > 0 ? " 偏高 " : " 偏低 ") + num(Math.abs(dAll), 0) + " 未命中")));
   var msg = (exact ? "已对齐" : "已按边界对齐") + " α=" + num(S.cfg.alpha, 2) +
             (note ? "（" + note + "）" : "") + "：" + parts.join(" · ");
-  /* 几何对齐与「整体均价能否达标」是两回事：剩余仓位不足时一并说清 */
-  if(mm.targetEff === null){
-    msg += "；无多余仓位可分配（目标总克重已等于持仓），可提高上限或减仓";
-  } else if(mm.targetEff <= 0){
-    msg += "；剩余仓位不足以把整体均价压到目标，可提高目标总克重";
+  /* 几何对齐与「整体均价能否达标」是两回事：剩余仓位不足时一并说清。
+     开启「不设仓位上限」后不再做已持仓折算，这段提示不再触发。 */
+  if(!noCap && mm.targetEff === null){
+    msg += "；无多余仓位可分配（目标总克重已等于持仓），可提高上限或减仓，或开启「不设仓位上限」";
+  } else if(!noCap && mm.targetEff <= 0){
+    msg += "；剩余仓位不足以把整体均价压到目标，可提高目标总克重，或开启「不设仓位上限」";
   }
   toast(msg);
 }
@@ -7736,15 +7813,28 @@ function renderSpanUI(){
   }
   var sl = $("setSpanModeLive");
   if(sl){
+    var hasT = Number(S.cfg && S.cfg.avgTarget) > 0;
     sl.textContent = mode === "range"
       ? ("区间 " + startDropOf() + "% ~ " + endDropOf() + "% 均分 " + gearCount() + " 档")
-      : (mode === "alpha" ? "按波动率 α×ATR 排列" : "按目标均价反解档距");
+      : (mode === "alpha" ? "按波动率 α×ATR 排列"
+         : (hasT ? "按目标均价反解档距" : "未填目标均价，暂按波动率 α×ATR 排列"));
     sl.className = "wn";
   }
 
   var sd = $("setStartDrop"), ed2 = $("setEndDrop");
   if(sd && document.activeElement !== sd) sd.value = String(startDropOf());
   if(ed2 && document.activeElement !== ed2) ed2.value = String(endDropOf());
+
+  /* 起止跌幅什么时候真的参与计算，直接写在输入框下面，别让用户改完以为生效了。
+     起始跌幅在所有方式下都决定第 1 档；终止跌幅只有「区间」方式会读到。 */
+  var dn = $("setDropNote");
+  if(dn){
+    var modeName = mode === "range" ? "区间" : (mode === "alpha" ? "波动率" : "目标均价");
+    dn.textContent = mode === "range"
+      ? ("当前「区间」方式：起始 " + startDropOf() + "% ~ 终止 " + endDropOf() + "% 均分 " + gearCount() + " 档，两个值都参与计算")
+      : ("当前「" + modeName + "」方式只用起始跌幅 " + startDropOf() + "% 定第 1 档；终止跌幅 " + endDropOf() + "% 已保存，切到「区间」后生效");
+    dn.className = "wn" + (mode === "range" ? "" : " warn");
+  }
 
   var ab = $("setAnchor");
   var n = gearCount();
@@ -7778,9 +7868,9 @@ function renderSpanUI(){
   var al = $("setAnchorLive");
   if(al){
     al.textContent = cur >= 2
-      ? ("均价目标精确落在第 " + cur + " 档" + (mode === "target" ? "" : "（仅「目标均价」方式生效）") +
-         " · 建仓页「锚定均价」按 1–" + cur + " 档试算")
-      : "自动：按权重重心落点（建仓页「锚定均价」同口径）";
+      ? ("前 1–" + cur + " 档买完的锚定均价对齐目标" + (mode === "target" ? "" : "（仅「目标均价」方式生效）") +
+         " · 建仓页「锚定均价」同口径")
+      : "自动：按权重重心落点档 k，前 1–k 档买完的锚定均价对齐目标";
     al.className = "wn";
   }
 }
@@ -8061,13 +8151,19 @@ function renderReallocSet(){
   if(!on) return;
   on.checked = !!r.on;
   var mo = $("setReMode");
-  if(mo) Array.prototype.forEach.call(mo.querySelectorAll("[data-m]"), function(b){
-    b.classList.toggle("on", b.getAttribute("data-m") === (r.mode || "near"));
-  });
+  if(mo){
+    mo.classList.toggle("off", !r.on);
+    Array.prototype.forEach.call(mo.querySelectorAll("[data-m]"), function(b){
+      b.classList.toggle("on", b.getAttribute("data-m") === (r.mode || "near"));
+    });
+  }
   var ra = $("setReRatio");
-  if(ra) Array.prototype.forEach.call(ra.querySelectorAll("[data-r]"), function(b){
-    b.classList.toggle("on", Math.abs(Number(b.getAttribute("data-r")) - Number(r.ratio)) < 0.001);
-  });
+  if(ra){
+    ra.classList.toggle("off", !r.on);
+    Array.prototype.forEach.call(ra.querySelectorAll("[data-r]"), function(b){
+      b.classList.toggle("on", Math.abs(Number(b.getAttribute("data-r")) - Number(r.ratio)) < 0.001);
+    });
+  }
 
   var live = $("setReLive");
   if(!live) return;
@@ -8104,15 +8200,18 @@ function renderGauge(){
   if(pct > 100) cls = "over";
   else if(!(pct > 0)) cls = "";
   else cls = "p" + Math.min(4, Math.floor((Math.max(on, 1) - 1) / 4));
+  var noCap = !!(S.cfg && S.cfg.noCap);
   var rest = lim - cur, tail;
-  if(rest > 0.05)       tail = "还能买 " + gnum(rest) + " g";
+  /* 开了「不设仓位上限」就别再报「超上限」—— 两者说法互斥，档距已按目标反解 */
+  if(noCap)             tail = "已开不设上限";
+  else if(rest > 0.05)  tail = "还能买 " + gnum(rest) + " g";
   else if(rest < -0.05) tail = "超上限 " + gnum(-rest) + " g";
   else                  tail = "刚好到上限";
   box.innerHTML = sanitizeHtml(
     '<div class="gg-h"><span>仓位进度</span><b class="num ' + cls + '">' + pct.toFixed(1) + '%</b></div>' +
     '<div class="gbar">' + bars + '</div>' +
     '<div class="gg-f"><span class="num">' + gnum(cur) + ' g / ' + gnum(lim) + ' g</span>' +
-    '<span class="num' + (rest < -0.05 ? ' warn' : '') + '">' + tail + '</span></div>'
+    '<span class="num' + (rest < -0.05 && !noCap ? ' warn' : '') + '">' + tail + '</span></div>'
   );
   box.onclick = function(){ gotoTab("set", { anchor:"cardPos" }); };
 }
@@ -9610,6 +9709,7 @@ function syncParamInputs(){
     $("setComeback").value = isFinite(cbv) ? cbv : 10;
   }
   $("setStop").checked = S.cfg.stopMode !== false;
+  if($("setNoCap")) $("setNoCap").checked = !!S.cfg.noCap;
   syncKeep();
 }
 
@@ -9787,6 +9887,14 @@ function bindUI(){
     S.cfg.stopMode = this.checked;
     saveCfg(); compute(); refreshAll();
   };
+  /* 「不设仓位上限」改即存：与 setStop 同范式，不进「保存参数」的脏值集合 */
+  if($("setNoCap")) $("setNoCap").onchange = function(){
+    S.cfg.noCap = this.checked;
+    saveCfg(); compute(); refreshAll();
+    toast(this.checked
+      ? "已开启「不设仓位上限」：档距按名义目标反解，不再受剩余仓位限制"
+      : "已关闭「不设仓位上限」：恢复按已持仓折算目标");
+  };
 
   bindSync();
   bindDirtyWatch();
@@ -9836,7 +9944,10 @@ function bindUI(){
     S.cfg.avgTarget = at;
     S.cfg.avgBand = ab || 20;
     S.cfg.comeback = cbv;
-    if(al){ S.cfg.alpha = al; S.cfg.spanMode = "alpha"; }
+    /* 保存按钮绝不改档距方式：α 由 #setAlpha 的 change 单独「改即存」并负责切到 alpha，
+       目标均价由 #setAvgT 的 change 负责切到 target。这里只校验不落盘、不切模式。
+       旧版只要 α 输入框有值（几乎总是）就无条件写 spanMode="alpha"，
+       导致用户填完目标均价、或改个总克重点保存，档距方式就被偷偷换掉。 */
     /* 深档兜底三格：与 change 事件同一套规范化，保存时一并落 */
     if($("setDripDays")){
       var dv = Number($("setDripDays").value);
@@ -9851,8 +9962,8 @@ function bindUI(){
       S.cfg.realloc = S.cfg.realloc || {};
       S.cfg.realloc.on = !!$("setReOn").checked;
     }
-    // 目标均价被清空时：没有目标就按波动率排，避免出现没有基准的空档位
-    if(!at && !S.cfg.H_BASE && S.cfg.spanMode === "target") S.cfg.spanMode = "alpha";
+    // 目标均价被清空时不改用户的档距方式：gearBase() 里 !T_eff 会自然回退到 α×ATR，
+    // 卡片文案另给「暂按波动率排列」的说明，不再靠保存按钮偷偷改模式。
     /* v6.50：原来包了 if(hs.grams) —— 没有持仓记录时底仓永远存不进去，
        输入框填了 20 也一直判脏，点保存没反应。改成有值就落库。 */
     if(!isNaN(keep) && keep > 0) S.cfg.keepGram = keep;
@@ -9864,14 +9975,26 @@ function bindUI(){
 
   if($("btnHighAuto")) $("btnHighAuto").onclick = function(){ setHigh(null); };
 
-  /* 起止跌幅：改完即存，与档距方式联动重算 */
+  /* 起止跌幅：改完即存。夹取、以及「终止跌幅当前不参与计算」都要讲清楚，
+     不能再用一句「起始 X · 终止 Y」把无效改动包装成已生效。 */
   [["setStartDrop", "startDrop"], ["setEndDrop", "endDrop"]].forEach(function(it){
     var el = $(it[0]);
     if(!el) return;
     el.addEventListener("change", function(){
-      var r = it[1] === "startDrop"
-        ? setSpan(undefined, el.value, undefined, undefined)
-        : setSpan(undefined, undefined, el.value, undefined);
+      var isEnd = it[1] === "endDrop";
+      var r = isEnd
+        ? setSpan(undefined, undefined, el.value, undefined)
+        : setSpan(undefined, el.value, undefined, undefined);
+      if(r.endClamped){
+        toast("终止跌幅要大于起始跌幅 " + r.startDrop + "%，已设为 " + r.endDrop + "%");
+        return;
+      }
+      var sm = (S.cfg && S.cfg.spanMode) || "target";
+      if(isEnd && sm !== "range"){
+        toast("终止跌幅已存为 " + r.endDrop + "%，当前「" +
+              (sm === "alpha" ? "波动率" : "目标均价") + "」方式用不到它；切到「区间」即生效");
+        return;
+      }
       toast("起始 " + r.startDrop + "% · 终止 " + r.endDrop + "%");
     });
   });
@@ -9901,9 +10024,13 @@ function bindUI(){
   });
   /* 配额下沉：开关勾选即写，模式与比例点一下即写 */
   if($("setReOn")) $("setReOn").onchange = function(){ setRealloc({ on: this.checked }); };
+  /* 开关关着时这两个子控件不该还能写盘：点了只会改配置、弹「已切到…」，
+     计划却完全不变，是最典型的「假装生效」。关着时拦截并给一句可操作的提示。 */
+  function reOn(){ return !!(((S.cfg || {}).realloc || {}).on); }
   if($("setReMode")) $("setReMode").onclick = function(e){
     var b = e.target && e.target.closest ? e.target.closest("[data-m]") : null;
     if(!b) return;
+    if(!reOn()){ toast("配额下沉已关闭，先勾选「开启」再设模式"); return; }
     var m = b.getAttribute("data-m");
     setRealloc({ mode: m });
     toast(m === "near" ? "已切到就近：钱优先跑到最接近现价的档" : "已切到等比：按原权重摊给各档");
@@ -9911,6 +10038,7 @@ function bindUI(){
   if($("setReRatio")) $("setReRatio").onclick = function(e){
     var b = e.target && e.target.closest ? e.target.closest("[data-r]") : null;
     if(!b) return;
+    if(!reOn()){ toast("配额下沉已关闭，先勾选「开启」再设比例"); return; }
     var v = Number(b.getAttribute("data-r"));
     setRealloc({ ratio: v });
     toast("已下沉比例 " + Math.round(v * 100) + "%");
@@ -10228,7 +10356,8 @@ if(/[?&]xt=1/.test(location.search)){
     endDropOf:endDropOf,
     p1Of:p1Of,
     anchorCenter:anchorCenter,
-    /* === P10 双口径均价 === */
+    /* === P10 双口径均价 / v7.4 前 k 档重心 === */
+    frontCenter:frontCenter,
     anchorKOf:anchorKOf,
     avgOfFront:avgOfFront,
     ladderWindow:ladderWindow,

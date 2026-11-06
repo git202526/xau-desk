@@ -7,7 +7,7 @@
   · 离目标差多少、命中没命中（±band）
   · 档距 / α / 跨度分别是多少；α 模式下给一个「对齐目标」的出口
 
-基准：H=4800、T=3950、W=200 → 0.87H = 4176、d = 88.28125、均价 3950。
+基准：H=4800、T=3950、W=200 → 0.87H = 4176、d = 107.619、锚定均价 3950。
 """
 import math
 
@@ -21,11 +21,11 @@ BAND = 20.0
 TOTAL = 200
 
 P1 = 0.87 * H                 # 4176
-D_3950 = (P1 - T) / 2.56      # 88.28125
+D_3950 = (P1 - T) / 2.1       # 107.619048
 
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
-    """ATR14 ≈ 48 美元的日线：档距 88 对应 α≈1.84，落在 [0.6, 3.5] 内。"""
+    """ATR14 ≈ 48 美元的日线：档距 108 对应 α≈2.24，落在 [0.6, 3.5] 内。"""
     now = 1761696000000
     step = 24 * 3600 * 1000
     raw = [px * 0.93 + i * (px * 0.07 / (n - 1)) + math.sin(i / 9.0) * 11 for i in range(n)]
@@ -111,8 +111,9 @@ def test_sc2_plan_avg_matches_formula(make_env):
     env = make_env(CFG_T, bars=BARS)
     p = env.page
     a = p.evaluate("() => window.__xt.planAvg(4800, null)")
-    assert a == pytest.approx(T, abs=0.05), a
-    assert meta(p)["avgAll"] == pytest.approx(T, abs=0.05)
+    assert a == pytest.approx(3900.495, abs=0.05), a         # 全档均价只是试算
+    assert meta(p)["avgAll"] == pytest.approx(3900.495, abs=0.05)
+    assert meta(p)["avgAnchor"] == pytest.approx(T, abs=0.05)  # 第一对象命中
     open_plan(p)
     assert "%.1f" % T in card(p)["text"], card(p)["text"]
 
@@ -144,7 +145,7 @@ def test_sc4_span_line(make_env):
     open_plan(p)
     c = card(p)
     assert "档距" in c["text"], c["text"]
-    assert "88" in c["text"], c["text"]
+    assert "108" in c["text"], c["text"]
     assert "%.2f" % (D_3950 / a) in c["text"], c["text"]
     assert "跨度" in c["text"] and "%" in c["text"], c["text"]
 
@@ -155,7 +156,7 @@ def test_sc5_hit_when_target_matches(make_env):
     open_plan(p)
     m = meta(p)
     assert m["hit"] is True, m
-    assert m["diffAll"] == pytest.approx(0, abs=0.05), m["diffAll"]
+    assert m["diffAnchor"] == pytest.approx(0, abs=0.05), m["diffAnchor"]
     c = card(p)
     assert "命中" in c["text"], c["text"]
     assert c["dot"] == "#3FBF7F", c["dot"]
@@ -206,7 +207,7 @@ def test_sc8_target_moves_span_not_p1(make_env):
     p.wait_for_timeout(200)
     rs = rows(p)
     assert row(rs, "第1档")["price"] == pytest.approx(P1, abs=0.01), "第 1 档被拖动了"
-    assert row(rs, "第4档")["price"] == pytest.approx(P1 - 3 * (P1 - 3900) / 2.56, abs=0.02)
+    assert row(rs, "第4档")["price"] == pytest.approx(P1 - 3 * (P1 - 3900) / 2.1, abs=0.02)
     assert [round(r["price"], 2) for r in rs] != [round(x, 2) for x in pr0]
 
 
@@ -228,7 +229,7 @@ def test_sc9_last_editor_wins(make_env):
     p.wait_for_timeout(200)
     b = base(p)
     assert b["spanSrc"] == "target", b
-    assert b["d"] == pytest.approx((P1 - 3900) / 2.56, abs=0.01)
+    assert b["d"] == pytest.approx((P1 - 3900) / 2.1, abs=0.01)
     assert b["target"] == 3900
 
 

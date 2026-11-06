@@ -3,7 +3,7 @@
 口径：H=4700、总仓 200g。
   默认 startDrop=13 → p1 = 4089（与旧版 0.87H 逐值等价）
   区间 -13%~-25%：6 档 d=112.8、10 档 d=62.667
-  均价锚定第 4 档、T=3900 → d=(4089-3900)/3=63，p4=3900
+  均价锚定第 4 档、T=3900 → 反解让前 1–4 档买完的锚定均价=3900（d≈90）
 """
 import math
 
@@ -139,19 +139,22 @@ def test_s8_range_beats_target(env):
 # ---------- 均价锚定 ----------
 
 def test_s9_anchor_auto_is_center(env):
-    """avgAnchor=0 → 用权重重心，与旧版一致（6 档 ī=3.2）。"""
+    """avgAnchor=0 → k 取权重重心档，反解重心是「前 1..k 档」的 frontCenter。"""
     p = env(avgTarget=3900.0, spanMode="target").page
-    c = p.evaluate("() => window.__xt.wCenter(window.__xt.curW())")
+    w = p.evaluate("() => window.__xt.curW()")
+    k = p.evaluate("() => window.__xt.anchorKOf(window.__xt.curW())")
+    c = p.evaluate("([w,k]) => window.__xt.frontCenter(w,k)", [w, k])
     d = base(p)["d"]
     assert d == pytest.approx((4089.0 - 3900.0) / c, abs=0.01)
 
 
 def test_s10_anchor_fourth(env):
-    """锚定第 4 档 → 第 4 档价精确等于目标均价 3900。"""
+    """锚定第 4 档 → 前 1–4 档买完的锚定均价精确等于 3900（不再对齐第 4 档单档价）。"""
     p = env(avgTarget=3900.0, spanMode="target", avgAnchor=4).page
     pr = prices(p)
-    assert pr[3] == pytest.approx(3900.0, abs=0.05)
-    assert base(p)["d"] == pytest.approx(63.0, abs=0.01)
+    assert p.evaluate("() => window.__xt.gearMeta().avgAnchor") == pytest.approx(3900.0, abs=0.05)
+    assert pr[3] < 3900.0 - 20
+    assert base(p)["d"] == pytest.approx(90.0, abs=0.01)
 
 
 def test_s11_anchor_out_of_range(env):
@@ -172,7 +175,7 @@ def test_s12_anchor_deeper_narrows(env):
     p.evaluate("() => window.__xt.setSpan(undefined, undefined, undefined, 8)")
     d8 = base(p)["d"]
     assert d8 < d4
-    assert prices(p)[7] == pytest.approx(3900.0, abs=0.05)
+    assert p.evaluate("() => window.__xt.gearMeta().avgAnchor") == pytest.approx(3900.0, abs=0.05)
 
 
 def test_s13_anchor_when_count_shrinks(env):

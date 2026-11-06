@@ -11,7 +11,7 @@ from conftest import CFG_EMPTY, PRICE
 
 H = 4700.0
 W = 200
-D_3900 = 73.828125
+D_3900 = 90.0
 
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
@@ -335,9 +335,9 @@ def test_reach_and_row_probability(env):
     ri = p.evaluate("() => window.__xt.reachInfo()")
     assert ri["total"] == 6
     assert ri["k"] == 2, ri                    # 第 1 档已跌破，射程 2/6
-    assert ri["dd"] == pytest.approx(7.70, abs=0.06)   # 到第 6 档 3720
+    assert ri["dd"] == pytest.approx(9.70, abs=0.06)    # 到第 6 档 3639
     assert ri["prob"]["p"] == pytest.approx(13.6, abs=0.05)
-    assert ri["prob"]["below"] is True         # 7.7 < 8，表内无点
+    assert ri["prob"]["below"] is False        # 9.70 ≥ 8，表内有点
 
     open_tab(p, "plan")
     r6 = row_text(p, "第6档")
@@ -437,9 +437,9 @@ def test_card_shows_span_and_alpha(env):
     p.evaluate("() => window.__xt.setTargetT(3900)")
     p.wait_for_timeout(320)
     txt = p.evaluate("() => document.getElementById('avgCard').textContent.replace(/\\s+/g,' ')")
-    assert "档距" in txt and "74" in txt, txt
-    assert "α" in txt and "1.54" in txt, txt
-    assert "跨度" in txt and "-13.0" in txt and "-20.9" in txt, txt
+    assert "档距" in txt and "90" in txt, txt
+    assert "α" in txt and "1.88" in txt, txt
+    assert "跨度" in txt and "-13.0" in txt and "-22.6" in txt, txt
     assert "目标 3900" in txt, txt
 
 
@@ -456,8 +456,9 @@ def test_align_button_snaps_alpha_to_target(env):
     p.click("#avgCard [data-align]")
     p.wait_for_timeout(380)
     assert p.evaluate("() => window.__xt.state().cfg.spanMode") == "alpha"
-    assert p.evaluate("() => window.__xt.state().cfg.alpha") == pytest.approx(1.54, abs=0.02)
-    assert p.evaluate("() => window.__xt.gearMeta().avgAll") == pytest.approx(3900, abs=1.0)
+    assert p.evaluate("() => window.__xt.state().cfg.alpha") == pytest.approx(1.88, abs=0.02)
+    assert p.evaluate("() => window.__xt.gearMeta().avgAnchor") == pytest.approx(3900, abs=1.0)
+    assert p.evaluate("() => window.__xt.gearMeta().avgAll") < 3900 - 20
     assert p.evaluate("() => !!document.querySelector('#avgCard [data-align]')") is True, \
         "按钮常驻：对齐后不收起"
     assert "已对齐" in p.evaluate(

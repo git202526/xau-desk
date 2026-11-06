@@ -3,9 +3,10 @@
 语义反转：不再「改高点去凑目标」，而是「高点钉死在 0.87H、拉档距去凑目标」。
 
   p_i = 0.87·H − (i−1)·d
-  d   = (0.87·H − T) / ī          ī = 2.56（默认分布）
+  d   = (0.87·H − T) / c          c = frontCenter(w,k) = 2.1（前 1..k 档重心）
 
-基准：H=4800、T=3950、W=200 → 0.87H = 4176、d = 88.28125、第 4 档 3911.16。
+基准：H=4800、T=3950、W=200 → 0.87H = 4176、d = 107.619、第 4 档 3853.14。
+v7.4 起反解让「前 1..k 档买完的锚定均价」= T，全档均价只作试算。
 """
 import json
 import math
@@ -20,7 +21,7 @@ BAND = 20.0
 TOTAL = 200
 
 P1 = 0.87 * H_STRUCT          # 4176
-D_3950 = (P1 - T) / 2.56      # 88.28125
+D_3950 = (P1 - T) / 2.1       # 107.619048（前 1..4 档重心 2.1）
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
     """ATR14 ≈ 48 美元的日线序列：档距按 α×ATR 标定时才有意义。
@@ -106,7 +107,7 @@ def test_av14_span_moves_with_target(make_env):
     p.evaluate("() => window.__xt.setTargetT(3900)")
     d2 = base(p)["d"]
     assert d2 > d1, "目标越低档距越大"
-    assert d2 == pytest.approx((P1 - 3900) / 2.56, abs=1e-6)
+    assert d2 == pytest.approx((P1 - 3900) / 2.1, abs=1e-6)
     p.evaluate("() => window.__xt.setTargetT(3950)")
     assert base(p)["d"] == pytest.approx(d1, abs=1e-6)
 
@@ -117,7 +118,7 @@ def test_av2_fourth_gear_price(make_env):
     open_plan(p)
     rs = rows(p)
     assert row(rs, "第1档")["price"] == pytest.approx(P1, abs=0.01)
-    assert row(rs, "第4档")["price"] == pytest.approx(P1 - 3 * D_3950, abs=0.02)   # 3911.16
+    assert row(rs, "第4档")["price"] == pytest.approx(P1 - 3 * D_3950, abs=0.02)   # 3853.14
     assert row(rs, "第6档")["price"] == pytest.approx(P1 - 5 * D_3950, abs=0.02)
 
 
@@ -126,8 +127,9 @@ def test_av3_plan_avg_six_gears(make_env):
     env = make_env(CFG_T, bars=BARS)
     p = env.page
     a = p.evaluate("() => window.__xt.planAvg(4800, null)")
-    assert a == pytest.approx(T, abs=0.05)
-    assert meta(p)["avgAll"] == pytest.approx(T, abs=0.05)
+    assert a == pytest.approx(3900.495, abs=0.05)            # 全档均价只是试算
+    assert meta(p)["avgAll"] == pytest.approx(3900.495, abs=0.05)
+    assert meta(p)["avgAnchor"] == pytest.approx(T, abs=0.05)  # 第一对象命中
 
 
 def test_av4_weights_drive_plan(make_env):
@@ -189,7 +191,7 @@ def test_av7_target_persists(make_env):
     p.reload(wait_until="domcontentloaded")
     p.wait_for_function("() => window.__xt && window.__xt.ready", timeout=8000)
     p.wait_for_function("() => window.__xt.gearBase().target == 3900", timeout=6000)
-    assert base(p)["d"] == pytest.approx((P1 - 3900) / 2.56, abs=0.02)
+    assert base(p)["d"] == pytest.approx((P1 - 3900) / 2.1, abs=0.02)
 
 
 def test_av8_no_high_no_target_still_ladders(make_env):
@@ -239,7 +241,7 @@ def test_av9_card_hit(make_env):
     open_plan(p)
     m = meta(p)
     assert m["hit"] is True
-    assert m["avgAll"] == pytest.approx(T, abs=0.05)
+    assert m["avgAnchor"] == pytest.approx(T, abs=0.05)
     card = avgcard(p)
     assert "命中" in card["text"]
     assert card["dot"] == "#3FBF7F"

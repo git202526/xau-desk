@@ -17,7 +17,7 @@ T = 3950.0
 BAND = 20.0
 TOTAL = 200
 P1 = 0.87 * H_STRUCT          # 4176
-D_3950 = (P1 - T) / 2.56      # 88.28125
+D_3950 = (P1 - T) / 2.1       # 107.619048
 
 
 def bars_calm(n=240, px=PRICE, amp=24.0):
@@ -119,13 +119,14 @@ def test_ah2_ladder_follows_manual_high(make_env):
     env = make_env(CFG_T, bars=BARS)
     p = env.page
     open_plan(p)
-    p.evaluate("() => window.__xt.setHigh(5000)")
+    # 4900（而非 5000）：新口径档距更大，5000 会撞 α=3.5 上限被夹，测不出反解
+    p.evaluate("() => window.__xt.setHigh(4900)")
     p.wait_for_timeout(300)
     r = rows(p)
-    assert row(r, "第1档")["price"] == pytest.approx(4350, abs=0.01)
+    assert row(r, "第1档")["price"] == pytest.approx(4263, abs=0.01)
     # 档距跟着目标反解，随高点抬高而变大
-    assert base(p)["d"] == pytest.approx((4350 - T) / 2.56, abs=0.02)
-    assert row(r, "第4档")["price"] == pytest.approx(4350 - 3 * base(p)["d"], abs=0.05)
+    assert base(p)["d"] == pytest.approx((4263 - T) / 2.1, abs=0.02)
+    assert row(r, "第4档")["price"] == pytest.approx(4263 - 3 * base(p)["d"], abs=0.05)
 
 
 def test_ah3_blank_high_uses_auto(make_env):
@@ -166,15 +167,15 @@ def test_ah5_off_target_is_flagged(make_env):
 
 
 def test_ah6_high_equal_reverse_hits(make_env):
-    """把 α 调到正好命中：d = 88.28 → α = 1.84。"""
+    """把 α 调到让「前 1..k 档买完的锚定均价」命中目标：d = 107.62 → α = 2.24。"""
     env = make_env(CFG_H, bars=BARS)
     p = env.page
-    p.evaluate("() => window.__xt.setAlpha(1.84)")
+    p.evaluate("() => window.__xt.setAlpha(2.242)")
     p.evaluate("() => window.__xt.setTargetT(3950)")
-    p.evaluate("() => window.__xt.setAlpha(1.84)")
+    p.evaluate("() => window.__xt.setAlpha(2.242)")
     p.wait_for_timeout(320)
     m = meta(p)
-    assert m["avgAll"] == pytest.approx(T, abs=1.5)
+    assert m["avgAnchor"] == pytest.approx(T, abs=1.5)
     assert m["hit"] is True
 
 
@@ -186,7 +187,7 @@ def test_ah7_source_hint_shows_high(make_env):
     assert "4,800" in t or "4800" in t, t
     assert "手动" in t, t
     assert "档距" in t, t
-    assert "88" in t, t          # d = 88.28
+    assert "108" in t, t         # d = 107.62
 
 
 def test_ah8_card_shows_gap_to_price(make_env):
