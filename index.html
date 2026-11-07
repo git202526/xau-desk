@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.4.2 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.5 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层 · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -774,6 +774,71 @@ body.tab-ov .tpx{display:none}
 .ev .info .m{line-height:1.5}
 .stars{color:var(--gold);font-size:10px;letter-spacing:1px}
 
+/* ===== 事件雷达 v7.5：4 星以上判定表 =====
+   一套 DOM 两套布局：≥768px 11 列网格（传导逻辑独占第二行），<768px 标签-值卡片。
+   不用 <table>：sanitizeHtml 的白名单只放行 div/span，表格标签会被整块删掉。 */
+.evt-head,.evrow{display:grid;grid-template-columns:72px 48px minmax(104px,1.6fr) 52px 56px 56px 58px 54px 50px 44px 42px;
+  column-gap:6px;align-items:center}
+.evt-head{padding:6px 10px 7px;font-size:10.5px;color:var(--tx3);border-bottom:1px solid var(--line)}
+/* 桌面端表头吸顶：滚到事件区时顶栏会盖住它，没有列名就只剩一堆数字。
+   top 取顶栏高度（单行 ~66px）；窄屏不吸顶，靠 data-l 标签自解释。 */
+@media(min-width:768px){.evt-head{position:sticky;top:64px;background:var(--bg);z-index:3}}
+.evrow{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px}
+.evrow:last-child{border-bottom:none}
+.evrow .c1{font-size:11px;color:var(--tx3);white-space:nowrap}
+.evrow .c2{font-size:11px;color:var(--tx2);white-space:nowrap}
+.evrow .c3{font-weight:600;line-height:1.35;word-break:break-word}
+.evrow .c4{color:var(--gold);font-size:9.5px;letter-spacing:.5px;white-space:nowrap}
+.evrow .c5,.evrow .c6,.evrow .c7{font-size:11px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.evrow .c7.pend{color:var(--tx3)}
+.evrow .c8,.evrow .c9,.evrow .c11{font-size:11px;text-align:center;white-space:nowrap}
+.evrow .c10{grid-column:1/-1;grid-row:2;font-size:11px;color:var(--tx2);line-height:1.55;margin-top:4px;word-break:break-word}
+.evrow .c12{font-size:10.5px;text-align:center;color:var(--tx3)}
+.evrow.done{opacity:.62}
+.evrow:nth-child(odd){background:rgba(255,255,255,.017)}
+/* 预期差只陈述事实，不上红绿：给「超预期」上绿色会被读成「利好」，
+   而它对黄金恰恰是利空。颜色只留给「金银判定」一列。 */
+.evrow .diff-up,.evrow .diff-dn{color:var(--tx2)}
+.evrow .v-bull{color:var(--up);font-weight:600}
+.evrow .v-bear{color:var(--dn);font-weight:600}
+.evrow .v-neu{color:var(--tx2)}
+.evrow .v-pend{color:var(--gold)}
+@media(max-width:767px){
+  .evt-head{display:none}
+  /* 四列网格：日期+地区 / 事件名 / 前值·预期·公布·预期差 / 判定·时段·置信度 / 传导逻辑。
+     不用「每个字段一行」——那样单条就 320px，三条占满一屏。 */
+  .evrow{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 8px;padding:11px 12px}
+  .evrow>span{display:block;white-space:normal;text-align:left;font-size:11.5px}
+  .evrow>span::before{content:attr(data-l);color:var(--tx3);font-size:10.5px;margin-right:4px}
+  .evrow .c1{grid-area:1/1/2/3;font-size:11px;color:var(--tx3)}
+  .evrow .c1::before,.evrow .c2::before,.evrow .c4::before,.evrow .c3::before{display:none}
+  .evrow .c2{grid-area:1/3/2/4;font-size:11px;color:var(--tx2)}
+  .evrow .c4{grid-area:1/4/2/5;text-align:right}
+  .evrow .c3{grid-area:2/1/3/5;font-size:13.5px;font-weight:650;margin:4px 0 5px;line-height:1.4}
+  .evrow .c5{grid-area:3/1/4/2}
+  .evrow .c6{grid-area:3/2/4/3}
+  .evrow .c7{grid-area:3/3/4/4}
+  .evrow .c8{grid-area:3/4/4/5;text-align:right}
+  .evrow .c9{grid-area:4/1/5/3;font-weight:600}
+  .evrow .c11{grid-area:4/3/5/4}
+  .evrow .c12{grid-area:4/4/5/5;text-align:right}
+  .evrow .c10{grid-area:5/1/6/5;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:11.5px;line-height:1.55}
+  .evrow .c10::before{display:block;margin-bottom:2px}
+}
+/* 表后三块 */
+.evblk{margin-top:14px}
+.evblk .h{font-size:11.5px;font-weight:650;color:var(--tx2);margin-bottom:7px;letter-spacing:.3px}
+.evblk .it{padding:9px 11px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
+.evblk .it .t{font-size:12.5px;font-weight:600;margin-bottom:4px;display:flex;gap:7px;align-items:baseline}
+.evblk .it .t .sw{flex:0 0 auto;margin-right:0}
+.evblk .it .d{font-size:11.5px;color:var(--tx2);line-height:1.6}
+.evblk .sw{font-size:11px;color:var(--gold);border:1px solid rgba(212,162,76,.32);border-radius:5px;padding:0 5px;margin-right:5px}
+.evchk{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:5px 12px}
+.evchk .ck{font-size:11px;color:var(--tx2);display:flex;gap:5px;align-items:flex-start;line-height:1.5}
+.evchk .ck i{font-style:normal;flex:0 0 auto}
+.evchk .ck.ok i{color:var(--up)}
+.evchk .ck.no i{color:var(--dn)}
+
 /* 信号 */
 .sig{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .sig:last-child{border-bottom:none}
@@ -917,7 +982,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.4.2 · 11/06</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.5 · 11/07</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1109,6 +1174,9 @@ body.tab-ov .tpx{display:none}
   <section class="panel" id="panel-sig">
     <div class="sech"><h2>事件雷达 <span class="cnt" id="evMeta"></span></h2></div>
     <div id="evList"></div>
+    <div id="evTop3"></div>
+    <div id="evScen"></div>
+    <div id="evChk"></div>
     <div class="note" id="evNote"></div>
 
     <div class="sech" style="margin-top:16px"><h2>状态转移 <span class="cnt" id="feedMeta"></span></h2></div>
@@ -5423,7 +5491,9 @@ function loadCalendar(){
           return {
             t: Number(e.t), ccy: String(e.ccy || "").toUpperCase(), name: String(e.name),
             impact: Math.max(1, Math.min(5, Number(e.impact) || 3)),
-            fc: e.fc || "", pv: e.pv || ""
+            /* av = 公布值：金十源有，FF 源没有。判定全靠它，不能在这里丢掉。
+               affect 是金十自带的方向结论，只留作对照，不直接采用（口径不透明）。 */
+            fc: e.fc || "", pv: e.pv || "", av: e.av || "", affect: e.affect || ""
           };
         });
       if(evs.length < 3){ res(false); return; }
@@ -5522,11 +5592,13 @@ function computeEvents(){
     var seen = {};
     out.forEach(function(e){ seen[evKey(e)] = 1; });
     (S.cal.events||[]).forEach(function(e){
-      if(!(e.t > now - 6*3600000) || e.t > horizon) return;
+      /* 窗口与 evRows 对齐（过去 3 天）：只留 6 小时的话，「本周已公布」
+         这段在表里永远是空的，预期差就没东西可算。 */
+      if(!(e.t > now - 3*86400000) || e.t > horizon) return;
       /* 轻量事件只留美元区的，避免一天几十条把雷达刷满 */
       if(e.impact < 3 && e.ccy !== "USD") return;
       var item = { name:e.name, ts:e.t, stars:e.impact, src:"实时日历", ccy:e.ccy,
-                   fc:e.fc, pv:e.pv, note:"" };
+                   fc:e.fc, pv:e.pv, av:e.av || "", note:"" };
       if(seen[evKey(item)]) return;
       seen[evKey(item)] = 1;
       out.push(item);
@@ -5542,6 +5614,312 @@ function nextEvent(){
     if(e.ts>now-1200000 && (!best||e.ts<best.ts)) best=e;
   });
   return best;
+}
+
+/* ===== 事件雷达 v7.5：4 星以上 + 预期差判定 =====
+   判定口径（P1 定稿，改动前先读这段）：
+   1) 只输出 ≥4 星。FF 的 impact 只有 High=4 / Medium=3 两档，5 星只有金十给；
+   2) 判定基准是「公布值 vs 预期值」，不是绝对值 —— 5 万的非农是强是弱，取决于预期几万；
+   3) dir = 数据「超预期」时对黄金的方向：+1 利多 / -1 利空。
+      失业率、初请是反向指标（数值高=就业弱=利多），故 +1；
+      其余按「强数据 → 紧缩预期 → 实际利率上行 → 利空」故 -1；
+   4) 地缘 / 流动性 / 央行购金 / 大选 不套 dir，走 sp 分支 —— 「避险=利多」是错的，
+      当前阶段油价→通胀→利率这条链权重更高；
+   5) 没有公布值一律「待定」+ 双情景，绝不拿前值当公布值。 */
+var EV_RULES = [
+  /* --- 通胀：强 → 紧缩 → 利空 --- */
+  {id:"core_pce", rx:/核心PCE|core\s*PCE/i, cat:"通胀", dir:-1, core:1, pre:1, h:"短线",
+   up:"核心PCE 超预期 → 服务通胀黏性未解 → 降息路径后移 → 实际利率与美元同步上行 → 利空金银",
+   dn:"核心PCE 不及预期 → 通胀降温获确认 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"pce", rx:/PCE|personal consumption/i, cat:"通胀", dir:-1, core:1, pre:1, h:"短线",
+   up:"PCE 超预期 → 通胀回落不及政策目标 → 降息预期后移 → 实际利率上行 → 利空金银",
+   dn:"PCE 不及预期 → 通胀压力缓解 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"core_cpi", rx:/核心CPI|core\s*CPI/i, cat:"通胀", dir:-1, core:1, pre:1, h:"短线",
+   up:"核心CPI 超预期 → 服务通胀黏性强化 → 降息预期后移 → 实际利率与美元同涨 → 利空金银",
+   dn:"核心CPI 不及预期 → 通胀降温 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"cpi", rx:/CPI|consumer price index/i, cat:"通胀", dir:-1, core:1, pre:1, h:"短线",
+   up:"CPI 超预期 → 通胀预期抬升 → 紧缩交易回归 → 实际利率上行 → 利空金银",
+   dn:"CPI 不及预期 → 通胀压力缓解 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"ppi", rx:/PPI|producer price/i, cat:"通胀", dir:-1, core:0, pre:0, h:"短线",
+   up:"PPI 超预期 → 上游价格压力向终端传导 → 通胀黏性预期抬升 → 实际利率上行 → 利空金银",
+   dn:"PPI 不及预期 → 上游压力缓和 → 通胀预期回落 → 实际利率下行 → 利多金银"},
+  /* --- 就业：非农/时薪/ADP/JOLTS 强=紧缩；失业率/初请 高=弱=利多 --- */
+  {id:"wages", rx:/平均时薪|average hourly earnings/i, cat:"就业", dir:-1, core:1, pre:1, h:"短线",
+   up:"平均时薪 超预期 → 工资—通胀螺旋风险 → 降息预期后移 → 实际利率上行 → 利空金银",
+   dn:"平均时薪 不及预期 → 薪资压力缓和 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"nfp", rx:/非农|non-?farm|nonfarm payroll/i, cat:"就业", dir:-1, core:1, pre:1, h:"短线",
+   up:"非农 超预期 → 就业韧性 → 降息预期后移 → 实际利率与美元上行 → 利空金银",
+   dn:"非农 不及预期 → 就业走弱 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"unemp", rx:/失业率|unemployment rate/i, cat:"就业", dir:1, core:1, pre:1, h:"短线",
+   up:"失业率 超预期（升） → 就业市场降温 → 降息预期前移 → 实际利率下行 → 利多金银",
+   dn:"失业率 不及预期（降） → 就业仍紧 → 降息预期后移 → 实际利率上行 → 利空金银"},
+  {id:"claims", rx:/初请|jobless claims|unemployment claims/i, cat:"就业", dir:1, core:0, pre:0, h:"短线",
+   up:"初请 超预期（升） → 裁员压力上升 → 宽松预期升温 → 实际利率下行 → 利多金银",
+   dn:"初请 不及预期（降） → 就业市场仍稳 → 紧缩预期维持 → 利空金银"},
+  {id:"adp", rx:/ADP/i, cat:"就业", dir:-1, core:0, pre:0, h:"短线",
+   up:"ADP 超预期 → 私营就业强劲 → 紧缩预期升温 → 实际利率上行 → 利空金银（注意与非农背离时以非农为准）",
+   dn:"ADP 不及预期 → 就业降温 → 宽松预期升温 → 实际利率下行 → 利多金银（同上，背离以非农为准）"},
+  {id:"jolts", rx:/JOLTS|职位空缺/i, cat:"就业", dir:-1, core:0, pre:0, h:"短线",
+   up:"JOLTS 职位空缺 超预期 → 劳动力需求仍旺 → 紧缩预期升温 → 实际利率上行 → 利空金银",
+   dn:"JOLTS 职位空缺 不及预期 → 劳动力需求降温 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  /* --- 央行 --- */
+  {id:"dot", rx:/点阵图|dot\s*plot/i, cat:"央行", dir:0, core:1, pre:0, h:"中期", sp:"fomc",
+   up:"点阵图 上移（预期加息次数增加） → 实际利率路径抬升 → 利空金银",
+   dn:"点阵图 下移（预期降息次数增加） → 实际利率路径下修 → 利多金银"},
+  {id:"fomc", rx:/FOMC|利率决议|interest rate decision|fed funds rate/i, cat:"央行", dir:0, core:1, pre:0, h:"中期", sp:"fomc",
+   up:"加息/鹰派 → 实际利率上行 → 利空金银",
+   dn:"降息/鸽派 → 实际利率下行 → 利多金银"},
+  {id:"fedtalk", rx:/美联储.{0,6}(讲话|发言|演讲|主席)|鲍威尔|Powell|Fed.{0,8}(speak|speech)/i,
+   cat:"央行", dir:0, core:0, pre:0, h:"短线", sp:"fomc",
+   up:"鹰派表态 → 降息预期后移 → 实际利率上行 → 利空金银",
+   dn:"鸽派表态 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  /* --- 增长 --- */
+  {id:"gdp", rx:/GDP|国内生产总值/i, cat:"增长", dir:-1, core:1, pre:0, h:"短线",
+   up:"GDP 超预期 → 增长韧性 → 降息预期后移 → 实际利率上行 → 利空金银",
+   dn:"GDP 不及预期 → 增长走弱 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"ism_s", rx:/ISM.{0,6}(服务|非制造)|ism services|ism non-manufacturing/i, cat:"增长", dir:-1, core:1, pre:1, h:"短线",
+   up:"ISM 服务业 超预期 → 服务需求与通胀黏性 → 降息预期后移 → 利空金银（服务业是当前通胀主战场）",
+   dn:"ISM 服务业 不及预期 → 服务需求降温 → 降息预期前移 → 利多金银"},
+  {id:"ism_m", rx:/ISM.{0,6}制造|ism manufacturing/i, cat:"增长", dir:-1, core:0, pre:0, h:"短线",
+   up:"ISM 制造业 超预期 → 工业需求回暖 → 紧缩预期升温 → 实际利率上行 → 利空金银",
+   dn:"ISM 制造业 不及预期 → 需求走弱 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"conf", rx:/消费者信心|consumer confidence|sentiment/i, cat:"消费", dir:-1, core:0, pre:0, h:"短线",
+   up:"消费者信心 超预期 → 消费韧性 → 降息预期后移 → 实际利率上行 → 利空金银",
+   dn:"消费者信心 不及预期 → 消费走弱 → 降息预期前移 → 实际利率下行 → 利多金银"},
+  {id:"retail", rx:/零售销售|retail sales/i, cat:"消费", dir:-1, core:0, pre:0, h:"短线",
+   up:"零售销售 超预期 → 消费强劲 → 紧缩预期升温 → 实际利率上行 → 利空金银",
+   dn:"零售销售 不及预期 → 消费走弱 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"durable", rx:/耐用品|durable goods/i, cat:"增长", dir:-1, core:0, pre:0, h:"短线",
+   up:"耐用品订单 超预期 → 投资需求回暖 → 紧缩预期升温 → 实际利率上行 → 利空金银",
+   dn:"耐用品订单 不及预期 → 投资走弱 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"ip", rx:/工业产出|industrial production/i, cat:"增长", dir:-1, core:0, pre:0, h:"短线",
+   up:"工业产出 超预期 → 生产端回暖 → 紧缩预期升温 → 实际利率上行 → 利空金银",
+   dn:"工业产出 不及预期 → 生产走弱 → 宽松预期升温 → 实际利率下行 → 利多金银"},
+  {id:"house", rx:/房价|house price|case-shiller/i, cat:"地产", dir:-1, core:0, pre:0, h:"短线",
+   up:"房价 超预期 → 财富效应与租金传导 → 通胀黏性 → 实际利率上行 → 利空金银",
+   dn:"房价 不及预期 → 地产降温 → 通胀压力缓和 → 实际利率下行 → 利多金银"},
+  /* --- 实时驱动 --- */
+  {id:"yield", rx:/10\s*年期|十年期|10-?year|10\s*year/i, cat:"利率", dir:-1, core:1, pre:0, h:"短线", sp:"yield",
+   up:"10Y 收益率 上行 → 持有黄金的机会成本抬升 → 利空金银",
+   dn:"10Y 收益率 下行 → 机会成本下降 → 利多金银"},
+  {id:"dxy", rx:/美元指数|DXY|dollar index/i, cat:"汇率", dir:-1, core:1, pre:0, h:"短线", sp:"dxy",
+   up:"美元指数 走强 → 以美元计价的黄金承压 → 利空金银",
+   dn:"美元指数 走弱 → 美元计价黄金相对便宜 → 利多金银"},
+  {id:"oil", rx:/原油|EIA|OPEC|crude|oil/i, cat:"能源", dir:1, core:0, pre:0, h:"短线", sp:"oil",
+   up:"原油库存 超预期增加 → 油价承压 → 通胀预期回落 → 利多金银",
+   dn:"原油库存 不及预期（去库） → 油价获支撑 → 通胀黏性 → 利空金银"},
+  /* --- 大事件：不套 dir --- */
+  {id:"cb", rx:/购金|黄金储备|gold reserve/i, cat:"购金", dir:0, core:1, pre:0, h:"中期", sp:"cb",
+   up:"购金加速 → 官方需求托底 → 中期利多（不构成短线做多理由）",
+   dn:"购金放缓 → 边际支撑减弱 → 短期边际利空，不改中期方向"},
+  {id:"geo", rx:/伊朗|霍尔木兹|中东|以色列|美伊|战争|空袭|制裁|Hormuz/i,
+   cat:"地缘", dir:0, core:1, pre:0, h:"中期", sp:"geo",
+   up:"冲突升级 → 避险脉冲（短线利多）与油价上行（中期利空）同时出现",
+   dn:"局势缓和 → 避险溢价消退 → 短线回吐，油价回落反而利多"},
+  {id:"elec", rx:/中期选举|大选|midterm|election/i, cat:"政治", dir:0, core:1, pre:0, h:"中期", sp:"elec",
+   up:"选举前不确定性 → 短线避险溢价",
+   dn:"结果落地 → 不确定性溢价消退 → 偏利空"},
+  {id:"liq", rx:/流动性|回购|银行危机|挤兑|liquidity|repo/i, cat:"流动性", dir:0, core:1, pre:0, h:"短线", sp:"liq",
+   up:"流动性收紧 → 黄金被抛售换现金",
+   dn:"流动性缓和 → 利率预期下修 → 偏利多"}
+];
+
+/* 数值解析：只认「数字 + 可选单位」，解析不了就返回 null（交给「无法判断」） */
+function evNum(s){
+  if(s === null || s === undefined) return null;
+  var t = String(s).replace(/[,，\s]/g, "");
+  if(!t || /^(待公布|未公布|-|—|N\/A|需核实)$/i.test(t)) return null;
+  var m = t.match(/^(-?\d+(?:\.\d+)?)([%％]|[KMB]|万|亿|千)?/i);
+  if(!m) return null;
+  var v = parseFloat(m[1]);
+  if(!isFinite(v)) return null;
+  var u = (m[2] || "").toUpperCase();
+  var mul = u === "K" ? 1e3 : u === "M" ? 1e6 : u === "B" ? 1e9
+          : u === "万" ? 1e4 : u === "亿" ? 1e8 : u === "千" ? 1e3 : 1;
+  return v * mul;
+}
+
+/* 预期差：相对 1% 且不低于 0.01 才算超/不及，否则「符合预期」。
+   低于这个粒度时，公布的舍入本身就会造成假超预期。 */
+function evDiff(fc, av){
+  if(av === null || av === undefined) return "待公布";
+  var aTxt = String(av).trim();
+  if(!aTxt || /待公布|未公布/.test(aTxt)) return "待公布";
+  var a = evNum(av), f = evNum(fc);
+  if(a === null || f === null) return "无法判断";
+  var d = a - f;
+  var tol = Math.max(Math.abs(f) * 0.01, 0.01);
+  if(Math.abs(d) <= tol) return "符合预期";
+  return d > 0 ? "超预期" : "不及预期";
+}
+
+function evRuleOf(e){
+  var s = String(e.name || "") + " " + String(e.en || "");
+  for(var i = 0; i < EV_RULES.length; i++){
+    if(EV_RULES[i].rx.test(s)) return EV_RULES[i];
+  }
+  return null;
+}
+
+/* 国家/地区：优先币种（FF 带），其次按中文名前缀（金十不带 ccy） */
+function evRegion(e){
+  var MAP = {USD:"美国", EUR:"欧元区", CNY:"中国", JPY:"日本", GBP:"英国",
+             CHF:"瑞士", CAD:"加拿大", AUD:"澳大利亚", NZD:"新西兰"};
+  if(e.ccy && MAP[String(e.ccy).toUpperCase()]) return MAP[String(e.ccy).toUpperCase()];
+  var n = String(e.name || "");
+  var P = ["美国","欧元区","德国","法国","意大利","英国","日本","中国","加拿大","澳大利亚","瑞士"];
+  for(var i = 0; i < P.length; i++){ if(n.indexOf(P[i]) === 0) return P[i]; }
+  if(/美联储|非农|初请|ADP|JOLTS|PCE|CPI|GDP|ISM|FOMC/.test(n)) return "美国";
+  if(/欧洲央行|ECB/.test(n)) return "欧元区";
+  if(/中国央行|人民银行|PBOC/.test(n)) return "中国";
+  if(/日本央行|BOJ/.test(n)) return "日本";
+  return "其他";
+}
+
+/* 单条判定：纯函数，不碰 DOM、不读全局行情 —— 便于单测 */
+function evJudge(e){
+  var t = Number(e.ts || e.t || 0);
+  var stars = Math.round(Number(e.stars || e.impact || 0)) || 0;
+  var r = evRuleOf(e);
+  var diff = evDiff(e.fc, e.av);
+  var out = {
+    t: t, name: String(e.name || ""), region: evRegion(e), stars: stars,
+    pv: e.pv || "", fc: e.fc || "", av: e.av || "",
+    diff: diff, verdict: "待定", logic: "", horizon: "短线", conf: "低",
+    src: e.src || "", cat: r ? r.cat : "其他", ruleId: r ? r.id : "",
+    pre: false, sp: r ? (r.sp || "") : ""
+  };
+  if(!r){
+    out.verdict = "待定";
+    out.logic = "未收录「" + out.name + "」的方向映射，需人工核对指标口径后再判；不做猜测。";
+    out.conf = "低";
+    return out;
+  }
+  out.pre = !!r.pre;
+
+  /* --- 特殊分支：这几类不能套「强=利空」 --- */
+  if(r.sp === "geo"){
+    out.verdict = "拉锯"; out.horizon = "中期"; out.conf = "中";
+    out.logic = "必须拆两条链：A 避险脉冲 —— 冲突升级首日资金避险，短线可能利多；" +
+      "B 油价上行 → 通胀黏性 → 降息后移 → 实际利率上行 → 利空黄金。" +
+      "当前阶段 B 链权重更高，A 链只在事件突发首日占优；若冲突同时打断供应链，B 链会进一步强化。";
+    return out;
+  }
+  if(r.sp === "liq"){
+    out.verdict = "利空"; out.horizon = "短线"; out.conf = "中";
+    out.logic = "权益暴跌/流动性挤兑时，黄金常被抛售换取现金（补保证金、应对赎回），短线与风险资产同跌；" +
+      "待冲击平息、利率预期下修之后，才转为利多。不要把「避险资产」当成「不会跌」。";
+    return out;
+  }
+  if(r.sp === "cb"){
+    out.verdict = diff === "不及预期" ? "利空" : "利多";
+    out.horizon = "中期"; out.conf = "中";
+    out.logic = "央行购金是中期结构性支撑（储备多元化、去美元化），不是短线做多的充分理由；" +
+      "单月购金放缓属短期边际利空，不改中期方向。";
+    return out;
+  }
+  if(r.sp === "elec"){
+    out.verdict = "拉锯"; out.horizon = "中期"; out.conf = "低";
+    out.logic = "选举前不确定性可短线利多；结果落地后不确定性溢价消退、可能偏利空，" +
+      "但难改由利率预期主导的中期趋势。";
+    return out;
+  }
+  if(r.sp === "fomc"){
+    out.horizon = "中期"; out.conf = "中";
+    var avT = String(e.av || "");
+    if(/加息|上调利率|hawkish/i.test(avT)){ out.verdict = "利空"; out.diff = "超预期"; out.logic = r.up; }
+    else if(/降息|下调利率|dovish/i.test(avT)){ out.verdict = "利多"; out.diff = "不及预期"; out.logic = r.dn; }
+    else if(/维持|不变|hold|unchanged/i.test(avT)){
+      out.verdict = "中性"; out.diff = "符合预期";
+      out.logic = "结果符合预期 → 已计价 → 短线中性；真正的方向来自声明措辞与点阵图，" +
+        "以及发布会问答，常见「买预期卖事实」的反向修正。";
+    } else {
+      out.verdict = "待定"; out.conf = "低";
+      out.logic = "决议结果尚未明确（或无可解析的公布值）：若加息/鹰派 → 实际利率上行 → 利空；" +
+        "若降息/鸽派 → 实际利率下行 → 利多；符合预期则看声明与点阵图。";
+    }
+    return out;
+  }
+
+  /* --- 常规数值指标 --- */
+  if(diff === "待公布" || diff === "无法判断"){
+    out.verdict = "待定";
+    out.conf = "低";
+    out.logic = diff === "待公布"
+      ? "若超预期：" + r.up + "；若不及预期：" + r.dn
+      : "前值/预期缺失或口径不一致，无法计算预期差；需核实后再判，不做猜测。";
+    return out;
+  }
+  if(diff === "符合预期"){
+    out.verdict = "中性";
+    out.conf = r.core ? "中" : "低";
+    out.logic = "公布值符合预期 → 已被计价 → 短线中性；方向取决于分项与边际变化（前值 " +
+      (out.pv || "—") + " → 公布 " + (out.av || "—") + "），以及同日其他数据的组合。";
+    return out;
+  }
+  var sign = diff === "超预期" ? 1 : -1;
+  var v = sign * r.dir;
+  out.verdict = v > 0 ? "利多" : v < 0 ? "利空" : "中性";
+  out.logic = sign > 0 ? r.up : r.dn;
+  out.conf = r.core ? "高" : "中";
+  if(r.pre){
+    out.logic += "（注意买预期卖事实：该数据公布前多已计价，落地后可能反向修正）";
+  }
+  return out;
+}
+
+/* 组装雷达行：未来 7 天 + 近 3 天已公布，只留 ≥4 星。
+   已公布的要留着：预期差与判定只有落地后才成立，砍掉就只剩「待公布」，
+   等于把「本周发生了什么」整段删掉。3 天足够覆盖一个完整的数据周。 */
+function evRows(){
+  var now = Date.now(), end = now + 7 * 86400000, back = now - 3 * 86400000;
+  var raw = computeEvents(), seen = {}, rows = [];
+  raw.forEach(function(e){
+    var t = Number(e.ts || e.t || 0);
+    if(!t || t < back || t > end) return;
+    if((Number(e.stars || e.impact || 0)) < 4) return;
+    var k = Math.floor(t / 60000) + "|" + String(e.name || "").slice(0, 8);
+    if(seen[k]) return;
+    seen[k] = 1;
+    rows.push(evJudge(e));
+  });
+  rows.sort(function(a, b){ return a.t - b.t || b.stars - a.stars; });
+  return rows;
+}
+
+/* 自检：10 项，任何一项不过都要在页面上说清楚，不能只报「全部通过」 */
+function evCheck(rows){
+  function all(fn){ return rows.length > 0 && rows.every(fn); }
+  function numEv(r){ return !/地缘|政治|流动性|购金/.test(r.cat); }
+  var c = [];
+  c.push({ k: "只含 4 星以上", ok: all(function(r){ return r.stars >= 4; }) });
+  c.push({ k: "12 个字段齐全", ok: all(function(r){
+    return r.t && r.name && r.region && r.stars && r.diff && r.verdict &&
+           r.logic && r.horizon && r.conf;
+  }) });
+  c.push({ k: "数值事件有前值/预期", ok: all(function(r){
+    return !numEv(r) || (r.pv !== "" && r.fc !== "");
+  }) });
+  c.push({ k: "未公布已给双情景", ok: all(function(r){
+    return r.diff !== "待公布" || /若超预期/.test(r.logic);
+  }) });
+  c.push({ k: "预期差用词合规", ok: all(function(r){
+    return ["超预期","不及预期","符合预期","待公布","无法判断"].indexOf(r.diff) >= 0;
+  }) });
+  c.push({ k: "判定都写了传导逻辑", ok: all(function(r){ return String(r.logic).length >= 12; }) });
+  c.push({ k: "地缘已拆两条链", ok: all(function(r){
+    return r.cat !== "地缘" || (/避险脉冲/.test(r.logic) && /实际利率上行/.test(r.logic));
+  }) });
+  c.push({ k: "流动性例外已标注", ok: all(function(r){
+    return r.cat !== "流动性" || /换取现金|与风险资产同跌/.test(r.logic);
+  }) });
+  c.push({ k: "无公布值不臆测", ok: all(function(r){
+    return r.av !== "" || r.diff === "待公布" || r.diff === "无法判断";
+  }) });
+  c.push({ k: "判定用词合规", ok: all(function(r){
+    return ["利多","利空","中性","待定","拉锯"].indexOf(r.verdict) >= 0;
+  }) });
+  return c;
 }
 
 /* ===== 存档：唯一的真实数据在 GitHub，浏览器不存业务数据 ===== */
@@ -9044,48 +9422,133 @@ function evBadge(e){
   return bits.join(" · ");
 }
 
+function evDiffCls(d){
+  return d === "超预期" ? "diff-up" : d === "不及预期" ? "diff-dn" : "";
+}
+function evVerdictCls(v){
+  return v === "利多" ? "v-bull" : v === "利空" ? "v-bear"
+       : (v === "待定" || v === "拉锯") ? "v-pend" : "v-neu";
+}
+function evRowHtml(r){
+  var d = new Date(r.t), now = Date.now();
+  var dt = (d.getMonth()+1) + "-" + pad(d.getDate()) + " " + hhmm(r.t);
+  var done = r.t <= now;
+  var st = r.stars >= 5 ? "★★★★★" : "★★★★";
+  /* 已过公布时间但没拿到公布值 → 「待核实」，不写「待公布」（那是还没到点） */
+  var avTxt = String(r.av || "").trim() || (done ? "待核实" : "待公布");
+  var pvTxt = String(r.pv || "").trim() || "—";
+  var fcTxt = String(r.fc || "").trim() || "—";
+  return '<div class="evrow' + (done ? " done" : "") + '" data-st="' + r.stars +
+      '" data-src="' + escapeHtml(r.src) + '" data-done="' + (done ? 1 : 0) +
+      '" data-v="' + escapeHtml(r.verdict) + '" data-diff="' + escapeHtml(r.diff) + '">' +
+    '<span class="c1" data-l="日期时间">' + dt + '</span>' +
+    '<span class="c2" data-l="国家/地区">' + escapeHtml(r.region) + '</span>' +
+    '<span class="c3" data-l="数据/事件">' + escapeHtml(r.name) + '</span>' +
+    '<span class="c4" data-l="星级">' + st + '</span>' +
+    '<span class="c5" data-l="前值">' + escapeHtml(pvTxt) + '</span>' +
+    '<span class="c6" data-l="预期">' + escapeHtml(fcTxt) + '</span>' +
+    '<span class="c7' + (r.av ? "" : " pend") + '" data-l="公布值">' + escapeHtml(avTxt) + '</span>' +
+    '<span class="c8 ' + evDiffCls(r.diff) + '" data-l="预期差">' + escapeHtml(r.diff) + '</span>' +
+    '<span class="c9 ' + evVerdictCls(r.verdict) + '" data-l="金银判定">' + escapeHtml(r.verdict) + '</span>' +
+    '<span class="c11" data-l="影响时段">' + escapeHtml(r.horizon) + '</span>' +
+    '<span class="c12" data-l="置信度">' + escapeHtml(r.conf) + '</span>' +
+    '<span class="c10" data-l="传导逻辑">' + escapeHtml(r.logic) + '</span>' +
+  '</div>';
+}
+
+/* Top3：星级优先，其次类别（通胀/央行/就业最影响利率路径），最后按时间近 */
+function evTop3Html(rows){
+  var W = { "通胀": 30, "央行": 28, "就业": 25, "地缘": 20, "增长": 15, "利率": 16, "汇率": 16 };
+  var pick = rows.slice().sort(function(a, b){
+    return (b.stars * 100 + (W[b.cat] || 6)) - (a.stars * 100 + (W[a.cat] || 6)) || a.t - b.t;
+  }).slice(0, 3);
+  var h = '<div class="evblk"><div class="h">本周最重要的 3 个事件 · 观察与预案（非投资建议）</div>';
+  pick.forEach(function(r, i){
+    var d = new Date(r.t);
+    var when = (d.getMonth()+1) + "月" + d.getDate() + "日 " + hhmm(r.t);
+    var watch = "预期 " + (r.fc || "—") + " / 前值 " + (r.pv || "—") +
+      "；" + (r.horizon === "中期" ? "中期变量，不追首日脉冲" : "短线冲击，重点看公布后 30 分钟");
+    var plan = r.diff === "待公布"
+      ? "超预期 → " + (r.cat === "通胀" || r.cat === "就业" || r.cat === "央行"
+          ? "紧缩预期升温，实际利率与美元同向走强则利空" : "按该链条方向处理") +
+        "；不及预期 → 反向。落地后看 10Y 与 DXY 是否同向确认，背离则降级为拉锯。"
+      : "已公布（" + r.diff + "）→ " + r.verdict + "；仍需 10Y 与 DXY 同向确认，背离则按拉锯处理。";
+    h += '<div class="it"><div class="t"><span class="sw">' + (i+1) + '</span>' +
+      escapeHtml(when + " · " + r.region + " · " + r.name) + '</div>' +
+      '<div class="d">观察：' + escapeHtml(watch) + '</div>' +
+      '<div class="d">预案：' + escapeHtml(plan) + '</div></div>';
+  });
+  return h + '</div>';
+}
+
+function evScenHtml(rows){
+  var pend = rows.filter(function(r){ return r.diff === "待公布"; });
+  var geo = rows.some(function(r){ return r.cat === "地缘"; });
+  var h = '<div class="evblk"><div class="h">双情景预案（非投资建议）</div>';
+  h += '<div class="it"><div class="t">情景 A · 数据整体强于预期</div><div class="d">' +
+    '紧缩预期升温 → 实际利率上行 + 美元走强 → 金银承压。' +
+    '观察顺序：10Y 收益率是否上破、DXY 是否同步走强；两者同向才算确认，只有一个动则按拉锯处理。</div></div>';
+  h += '<div class="it"><div class="t">情景 B · 数据整体弱于预期</div><div class="d">' +
+    '宽松预期升温 → 实际利率下行 → 金银受益。同样要 10Y 与 DXY 同向确认；' +
+    '若只有金价涨、实际利率没动，多半是避险或资金面驱动，持续性弱。</div></div>';
+  if(geo){
+    h += '<div class="it"><div class="t">交叉情景 · 数据与地缘同时发酵</div><div class="d">' +
+      '地缘升级的 B 链（油价上行 → 通胀黏性 → 降息后移 → 实际利率上行 → 利空黄金）权重更高；' +
+      'A 链避险脉冲只在事件突发首日占优，之后会被利率逻辑覆盖。</div></div>';
+  }
+  h += '<div class="d" style="font-size:11px;color:var(--tx3);line-height:1.6">' +
+    '待公布事件 ' + pend.length + ' 条，结论一律为「待定」+ 双情景，公布后才给单向判定。</div></div>';
+  return h;
+}
+
+function evCheckHtml(rows){
+  var ck = evCheck(rows);
+  var pass = ck.filter(function(x){ return x.ok; }).length;
+  var h = '<div class="evblk"><div class="h">自检清单 · ' + pass + '/' + ck.length + ' 通过</div><div class="evchk">';
+  ck.forEach(function(x){
+    h += '<div class="ck ' + (x.ok ? "ok" : "no") + '"><i>' + (x.ok ? "✓" : "✕") + '</i>' +
+      '<span>' + escapeHtml(x.k) + '</span></div>';
+  });
+  return h + '</div></div>';
+}
+
+function evNoteText(st){
+  var calSrc = st.src === "jin10"
+    ? "数据来自金十财经日历，中转每 20 分钟更新，含公布值。"
+    : (st.src === "ff"
+        ? "数据来自备源 ForexFactory 周历（每 6 小时更新），该源不提供公布值，公布后需等金十补。"
+        : "实时日历暂不可用，仅显示内置推算事件（FOMC / 非农）。");
+  return (st.txt ? st.txt + "。" : "") + calSrc +
+    "美联储日期取自官方日程，非农按「每月第一个周五」推算，推算项置信度已降级。" +
+    "4 星以上数据公布前多已计价，落地后常见反向修正（买预期卖事实）。" +
+    "只给数据、判定逻辑与情景预案，不构成投资建议。";
+}
+
 function renderEvents(){
-  var all = computeEvents(), now = Date.now();
-  var live = all.filter(function(e){ return e.ts > now; })
-                .sort(function(a,b){ return a.ts-b.ts || b.stars-a.stars; });
-  var past = all.filter(function(e){ return e.ts <= now; })
-                .sort(function(a,b){ return b.ts-a.ts; });
-  var list = live.slice(0,8).concat(past.slice(0,3));
-  if(!list.length){
-    $("evList").innerHTML='<div class="muted">未来没有高影响事件。</div>';
-    $("evMeta").textContent=""; $("evNote").textContent="";
+  var rows = evRows(), st = calState();
+  if(!rows.length){
+    $("evList").innerHTML = '<div class="muted">未来 7 天暂无 4 星以上事件。日历每 20 分钟刷新，新一周数据通常在周一补齐；FOMC 与非农按官方日程/惯例推算。</div>';
+    $("evTop3").innerHTML = ""; $("evScen").innerHTML = ""; $("evChk").innerHTML = "";
+    $("evMeta").textContent = "0 项";
+    $("evNote").textContent = evNoteText(st);
     return;
   }
-  var html="";
-  list.forEach(function(e){
-    var left = e.ts-now, done = left <= 0;
-    var hot = !done && left<3600000;
-    var lock = !done && left>=-1200000 && left<900000;
-    var cd = done ? "已公布"
-      : left<3600000 ? Math.round(left/60000)+"分"
-      : left<86400000 ? (left/3600000).toFixed(1)+"时"
-      : Math.round(left/86400000)+"天";
-    var d = new Date(e.ts);
-    var sub = evBadge(e) || e.note || "";
-    html += '<div class="ev'+(lock?" lock":"")+(done?" done":"")+'">' +
-      '<div class="cd'+(hot?" hot":"")+(done?" off":"")+'"><b class="num">'+cd+'</b><span>'+hhmm(e.ts)+'</span></div>' +
-      '<div class="info"><div class="n">'+escapeHtml(e.name)+'</div>' +
-      '<div class="m"><span class="stars">'+"★★★★★".slice(0,e.stars)+'</span> · '+
-        (d.getMonth()+1)+'月'+d.getDate()+'日'+(sub?' · '+escapeHtml(sub):'')+'</div></div>' +
-      '<span class="src">'+escapeHtml(e.src)+'</span></div>';
-  });
+  var head = '<div class="evt-head">' +
+    '<span>日期时间</span><span>国家/地区</span><span>数据/事件</span><span>星级</span>' +
+    '<span style="text-align:right">前值</span><span style="text-align:right">预期</span>' +
+    '<span style="text-align:right">公布值</span><span style="text-align:center">预期差</span>' +
+    '<span style="text-align:center">金银判定</span><span style="text-align:center">影响时段</span>' +
+    '<span style="text-align:center">置信度</span></div>';
+  var html = head;
+  rows.forEach(function(r){ html += evRowHtml(r); });
   $("evList").innerHTML = sanitizeHtml(html);
+  $("evTop3").innerHTML = sanitizeHtml(evTop3Html(rows));
+  $("evScen").innerHTML = sanitizeHtml(evScenHtml(rows));
+  $("evChk").innerHTML = sanitizeHtml(evCheckHtml(rows));
 
-  var st = calState();
-  $("evMeta").textContent = list.length + " 项" +
+  $("evMeta").textContent = rows.length + " 项 · 4★+ · 7天" +
     (st.live ? (st.src === "ff" ? " · 备源" : " · 实时") : "");
-  var calSrc = st.src === "jin10"
-    ? "其余指标来自金十财经日历（中转每 20 分钟更新）。"
-    : (st.src === "ff"
-        ? "其余指标来自备源 ForexFactory 周历（每 6 小时更新）。"
-        : "其余指标暂不可用。");
-  $("evNote").textContent = (st.txt ? st.txt + "。" : "") +
-    "美联储日期取自官方日程，非农按「每月第一个周五」推算；" + calSrc + "事件前后 15 分钟标黄，不自动改档。";
+  $("evNote").textContent = evNoteText(st);
 }
 function renderFeed(){
   var f = S.cfg.feed || [];
@@ -10456,6 +10919,15 @@ if(/[?&]xt=1/.test(location.search)){
     refreshPrice:refreshPrice,
     refreshTick:refreshTick,
     refreshData:refreshData,
+    /* 事件雷达 v7.5（4 星以上 + 预期差判定） */
+    evRows:evRows,
+    evJudge:evJudge,
+    evDiff:evDiff,
+    evNum:evNum,
+    evRegion:evRegion,
+    evRuleOf:evRuleOf,
+    evCheck:evCheck,
+    EV_RULES:EV_RULES,
     /* 金十中转（只剩日历）与 K 线降频 */
     jnState:function(){
       return { calAt:S.jn.calAt, calSrc:(S.cal&&S.cal.src)||"none" };

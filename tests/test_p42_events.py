@@ -56,7 +56,7 @@ def doc_live():
 
 def doc_mix():
     return doc([
-        ev(plus_min(-90), "美国工业产出月率", 3, fc="0.1%", pv="0.3%", en="Industrial Production m/m"),
+        ev(plus_min(-90), "美国工业产出月率", 4, fc="0.1%", pv="0.3%", en="Industrial Production m/m"),
         ev(today_2030(), TODAY_2030_NAME, 4, fc="1.2%", pv="0.4%", en="Pending Home Sales m/m"),
         ev(plus_min(45), "美国GDP季率", 4, fc="3.2%", pv="1.5%", en="Advance GDP q/q"),
         ev(plus_min(90), "美国核心PCE物价指数月率", 4, fc="0.3%", pv="0.2%",
@@ -76,14 +76,22 @@ def wait_cal(page, want=True):
 
 
 def items(page):
-    return page.evaluate("""() => [...document.querySelectorAll('#evList .ev')].map(e => ({
-        name: (e.querySelector('.n') || {}).textContent || '',
-        m: (e.querySelector('.m') || {}).textContent || '',
-        cd: (e.querySelector('.cd b') || {}).textContent || '',
-        time: (e.querySelector('.cd span') || {}).textContent || '',
-        src: (e.querySelector('.src') || {}).textContent || '',
-        stars: ((e.querySelector('.stars') || {}).textContent || '').length,
-        done: e.className.indexOf('done') >= 0,
+    """v7.5 起事件雷达从卡片改为「4 星以上判定表」，选择器随之迁移；
+    这里读的语义与旧版一一对应（名称/星级/时间/来源/是否已公布）。"""
+    return page.evaluate("""() => [...document.querySelectorAll('#evList .evrow')].map(e => ({
+        name: (e.querySelector('.c3') || {}).textContent || '',
+        region: (e.querySelector('.c2') || {}).textContent || '',
+        dt: (e.querySelector('.c1') || {}).textContent || '',
+        time: ((e.querySelector('.c1') || {}).textContent || '').slice(-5),
+        pv: (e.querySelector('.c5') || {}).textContent || '',
+        fc: (e.querySelector('.c6') || {}).textContent || '',
+        av: (e.querySelector('.c7') || {}).textContent || '',
+        diff: (e.querySelector('.c8') || {}).textContent || '',
+        verdict: (e.querySelector('.c9') || {}).textContent || '',
+        logic: (e.querySelector('.c10') || {}).textContent || '',
+        src: e.getAttribute('data-src') || '',
+        stars: +e.getAttribute('data-st'),
+        done: e.getAttribute('data-done') === '1',
     }))""")
 
 
@@ -101,30 +109,31 @@ def find(rows, kw):
 # ---------- 实时日历接入 ----------
 
 def test_ev1_all_events_rendered(make_env):
+    """4 星以上全部进表；3 星不进（v7.5 起「4 星优先」升级为「只留 ≥4 星」）。"""
     env = make_env(calendar=doc_live(), tz="Asia/Shanghai")
     page = env.page
     wait_cal(page)
     open_sig(page)
     rows = items(page)
-    for kw in ("GDP", "核心PCE", "初请失业金", "零售销售"):
+    for kw in ("GDP", "核心PCE", "初请失业金"):
         assert find(rows, kw), kw
+    assert not any("零售销售" in r["name"] for r in rows), "3 星事件不该出现在 4 星表里"
     # J4 起口径区分来源：金十主源标「实时」，ForexFactory 备源标「备源」。
     # 这条用例走的是 calendar.json（FF），所以看到的是备源标记。
     assert "备源" in txt(page, "#evMeta"), txt(page, "#evMeta")
     assert find(rows, "GDP")["src"] == "实时日历"
 
 
-def test_ev2_four_star_first(make_env):
+def test_ev2_only_four_star_sorted_by_time(make_env):
+    """只留 ≥4 星，且同星级按时间升序（先到的先看）。"""
     env = make_env(calendar=doc_live(), tz="Asia/Shanghai")
     page = env.page
     wait_cal(page)
     open_sig(page)
     rows = items(page)
-    top = rows[:2]
-    assert all(r["stars"] == 4 for r in top), [(r["name"], r["stars"]) for r in rows]
-    assert "GDP" in top[0]["name"] and "核心PCE" in top[1]["name"], top
-    # 后面的 3 星排在 4 星之后（同为未来时按时间）
-    assert rows[2]["stars"] == 4 and rows[3]["stars"] == 3, rows
+    assert rows and all(r["stars"] >= 4 for r in rows), [(r["name"], r["stars"]) for r in rows]
+    assert "GDP" in rows[0]["name"] and "核心PCE" in rows[1]["name"], rows
+    assert [r["dt"] for r in rows] == sorted(r["dt"] for r in rows), rows
 
 
 def test_ev3_local_timezone(make_env):
@@ -142,9 +151,9 @@ def test_ev4_forecast_previous(make_env):
     wait_cal(page)
     open_sig(page)
     r = find(items(page), "核心PCE")
-    assert "预期 0.3%" in r["m"], r["m"]
-    assert "前值 0.2%" in r["m"], r["m"]
-    assert "USD" in r["m"], r["m"]
+    assert r["fc"] == "0.3%", r
+    assert r["pv"] == "0.2%", r
+    assert r["region"] == "美国", r   # FF 只给 USD，要翻成地区
 
 
 # ---------- 降级 ----------
@@ -214,8 +223,8 @@ def test_ev9_narrow_no_overflow(make_env):
         open_sig(page)
         info = page.evaluate("""() => ({
             sw: document.documentElement.scrollWidth, iw: innerWidth,
-            over: [...document.querySelectorAll('#evList .ev')].map(e => e.scrollWidth - e.clientWidth),
-            nOver: [...document.querySelectorAll('#evList .n')].map(e => e.scrollWidth - e.clientWidth),
+            over: [...document.querySelectorAll('#evList .evrow')].map(e => e.scrollWidth - e.clientWidth),
+            nOver: [...document.querySelectorAll('#evList .c3')].map(e => e.scrollWidth - e.clientWidth),
         })""")
         assert info["sw"] <= info["iw"] + 1, (w, info)
         assert max(info["over"]) <= 1, (w, info["over"])
@@ -235,7 +244,9 @@ def test_ev10_past_event_marked(make_env):
     # -90 分钟那条任何时候跑都必然已公布
     past = find(rows, "工业产出")
     assert past["done"] is True, past
-    assert "已公布" in past["cd"], past
+    # 已过点但日历没给公布值 → 必须写「待核实」，不能拿前值顶替
+    assert past["av"] == "待核实", past
+    assert past["av"] != past["pv"] and past["av"] != past["fc"], past
     # 已公布的那条仍有名称与星级，不是空壳
     assert past["stars"] >= 2 and past["name"].strip()
     # 边界：「今天 20:30」那条的已公布状态必须与当前时刻一致
