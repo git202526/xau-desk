@@ -160,6 +160,10 @@ def fetch_year_daily(year, tries=2):
             for k in range(len(raw) // 24):
                 t, o, c, l, h, v = struct.unpack(">IIIIIf", raw[k * 24:(k + 1) * 24])
                 d = dt.datetime.fromtimestamp(base + t, UTC).date()
+                if d.weekday() >= 5:
+                    # 周六是休市填充根；周日 UTC 日只有开盘后那 2 小时，和 23 小时的
+                    # 交易日不可比（会把 ATR 拉低）。两者都不进日线序列。
+                    continue
                 out.append((day_start_ts(d), o, c, l, h, v))
             return out
         except Exception as e:                            # noqa: BLE001
