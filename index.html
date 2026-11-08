@@ -1858,6 +1858,13 @@ function applyXauDoc(doc, now){
 /* 返回 null 表示「本来源不可用」→ 上层退回 PAXG 分支，不抛异常 */
 function fetchXauKlines(force){
   var now = Date.now();
+  /* 回滚开关（计划书 §13）：置 1 即回到 v7.5 的 PAXG 链路，不用改代码 */
+  try{ if(localStorage.getItem("wb_v76_off") === "1"){ V76.src = "paxg"; return Promise.resolve(null); } }catch(e){}
+  /* 产物 30 分钟才更新一次，1 分钟内重复请求没有意义；文档里若本来就缺某个周期
+     （例如测试只给 1h），klDue 会一直为真，不做这个闸门就会每轮重下一次整包。 */
+  if(V76.doc && !force && now - V76.at < 60000){
+    return Promise.resolve({ got:0, skipped:PERIODS.length, failed:0, usable:PERIODS.length });
+  }
   if(!force && V76.doc && !PERIODS.some(function(p){ return klDue(p.key, now); })){
     return Promise.resolve({ got:0, skipped:PERIODS.length, failed:0, usable:PERIODS.length });
   }
@@ -1942,7 +1949,10 @@ function fetchPaxgKlines(force){
 /* 未收盘的 K 线用 PAXG 逐笔本地推进：不等下次全量，图上最后一根就能跟着动。
    只在"这根还没收盘"时改，收盘后一律以服务端真实 K 线为准（下次增量会覆盖）。 */
 function patchFormingBar(){
-  if(!S.paxg) return false;
+  /* 真实 XAU 模式下用现货价推进未收盘根；PAXG 代用时才用 PAXG 价（两者价差
+     在代用模式下正需要它来对齐）。用错源会把 $3–5 的价差塞进最后一根。 */
+  var px = (V76.src === "dukascopy" && S.price) ? S.price : S.paxg;
+  if(!px) return false;
   var changed = false;
   ["1h","4h","1d"].forEach(function(k){
     var bars = S.kl[k];
@@ -1951,13 +1961,18 @@ function patchFormingBar(){
     var pm = klPeriodMs(k);
     if(!pm) return;
     if(Date.now() - b.t >= pm) return;             // 已收盘，不本地改
-    if(S.paxg > b.h){ b.h = S.paxg; changed = true; }
-    if(S.paxg < b.l){ b.l = S.paxg; changed = true; }
-    if(b.c !== S.paxg){ b.c = S.paxg; changed = true; }
+    if(px > b.h){ b.h = px; changed = true; }
+    if(px < b.l){ b.l = px; changed = true; }
+    if(b.c !== px){ b.c = px; changed = true; }
   });
   return changed;
 }
 function applyScale(){
+  /* 真实 XAU 的 K 线本身就是现货价（BID 与 spot 差 0.02% 以内），不能再按
+     「现价 / 末根收盘」缩放——上游产物只要隔一个周末，这个比值就变成一个
+     真实涨跌幅（1–2%），会把整条历史等比抬走，通道 % 位与档距全部失真。
+     只有 PAXG 代用时才需要这个换算。 */
+  if(V76.src === "dukascopy"){ S.scale = 1; return; }
   if(!S.price) return;
   var h1 = S.kl["1h"];
   if(!h1 || !h1.length) return;
@@ -2092,7 +2107,7 @@ function v76GapsOf(bars, key){
     if(dt > step*1.6){
       var mid = d[i-1].t + dt/2;
       out.push({ i:i, from:d[i-1].t, to:d[i].t,
-                 hours:Math.round(dt/3600*10)/10,
+                 hours:Math.round(dt/3600000*10)/10,     // dt 是毫秒，除 3.6e6 才是小时
                  kind: marketOpenAt(mid).open ? "missing" : "session" });
     }
   }
@@ -7368,7 +7383,10 @@ function renderChart(){
   var meta = $("chMeta");
   if(meta) meta.textContent = label + " · " + win + " 根";
   var srcNote = $("klSrcNote");
-  if(srcNote) srcNote.textContent = (V76.src === "dukascopy") ? "" : "K线 PAXG 代用 · 非现货";
+  /* first paint 时 xau 还没回来，此时不能先写「PAXG 代用」（会闪一下又消失）；
+     只有真的失败过（V76.err）才标注降级。 */
+  if(srcNote) srcNote.textContent = (V76.src === "dukascopy") ? ""
+    : (V76.err ? "K线 PAXG 代用 · 非现货" : "");
   Array.prototype.forEach.call(document.querySelectorAll("#chChips button"), function(b){
     b.className = b.getAttribute("data-p") === k ? "on" : "";
   });
@@ -7396,12 +7414,19 @@ function renderChart(){
   var gps = v76GapsOf(d, k), gapAt = {}, extraTot = 0, extraPer = 0, gi;
   for(gi=0;gi<gps.length;gi++) gapAt[gps[gi].i] = gps[gi];
   if(gps.length){
-    extraTot = Math.min(plotW*0.3, gps.length*8);
-    extraPer = extraTot/gps.length;
+    /* 缺口留白按类型分档：每日结算停盘（≤12h）留 3px，周末/长缺口留 10px；
+       总量封顶绘图区 22%，否则 1 小时图上 8 个停盘口会吃掉三分之一宽度。 */
+    var raw = 0;
+    for(gi=0;gi<gps.length;gi++) raw += (gps[gi].hours >= 12 ? 10 : 3);
+    var cap = plotW*0.22, scaleGap = raw > cap ? cap/raw : 1;
+    for(gi=0;gi<gps.length;gi++){
+      gps[gi].px = (gps[gi].hours >= 12 ? 10 : 3) * scaleGap;
+      extraTot += gps[gi].px;
+    }
   }
   var step = (plotW - extraTot)/m, acc = 0, Xs = [];
   for(i=0;i<m;i++){
-    if(gapAt[i]) acc += extraPer;
+    if(gapAt[i]) acc += gapAt[i].px || 0;
     Xs[i] = padL + step*(i+0.5) + acc;
   }
   var X = function(j){ return Xs[j] || padL; };
