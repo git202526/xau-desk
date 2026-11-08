@@ -148,17 +148,38 @@ def aggregate(rows, period):
     return out
 
 
+def is_closed(ts):
+    """纽约时间：周六全天、周日 17:00 前、周五 17:00 后、每日 17:00–18:00 为闭市。"""
+    t = dt.datetime.fromtimestamp(ts, NY)
+    wd = t.weekday()                     # 0=周一
+    if wd == 5:
+        return True
+    if wd == 6 and t.hour < 17:
+        return True
+    if wd == 4 and t.hour >= 17:
+        return True
+    return t.hour == 17
+
+
 def gaps_of(bars, period):
-    if period == "1d":
-        step = 86400
-    else:
-        step = PERIOD_SEC[period]
+    """返回需要断开的位置。
+
+    kind=session：中间点落在休市区间（周末、每日结算停盘），属正常；
+    kind=missing：中间点落在开市时间，说明数据缺失，要报警。
+
+    不加这个区分的话，150 天里 105 个 gap 全部混在一起，
+    真正的缺日（如 9-29）会被 21 个周末和 84 个每日停盘淹没。
+    """
+    step = 86400 if period == "1d" else PERIOD_SEC[period]
     out = []
     for i in range(1, len(bars)):
         dt_sec = (bars[i][0] - bars[i - 1][0]) / 1000.0
-        if dt_sec > step * 1.6:
-            out.append({"i": i, "from": bars[i - 1][0], "to": bars[i][0],
-                        "hours": round(dt_sec / 3600.0, 1)})
+        if dt_sec <= step * 1.6:
+            continue
+        mid = (bars[i - 1][0] + bars[i][0]) / 2000.0
+        out.append({"i": i, "from": bars[i - 1][0], "to": bars[i][0],
+                    "hours": round(dt_sec / 3600.0, 1),
+                    "kind": "session" if is_closed(mid) else "missing"})
     return out
 
 
@@ -262,6 +283,7 @@ def main():
         kl[per] = bars
         gp = gaps_of(bars, per)
         stats[per] = {"bars": len(bars), "gaps": len(gp),
+                      "missing": sum(1 for g in gp if g["kind"] == "missing"),
                       "first": bars[0][0] if bars else None,
                       "last": bars[-1][0] if bars else None}
 
