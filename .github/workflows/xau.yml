@@ -1,0 +1,57 @@
+name: xau klines
+
+# 抓 Dukascopy 的 XAU/USD 分钟线，清洗聚合后落 xau/klines.json。
+#
+# 为什么是 15 分钟：分钟线本身 1 分钟一根，但日线/4H 都不需要更密；
+# 每次运行只抓最近 4 天（覆盖当天 + 前一交易日），首次回填用 workflow_dispatch 手动跑 --days 100。
+#
+# 为什么串行：实测并发请求有 3/7 返回空，串行 + 0.2s 间隔稳定。
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "回填天数（首次填 100）"
+        required: false
+        default: "4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: xau-klines
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 抓取并聚合
+        run: |
+          DAYS="${{ github.event.inputs.days }}"
+          if [ -z "$DAYS" ]; then DAYS=4; fi
+          python3 tools/fetch_xau.py --days "$DAYS"
+
+      - name: 回写产物
+        run: |
+          git config user.name  "xau-klines-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add xau/klines.json
+          if git diff --cached --quiet; then
+            echo "无变化"
+            exit 0
+          fi
+          git commit -m "chore: xau klines $(date -u +'%m-%d %H:%M')"
+          for i in 1 2 3; do
+            if git push; then echo "push ok"; break; fi
+            git pull --rebase --autostash || true
+          done
