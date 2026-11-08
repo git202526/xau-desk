@@ -128,6 +128,58 @@ def week_start_ts(ts):
     return int(dt.datetime(mon.year, mon.month, mon.day, tzinfo=UTC).timestamp())
 
 
+BASE_DAY = "https://datafeed.dukascopy.com/datafeed/XAUUSD/{y}/BID_candles_day_1.bi5"
+
+
+def fetch_year_daily(year, tries=2):
+    """年度日线文件：1 个请求换一整年（实测 2024 → 366 条，价格 2062 与真实金价吻合）。
+
+    这是唯一低成本的深度来源：逐日抓分钟线回填 500 天会被源限流（503）并在
+    40 分钟超时；年文件 3 个请求就够 3 年，周线 60 根预热与 800 根回测同时满足。
+
+    时区口径：文件里的 time 是「当年第几天 × 86400」，落到 UTC 零点。为了让 1d
+    全序列同一口径（纽约 17:00 换日），这里直接换成当天纽约 17:00 的时间戳。
+    """
+    url = BASE_DAY.format(y=year)
+    base = int(dt.datetime(year, 1, 1, tzinfo=UTC).timestamp())
+    last = None
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                if r.status in (403, 404):
+                    return []
+                body = r.read()
+            if not body:
+                return []
+            try:
+                raw = lzma.decompress(body)
+            except lzma.LZMAError:
+                raw = lzma.decompress(body, format=lzma.FORMAT_ALONE)
+            out = []
+            for k in range(len(raw) // 24):
+                t, o, c, l, h, v = struct.unpack(">IIIIIf", raw[k * 24:(k + 1) * 24])
+                d = dt.datetime.fromtimestamp(base + t, UTC).date()
+                out.append((day_start_ts(d), o, c, l, h, v))
+            return out
+        except Exception as e:                            # noqa: BLE001
+            last = e
+            if i < tries - 1:
+                time.sleep(2 + 3 * i)
+    log("  ! 年度日线 %d 失败：%s" % (year, type(last).__name__))
+    return []
+
+
+def bars_to_rows(bars):
+    """[[t_ms, "o","h","l","c","v"]] → aggregate() 要的 (ts, o, c, l, h, v) 元组。"""
+    out = []
+    for b in bars:
+        out.append((int(b[0]) // 1000, int(round(float(b[1]) * 1000)),
+                    int(round(float(b[4]) * 1000)), int(round(float(b[3]) * 1000)),
+                    int(round(float(b[2]) * 1000)), float(b[5])))
+    return out
+
+
 def aggregate(rows, period):
     """rows 已清洗；返回 Binance 数组格式 [[t_ms, "o","h","l","c","v"], ...]。"""
     buckets = {}
@@ -286,12 +338,39 @@ def main():
 
     rows.sort()
     kl, stats = {}, {}
-    for per in ("1h", "4h", "1d", "1w"):
+
+    # 1h / 4h 只从分钟线聚合（深历史用不到分钟级，也不需要）
+    for per in ("1h", "4h"):
         bars = aggregate(rows, per)
         if old.get(per):
             bars = merge_old(old[per], bars)
         bars = bars[-KEEP[per]:]
         kl[per] = bars
+
+    # 日线：本窗口分钟聚合 + 年度日线文件（3 个请求换 3 年，周线与回测靠它）
+    daily = aggregate(rows, "1d")
+    hist = []
+    for y in (today.year - 2, today.year - 1, today.year):
+        got = fetch_year_daily(y)
+        if got:
+            c, _s, _d = clean(got)
+            hist.extend(c)
+            log("  年度日线 %d：%d 条（清洗后 %d）" % (y, len(got), len(c)))
+    if hist:
+        hist_bars = aggregate(hist, "1d")
+        daily = merge_old(hist_bars, daily)          # 同 t 以分钟聚合为准（更细）
+    if old.get("1d"):
+        daily = merge_old(old["1d"], daily)
+    kl["1d"] = daily[-KEEP["1d"]:]
+
+    # 周线从日线聚合：单一来源、口径一致，避免「周线来自 7 天连续桶」的错位
+    weekly = aggregate(bars_to_rows(kl["1d"]), "1w")
+    if old.get("1w"):
+        weekly = merge_old(old["1w"], weekly)
+    kl["1w"] = weekly[-KEEP["1w"]:]
+
+    for per in ("1h", "4h", "1d", "1w"):
+        bars = kl[per]
         gp = gaps_of(bars, per)
         stats[per] = {"bars": len(bars), "gaps": len(gp),
                       "missing": sum(1 for g in gp if g["kind"] == "missing"),
