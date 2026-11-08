@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - "tools/probe_xau.py"
+      - "tools/probe_xau2.py"
       - ".github/workflows/probe-xau.yml"
   workflow_dispatch:
 
@@ -31,6 +32,8 @@ jobs:
 
       - name: 探测各源
         run: python3 tools/probe_xau.py
+      - name: 第二轮
+        run: python3 tools/probe_xau2.py
 
       - name: 回写结果
         run: |
