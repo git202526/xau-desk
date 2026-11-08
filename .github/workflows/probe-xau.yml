@@ -1,13 +1,15 @@
 name: probe xau sources
 
-# 一次性探测：沙箱出口对 Yahoo / Stooq / Dukascopy 全部超时，不能据此判定数据源不可用。
-# 本工作流在 runner 的正常公网下逐个试，结果写 xau/probe.json，供选源决策使用。
-# 触发方式：推送本文件或 tools/probe_xau.py 即自动跑一次（也可手动 dispatch）。
+# 一次性探测：沙箱出口对 Yahoo / Stooq / Dukascopy 全不可达，不能据此判定源不可用。
+# 本工作流在 runner 的正常公网下逐个试，结果写 xau/*.json，供选源决策使用。
+# 触发方式：推送本文件或 tools/probe_xau*.py 即自动跑一次（也可手动 dispatch）。
 
 on:
   push:
     paths:
       - "tools/probe_xau.py"
+      - "tools/probe_xau2.py"
+      - "tools/probe_xau3.py"
       - ".github/workflows/probe-xau.yml"
   workflow_dispatch:
 
@@ -21,7 +23,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -29,8 +31,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 探测各源
-        run: python3 tools/probe_xau.py
+      - name: 第三轮（Dukascopy 周期与休市）
+        run: python3 tools/probe_xau3.py
 
       - name: 回写结果
         run: |
