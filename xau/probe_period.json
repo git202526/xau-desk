@@ -1,0 +1,68 @@
+{
+ "at": "2026-11-08T18:21:36Z",
+ "sources": {
+  "XAUUSD/2025/BID_candles_day_1.bi5": {
+   "path": "XAUUSD/2025/BID_candles_day_1.bi5",
+   "status": null,
+   "bytes": 0,
+   "records": 0,
+   "error": "TimeoutError"
+  },
+  "XAUUSD/2024/BID_candles_day_1.bi5": {
+   "path": "XAUUSD/2024/BID_candles_day_1.bi5",
+   "status": 200,
+   "bytes": 5527,
+   "records": 366,
+   "error": "",
+   "head": [
+    [
+     0,
+     2062598,
+     2063615,
+     2062405,
+     2066595,
+     0.47
+    ],
+    [
+     86400,
+     2063625,
+     2059455,
+     2055818,
+     2078825,
+     28.26
+    ]
+   ],
+   "tail": [
+    [
+     31536000,
+     2606504,
+     2624255,
+     2602475,
+     2627364,
+     46.83
+    ]
+   ]
+  },
+  "XAUUSD/2026/07/BID_candles_hour_1.bi5": {
+   "path": "XAUUSD/2026/07/BID_candles_hour_1.bi5",
+   "status": 503,
+   "bytes": 0,
+   "records": 0,
+   "error": "http 503"
+  },
+  "XAUUSD/2026/07/BID_candles_day_1.bi5": {
+   "path": "XAUUSD/2026/07/BID_candles_day_1.bi5",
+   "status": 503,
+   "bytes": 0,
+   "records": 0,
+   "error": "http 503"
+  },
+  "XAUUSD/2026/07/BID_candles_week_1.bi5": {
+   "path": "XAUUSD/2026/07/BID_candles_week_1.bi5",
+   "status": 404,
+   "bytes": 0,
+   "records": 0,
+   "error": "http 404"
+  }
+ }
+}
