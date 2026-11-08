@@ -235,7 +235,9 @@ def gaps_of(bars, period):
     不加这个区分的话，150 天里 105 个 gap 全部混在一起，
     真正的缺日（如 9-29）会被 21 个周末和 84 个每日停盘淹没。
     """
-    step = {"1d": 86400, "1w": 7 * 86400}.get(period) or PERIOD_SEC[period]
+    # 日线按交易日连续性判：周五→周一差 3 天是常态，用 1.6 天阈值会把每个周末
+    # 都算成缺口（实测 523 根里 105 个「缺口」全是周末）。4 天起才算真缺。
+    step = {"1d": 4 * 86400, "1w": 7 * 86400}.get(period) or PERIOD_SEC[period]
     out = []
     for i in range(1, len(bars)):
         dt_sec = (bars[i][0] - bars[i - 1][0]) / 1000.0
