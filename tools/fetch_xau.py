@@ -39,7 +39,7 @@ UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
 NY = ZoneInfo("America/New_York")
 UTC = dt.timezone.utc
 
-KEEP = {"1h": 2600, "4h": 700, "1d": 100}      # 通道 90 根 + 回测 800 根的余量
+KEEP = {"1h": 2600, "4h": 700, "1d": 1100, "1w": 220}   # 通道 90 根 + 回测 800 根 + 周线 60 根预热的余量
 PERIOD_SEC = {"1h": 3600, "4h": 14400}
 
 
@@ -121,12 +121,21 @@ def day_start_ts(d):
     return int(dt.datetime(d.year, d.month, d.day, 17, 0, tzinfo=NY).timestamp())
 
 
+def week_start_ts(ts):
+    """周线桶：UTC 周一 00:00。用周一而不是周日，与 utcWeekKey() 前端判据同源。"""
+    t = dt.datetime.fromtimestamp(ts, UTC)
+    mon = t - dt.timedelta(days=t.weekday())
+    return int(dt.datetime(mon.year, mon.month, mon.day, tzinfo=UTC).timestamp())
+
+
 def aggregate(rows, period):
     """rows 已清洗；返回 Binance 数组格式 [[t_ms, "o","h","l","c","v"], ...]。"""
     buckets = {}
     for ts, o, c, l, h, v in rows:
         if period == "1d":
             key = day_start_ts(trade_date(ts))
+        elif period == "1w":
+            key = week_start_ts(ts)
         else:
             sec = PERIOD_SEC[period]
             key = ts - ts % sec
@@ -170,7 +179,7 @@ def gaps_of(bars, period):
     不加这个区分的话，150 天里 105 个 gap 全部混在一起，
     真正的缺日（如 9-29）会被 21 个周末和 84 个每日停盘淹没。
     """
-    step = 86400 if period == "1d" else PERIOD_SEC[period]
+    step = {"1d": 86400, "1w": 7 * 86400}.get(period) or PERIOD_SEC[period]
     out = []
     for i in range(1, len(bars)):
         dt_sec = (bars[i][0] - bars[i - 1][0]) / 1000.0
@@ -277,7 +286,7 @@ def main():
 
     rows.sort()
     kl, stats = {}, {}
-    for per in ("1h", "4h", "1d"):
+    for per in ("1h", "4h", "1d", "1w"):
         bars = aggregate(rows, per)
         if old.get(per):
             bars = merge_old(old[per], bars)
@@ -307,7 +316,7 @@ def main():
         "src": "dukascopy",
         "symbol": "XAUUSD",
         "price_type": "bid",
-        "agg": {"1h": "utc_hour", "4h": "utc_4h",
+        "agg": {"1h": "utc_hour", "4h": "utc_4h", "1w": "utc_week_mon",
                 "1d": "ny_17_00", "1d_tz": "America/New_York"},
         "window": win,
         "sanitized": {"synthetic": syn_total, "dup": dup_total},
