@@ -368,7 +368,15 @@ def main():
     if hist:
         hist_bars = aggregate(hist, "1d")
         daily = merge_old(hist_bars, daily)          # 同 t 以分钟聚合为准（更细）
-    if old.get("1d") and not rebuild_daily:
+    if rebuild_daily:
+        # 只保留「本窗口内」的旧日线：它们来自分钟聚合，会被本次重算覆盖；
+        # 窗口外的旧日线若也保留，会把本次剔除掉的根（如周日短根）又带回来。
+        # 不能直接丢掉全部旧日线——用 --days 4 重建时会把 150 天的分钟聚合日线一起扔掉，
+        # 日线中间断 308 天，通道直接算飞（实测 mid 4423 vs 现价 4072）。
+        win_ms = int(dt.datetime.combine(min(days), dt.time(0, 0), tzinfo=UTC).timestamp() * 1000) if days else 0
+        keep = [b for b in (old.get("1d") or []) if b[0] >= win_ms]
+        daily = merge_old(keep, daily)
+    elif old.get("1d"):
         daily = merge_old(old["1d"], daily)
     kl["1d"] = daily[-KEEP["1d"]:]
 
