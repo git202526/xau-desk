@@ -1,10 +1,10 @@
 {
- "at": "2026-11-08T14:26:32Z",
+ "at": "2026-11-08T14:32:09Z",
  "sources": {
   "yahoo_xauusd_1h": {
    "url": "https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1mo&interval=1h&includePrePost=false",
    "status": 429,
-   "ms": 80,
+   "ms": 111,
    "bytes": 0,
    "error": "http_429",
    "snippet": ""
@@ -12,7 +12,7 @@
   "yahoo_xauusd_1d": {
    "url": "https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=5y&interval=1d&includePrePost=false",
    "status": 429,
-   "ms": 43,
+   "ms": 65,
    "bytes": 0,
    "error": "http_429",
    "snippet": ""
@@ -20,47 +20,29 @@
   "yahoo_gcf_1h": {
    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?range=1mo&interval=1h&includePrePost=false",
    "status": 429,
-   "ms": 44,
+   "ms": 99,
    "bytes": 0,
    "error": "http_429",
    "snippet": ""
   },
   "stooq_xauusd_d": {
    "url": "https://stooq.com/q/d/l/?s=xauusd&i=d",
-   "status": 200,
-   "ms": 703,
-   "bytes": 796,
-   "error": "",
-   "rows": 2,
-   "head": [
-    "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"robots\" content=\"noindex,nofollow\"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript and reload.</noscript><script nonce=\"DB51bFascINQxcVaO4Yt-w\">",
-    "(async()=>{const c=\"AAAAAGrwhpk7-xnK68hC8q1ZEjH-2apFBJvdcjpLrpCK7lmsnW0esz8Gn3o\",d=4,t=\"0\".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest(\"SHA-256\",e.encode(c+n)),x=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,\"0\")).join(\"\");if(x.startsWith(t))break;n++}const r=await fetch(\"/__verify\",{method:\"POST\",headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},body:\"c=\"+encodeURIComponent(c)+\"&n=\"+n,credentials:\"same-origin\"});if(r.ok)location.reload()})();"
-   ],
-   "tail": [
-    "(async()=>{const c=\"AAAAAGrwhpk7-xnK68hC8q1ZEjH-2apFBJvdcjpLrpCK7lmsnW0esz8Gn3o\",d=4,t=\"0\".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest(\"SHA-256\",e.encode(c+n)),x=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,\"0\")).join(\"\");if(x.startsWith(t))break;n++}const r=await fetch(\"/__verify\",{method:\"POST\",headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},body:\"c=\"+encodeURIComponent(c)+\"&n=\"+n,credentials:\"same-origin\"});if(r.ok)location.reload()})();",
-    "</script></body></html>"
-   ]
+   "status": 0,
+   "ms": 50233,
+   "bytes": 0,
+   "error": "URLError: <urlopen error timed out>"
   },
   "stooq_xauusd_h": {
    "url": "https://stooq.com/q/d/l/?s=xauusd&i=h",
-   "status": 200,
-   "ms": 653,
-   "bytes": 796,
-   "error": "",
-   "rows": 2,
-   "head": [
-    "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"robots\" content=\"noindex,nofollow\"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript and reload.</noscript><script nonce=\"-G9UPFYX1iBj20N9GjEcGQ\">",
-    "(async()=>{const c=\"AAAAAGrwhpkp6D4ZZInPaCz_wTN1zSiLBJvdcliF9m1YT8d_N8K0L3MBwAQ\",d=4,t=\"0\".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest(\"SHA-256\",e.encode(c+n)),x=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,\"0\")).join(\"\");if(x.startsWith(t))break;n++}const r=await fetch(\"/__verify\",{method:\"POST\",headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},body:\"c=\"+encodeURIComponent(c)+\"&n=\"+n,credentials:\"same-origin\"});if(r.ok)location.reload()})();"
-   ],
-   "tail": [
-    "(async()=>{const c=\"AAAAAGrwhpkp6D4ZZInPaCz_wTN1zSiLBJvdcliF9m1YT8d_N8K0L3MBwAQ\",d=4,t=\"0\".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest(\"SHA-256\",e.encode(c+n)),x=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,\"0\")).join(\"\");if(x.startsWith(t))break;n++}const r=await fetch(\"/__verify\",{method:\"POST\",headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},body:\"c=\"+encodeURIComponent(c)+\"&n=\"+n,credentials:\"same-origin\"});if(r.ok)location.reload()})();",
-    "</script></body></html>"
-   ]
+   "status": 0,
+   "ms": 50250,
+   "bytes": 0,
+   "error": "URLError: <urlopen error timed out>"
   },
   "dukascopy_1h": {
    "url": "https://freeserv.dukascopy.com/2.0/index.php?path=chart/json3&instrument=XAU/USD&offer_side=B&interval=1HOUR&splits=true&stocks=true&time_direction=P",
    "status": 200,
-   "ms": 664,
+   "ms": 467,
    "bytes": 28,
    "error": "",
    "snippet": "_callbacks____error([null]);"
@@ -68,8 +50,8 @@
   "gold_api_spot": {
    "url": "https://api.gold-api.com/price/XAU",
    "status": 200,
-   "ms": 216,
-   "body": "{\"currency\":\"USD\",\"currencySymbol\":\"$\",\"exchangeRate\":1.0,\"name\":\"Gold\",\"price\":4072.100098,\"symbol\":\"XAU\",\"updatedAt\":\"2026-11-08T14:26:22Z\",\"updatedAtReadable\":\"a few seconds ago\"}",
+   "ms": 286,
+   "body": "{\"currency\":\"USD\",\"currencySymbol\":\"$\",\"exchangeRate\":1.0,\"name\":\"Gold\",\"price\":4072.100098,\"symbol\":\"XAU\",\"updatedAt\":\"2026-11-08T14:33:22Z\",\"updatedAtReadable\":\"a few seconds ago\"}",
    "error": ""
   }
  }
