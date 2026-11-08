@@ -76,14 +76,19 @@ def fetch_day(day, tries=4):
                 out.append((base + t, o, c, l, h, v))
             return out
         except urllib.error.HTTPError as e:
-            if e.code == 404:
-                return []                       # 当天无文件 = 休市，不重试
+            if e.code in (403, 404):
+                # 周末/节假日没有文件时，Dukascopy 返回 403 而不是 404（实测）：
+                # 只认 404 会把每个周末当网络故障重试 6 次，20 分钟全耗在必然失败上。
+                return []
             last = e
         except Exception as e:  # noqa: BLE001
             last = e
         if i < tries - 1:
-                time.sleep(1 + 2 * i)
-    log("  ! %s 失败：%s" % (day, type(last).__name__))
+            time.sleep(1 + 2 * i)
+    if isinstance(last, urllib.error.HTTPError):
+        log("  ! %s 失败：HTTP %s" % (day, last.code))
+    else:
+        log("  ! %s 失败：%s" % (day, type(last).__name__))
     return None
 
 
