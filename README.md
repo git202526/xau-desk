@@ -106,14 +106,20 @@ python3 -m pytest tests/test_p18_review.py -q    # 单个文件
 | 用途 | 接口 | 说明 |
 |---|---|---|
 | 实时价 | `api.gold-api.com/price/XAU` | XAU/USD 现货，15 秒刷新 |
-| K 线 | `data-api.binance.vision/api/v3/klines` | PAXG/USDT，周 220 / 日 800 / 4H 750 / 1H 1000 根 |
+| K 线（主） | `xau/klines.json`（Actions 抓 Dukascopy） | 真实 XAU/USD：1h 2424 / 4h 654 / 1d 523 / 1w 106 根，15 分钟更新 |
+| K 线（降级） | `data-api.binance.vision/api/v3/klines` | PAXG/USDT，仅在 `xau/klines.json` 不可用时启用，页头会标注「PAXG 代用」 |
 | 汇率 | `open.er-api.com/v6/latest/USD` | 仅用于持仓成本折算，不参与行情点位计算 |
 
-两者都是公开接口，允许跨域，无需 key。
+**K 线为什么走 Actions 中转**：`datafeed.dukascopy.com` 无 CORS，浏览器直连必失败，沙箱出口也不通。
+`.github/workflows/xau.yml` 每 15 分钟抓最近 4 天的 `BID_candles_min_1.bi5`，清洗、聚合后落 `xau/klines.json`；
+日线深度来自年度文件 `XAUUSD/{Y}/BID_candles_day_1.bi5`（1 个请求 = 1 年）。
+清洗规则：剔除 `v=0` 且四价相等的休市填充根（实测累计 66214 根），周六/周日不入日线（周日那根只有开盘后 2 小时，与 23 小时交易日不可比）。
 
-**关于 PAXG**：它是 1:1 锚定实物黄金的代币，与伦敦金现货基差通常在 0.05%–0.3%。页面每次刷新会按 `XAU现价 ÷ PAXG最新收盘` 计算基差系数，把所有 K 线等比缩放到 XAU 口径，因此指标与点位都落在伦敦金价格上。
+**休市判定**：按纽约时区——周五 17:00 收盘、周日 17:00 开盘、周一至周四 17:00–18:00 每日结算停盘。
+停盘只冻结箱体触碰计数，不清空图形；缺口分 `session`（正常休市）/ `missing`（真实缺数据）。
+通道图在断点处留白、通道带按段绘制，周五收盘不会用一条线连到周一开盘。
 
-**已知偏差**：日线按 UTC 00:00 切分，与美东 17:00 收盘口径差 5–6 小时，跨美盘尾段的结构判断可能略有差异。
+**回滚**：`localStorage.wb_v76_off = "1"` 立即回到 v7.5 的 PAXG 链路。
 
 ## 事件日历
 
