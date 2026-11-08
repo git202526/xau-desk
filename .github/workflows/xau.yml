@@ -21,6 +21,10 @@ on:
         description: "只补上次失败的日期（1=是）"
         required: false
         default: "0"
+      rebuild:
+        description: "重建日线/周线（1=是，口径变更后跑一次）"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
@@ -45,8 +49,11 @@ jobs:
           DAYS="${{ github.event.inputs.days }}"
           RETRY="${{ github.event.inputs.retry }}"
           if [ -z "$DAYS" ]; then DAYS=4; fi
+          REBUILD="${{ github.event.inputs.rebuild }}"
           if [ "$RETRY" = "1" ]; then
             python3 tools/fetch_xau.py --retry-failed
+          elif [ "$REBUILD" = "1" ]; then
+            python3 tools/fetch_xau.py --days "$DAYS" --rebuild-daily
           else
             python3 tools/fetch_xau.py --days "$DAYS"
           fi
