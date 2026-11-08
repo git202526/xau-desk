@@ -260,10 +260,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=4, help="回填天数（默认 4）")
     ap.add_argument("--force", action="store_true", help="忽略已有文件")
+    ap.add_argument("--rebuild-daily", action="store_true",
+                    help="用年度日线重建 1d/1w（不动 1h/4h）；口径变更后跑一次")
     ap.add_argument("--retry-failed", action="store_true",
                     help="只补旧文件 window.failed 里记录的日期")
     args = ap.parse_args()
 
+    rebuild_daily = bool(getattr(args, "rebuild_daily", False))
     today = dt.datetime.now(UTC).date()
     start = today - dt.timedelta(days=max(1, args.days) - 1)
 
@@ -363,13 +366,13 @@ def main():
     if hist:
         hist_bars = aggregate(hist, "1d")
         daily = merge_old(hist_bars, daily)          # 同 t 以分钟聚合为准（更细）
-    if old.get("1d"):
+    if old.get("1d") and not rebuild_daily:
         daily = merge_old(old["1d"], daily)
     kl["1d"] = daily[-KEEP["1d"]:]
 
     # 周线从日线聚合：单一来源、口径一致，避免「周线来自 7 天连续桶」的错位
     weekly = aggregate(bars_to_rows(kl["1d"]), "1w")
-    if old.get("1w"):
+    if old.get("1w") and not rebuild_daily:
         weekly = merge_old(old["1w"], weekly)
     kl["1w"] = weekly[-KEEP["1w"]:]
 
