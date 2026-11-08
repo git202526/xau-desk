@@ -2,10 +2,11 @@ name: xau klines
 
 # 抓 Dukascopy 的 XAU/USD 分钟线，清洗聚合后落 xau/klines.json。
 #
-# 为什么是 15 分钟：分钟线本身 1 分钟一根，但日线/4H 都不需要更密；
-# 每次运行只抓最近 4 天（覆盖当天 + 前一交易日），首次回填用 workflow_dispatch 手动跑 --days 100。
+# 为什么是 15 分钟：日线/4H 都不需要更密；每次只抓最近 4 天（覆盖当天 + 前一交易日）。
+# 首次回填用 workflow_dispatch 手动跑 days=100，跑完若 window.failed 非空，再跑一次 retry=1。
 #
-# 为什么串行：实测并发请求有 3/7 返回空，串行 + 0.2s 间隔稳定。
+# 为什么并发 4 + 补漏轮：实测 Dukascopy 对 Azure 出口有抖动，100 天首轮 46 天失败；
+# 只并发不补漏会把缺日变成图上的「假断层」，与真实周末缺口混在一起。
 
 on:
   schedule:
@@ -13,9 +14,13 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: "回填天数（首次填 100）"
+        description: "回填天数（首次填 100，日常填 4）"
         required: false
         default: "4"
+      retry:
+        description: "只补上次失败的日期（1=是）"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
@@ -27,7 +32,7 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -38,8 +43,13 @@ jobs:
       - name: 抓取并聚合
         run: |
           DAYS="${{ github.event.inputs.days }}"
+          RETRY="${{ github.event.inputs.retry }}"
           if [ -z "$DAYS" ]; then DAYS=4; fi
-          python3 tools/fetch_xau.py --days "$DAYS"
+          if [ "$RETRY" = "1" ]; then
+            python3 tools/fetch_xau.py --retry-failed
+          else
+            python3 tools/fetch_xau.py --days "$DAYS"
+          fi
 
       - name: 回写产物
         run: |
