@@ -204,11 +204,13 @@ def main():
 
     old = {}
     old_failed = []
+    old_window = {}
     if os.path.exists(OUT) and not args.force:
         try:
             prev = json.load(open(OUT, encoding="utf-8"))
             old = prev.get("kl", {})
-            old_failed = (prev.get("window") or {}).get("failed") or []
+            old_window = prev.get("window") or {}
+            old_failed = old_window.get("failed") or []
             log("已有 %s，做增量合并" % OUT)
         except Exception:  # noqa: BLE001
             old = {}
@@ -287,6 +289,19 @@ def main():
                       "first": bars[0][0] if bars else None,
                       "last": bars[-1][0] if bars else None}
 
+    if args.retry_failed and old_window:
+        # 补漏只跑几天，不能把 150 天的统计覆盖成「2 天成功」——
+        # 那会让 window 看起来像刚建库，也看不出历史回填是否完整。
+        win = dict(old_window)
+        win["failed"] = failed[:20]
+        win["failed_n"] = len(failed)
+        win["retried_at"] = dt.datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        win = {"from": str(min(days) if days else start),
+               "to": str(max(days) if days else today),
+               "days_ok": days_ok, "days_empty": days_empty,
+               "failed_n": len(failed), "failed": failed[:20]}
+
     doc = {
         "updated": int(time.time() * 1000),
         "src": "dukascopy",
@@ -294,10 +309,7 @@ def main():
         "price_type": "bid",
         "agg": {"1h": "utc_hour", "4h": "utc_4h",
                 "1d": "ny_17_00", "1d_tz": "America/New_York"},
-        "window": {"from": str(min(days) if days else start),
-                   "to": str(max(days) if days else today),
-                   "days_ok": days_ok, "days_empty": days_empty,
-                   "failed_n": len(failed), "failed": failed[:20]},
+        "window": win,
         "sanitized": {"synthetic": syn_total, "dup": dup_total},
         "stats": stats,
         "gaps": {p: gaps_of(kl[p], p) for p in kl},
