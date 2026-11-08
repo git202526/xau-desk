@@ -140,7 +140,7 @@ def make_env(browser):
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
-              hash_="", bars=None, calendar=None, tz=None, jn=None):
+              hash_="", bars=None, calendar=None, tz=None, jn=None, xau=None):
         opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -175,6 +175,17 @@ def make_env(browser):
                           body=json.dumps(data))
 
         page.route("**/data-api.binance.vision/**", kline)
+
+        # v7.6：真实 XAU 数据源默认 404 → 页面自动降级 PAXG，保持既有用例行为不变。
+        # 传 dict 时按 xau/klines.json 结构返回，供 T100/T101/T102/T112 使用。
+        def xau_route(route):
+            if xau is None:
+                route.fulfill(status=404, content_type="application/json",
+                              body=json.dumps({"message": "Not Found"}))
+            else:
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps(xau))
+        page.route("**/xau/klines.json*", xau_route)
         page.route("**/open.er-api.com/**", lambda r: r.fulfill(
             status=200, content_type="application/json",
             body=json.dumps({"result": "success", "rates": {"CNY": FX_CNY}})))
