@@ -47,7 +47,7 @@ def log(*a):
     print(*a, file=sys.stderr)
 
 
-def fetch_day(day, tries=3):
+def fetch_day(day, tries=4):
     """返回 [(ts, o, c, l, h, v)]，价格已还原为整数原值（未除 1000）。
 
     404 是正常情况（周末/节假日没有文件），必须直接返回空、不重试：
@@ -169,15 +169,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=4, help="回填天数（默认 4）")
     ap.add_argument("--force", action="store_true", help="忽略已有文件")
+    ap.add_argument("--retry-failed", action="store_true",
+                    help="只补旧文件 window.failed 里记录的日期")
     args = ap.parse_args()
 
     today = dt.datetime.now(UTC).date()
     start = today - dt.timedelta(days=max(1, args.days) - 1)
 
     old = {}
+    old_failed = []
     if os.path.exists(OUT) and not args.force:
         try:
-            old = json.load(open(OUT, encoding="utf-8")).get("kl", {})
+            prev = json.load(open(OUT, encoding="utf-8"))
+            old = prev.get("kl", {})
+            old_failed = (prev.get("window") or {}).get("failed") or []
             log("已有 %s，做增量合并" % OUT)
         except Exception:  # noqa: BLE001
             old = {}
@@ -187,15 +192,43 @@ def main():
     failed = []
 
     days = []
-    d = start
-    while d <= today:
-        days.append(d)
-        d += dt.timedelta(days=1)
+    if args.retry_failed and old_failed:
+        for s in old_failed:
+            try:
+                days.append(dt.date.fromisoformat(s))
+            except ValueError:
+                pass
+        log("只补失败日期：%d 天" % len(days))
+    else:
+        d = start
+        while d <= today:
+            days.append(d)
+            d += dt.timedelta(days=1)
 
     # 并发 4：串行 100 天要 20 分钟以上（实测超时）。并发过高会丢连接，4 是平衡点，
-    # 单日内部仍有 3 次重试兜底。
+    # 单日内部仍有 4 次重试兜底。
     with ThreadPoolExecutor(max_workers=4) as ex:
         results = list(ex.map(fetch_day, days))
+
+    # 补漏轮：首轮失败的日期用单线程、更长退避再跑一遍。
+    # 实测 Dukascopy 对 Azure 出口有明显抖动，首轮 100 天里 46 天失败；
+    # 不补漏的话，缺日会在图上变成「假断层」，与真实周末缺口混在一起，无法区分。
+    miss = [d for d, g in zip(days, results) if g is None]
+    if miss:
+        log("补漏 %d 天（单线程）" % len(miss))
+        t0 = time.time()
+
+        def slow(d):
+            if time.time() - t0 > 1200:      # 补漏最多 20 分钟，超了就留给下一次跑
+                return None
+            time.sleep(1.0)
+            return fetch_day(d, tries=6)
+
+        with ThreadPoolExecutor(max_workers=1) as ex:
+            again = list(ex.map(slow, miss))
+        m = dict(zip(days, results))
+        m.update(dict(zip(miss, again)))
+        results = [m[d] for d in days]
 
     for day, got in zip(days, results):
         if got is None:                      # 重试耗尽 = 真失败，记下来
@@ -234,7 +267,8 @@ def main():
         "price_type": "bid",
         "agg": {"1h": "utc_hour", "4h": "utc_4h",
                 "1d": "ny_17_00", "1d_tz": "America/New_York"},
-        "window": {"from": str(start), "to": str(today),
+        "window": {"from": str(min(days) if days else start),
+                   "to": str(max(days) if days else today),
                    "days_ok": days_ok, "days_empty": days_empty,
                    "failed_n": len(failed), "failed": failed[:20]},
         "sanitized": {"synthetic": syn_total, "dup": dup_total},
