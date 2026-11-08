@@ -1083,7 +1083,7 @@ body.tab-ov .tpx{display:none}
     </div>
 
     <div class="sech" style="margin-top:18px">
-      <h2>通道 <span class="cnt" id="chMeta">日线 · 90 根</span></h2>
+      <h2>通道 <span class="cnt" id="chMeta">日线 · 90 根</span><span class="cnt" id="klSrcNote"></span></h2>
       <div class="klfilter" style="margin:0">
         <div class="fchips" id="chChips">
           <button data-p="1d" class="on">日线</button>
@@ -1834,7 +1834,53 @@ function mergeBars(old, add, maxLen){
    与常态校验（每 4 分钟对一遍收益率）都已下线，前端不再读 kline_*.json。
    中转侧同样停抓，见 tools/fetch_jin10.py 与 docs/J5-金十MCP实测记录.md。 */
 
+/* v7.6：真实 XAU/USD 走同源静态产物（Actions 每 30 分钟落盘），前端不直连 Dukascopy
+   （无 CORS，沙箱侧也连不上）。拉不到就整体降级回 PAXG，并在页头标注，绝不冒充 XAU。 */
+function applyXauDoc(doc, now){
+  if(!doc || !doc.kl) throw new Error("xau bad doc");
+  var put = 0, syn = 0, dup = 0;
+  PERIODS.forEach(function(p){
+    var raw = doc.kl[p.key];
+    if(!raw || !raw.length) return;
+    var s = sanitizeBars(raw, p.key);
+    if(s.bars.length < 10) return;
+    var bars = v76Norm(s.bars);            // 统一成对象形态，既有指标全部依赖 .c/.h/.l
+    S.kl[p.key] = bars;
+    V76.gaps[p.key] = v76GapsOf(bars, p.key);
+    S.klMeta[p.key] = { at:now, lastT:bars[bars.length-1].t, mode:"xau" };
+    syn += s.synthetic; dup += s.dup; put++;
+  });
+  if(!put) throw new Error("xau empty");
+  V76.doc = doc; V76.at = now; V76.src = "dukascopy"; V76.err = null;
+  V76.synthetic = syn; V76.dup = dup;
+  return { got:put, skipped:PERIODS.length - put, failed:0, usable:PERIODS.length };
+}
+/* 返回 null 表示「本来源不可用」→ 上层退回 PAXG 分支，不抛异常 */
+function fetchXauKlines(force){
+  var now = Date.now();
+  if(!force && V76.doc && !PERIODS.some(function(p){ return klDue(p.key, now); })){
+    return Promise.resolve({ got:0, skipped:PERIODS.length, failed:0, usable:PERIODS.length });
+  }
+  /* 已经从没拿到过、且刚失败过——按退避重试，别每轮都打 404 */
+  if(!V76.doc && V76.err && now - (V76.errAt || 0) < V76_XAU_RETRY){
+    return Promise.resolve(null);
+  }
+  return fetchJson(KL_SRC_URL + "?t=" + now, 15000).then(function(doc){
+    return applyXauDoc(doc, now);
+  }).catch(function(e){
+    V76.err = e; V76.errAt = now;
+    if(V76.doc) return { got:0, skipped:PERIODS.length, failed:0, usable:PERIODS.length };  // 有旧数据就继续用
+    V76.src = "paxg";
+    return null;
+  });
+}
+
 function fetchKlines(force){
+  return fetchXauKlines(force).then(function(r){ return r || fetchPaxgKlines(force); });
+}
+
+/* 原链路：Binance PAXGUSDT（24/7 代币，与现货金休市不同），仅在 XAU 不可用时使用 */
+function fetchPaxgKlines(force){
   var now = Date.now();
   var firstErr = null;
   var jobs = PERIODS.map(function(p){
@@ -1929,6 +1975,238 @@ function scaled(key){
   });
 }
 
+
+/* ===== v7.6 L1：真实 XAU/USD 数据层（清洗 / 休市 / 缺口 / 箱体） =====
+   物理隔离：本段只产出「干净 K 线 + 缺口清单 + 开闭市判定 + 装箱结论」，
+   不改 channelOf / adxOf / judgeOne / 多周期合成 / 事件雷达任何一行。
+   所有函数都必须「永不抛异常」——失败只返回 valid:false，由渲染层写「数据延迟」，
+   绝不允许把异常抛到 refreshAll 造成白屏。 */
+var V76 = {
+  doc:null,          // xau/klines.json 原始文档
+  src:"paxg",        // dukascopy（真实 XAU） | paxg（降级代用）
+  at:0,              // 上次成功拉取时间
+  err:null,          // 上次失败原因
+  gaps:{},           // key -> [{i,from,to,hours,kind}]
+  synthetic:0,       // 本次剔除的休市填充根
+  dup:0,
+  adxOverride:null   // 仅供文案层覆盖，绝不写回 S.struct
+};
+var KL_SRC_URL = "xau/klines.json";
+var V76_XAU_RETRY = 600000;   // 拉不到 xau 时，最多每 10 分钟重试一次
+
+/* 纽约时钟：休市一律按交易所时区判，用 UTC 会因冬夏令时整体漂移 1 小时。
+   Intl 缺时区数据时退化到 UTC（只影响 ±1 小时边界，不会崩）。 */
+function nyClock(ts){
+  var d = new Date(ts);
+  try{
+    var p = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone:"America/New_York", weekday:"short",
+      hour:"2-digit", minute:"2-digit", hour12:false
+    }).formatToParts(d).forEach(function(x){ p[x.type] = x.value; });
+    var hh = parseInt(p.hour, 10) % 24;
+    return { day:p.weekday, mins:hh*60 + parseInt(p.minute, 10) };
+  }catch(e){
+    return { day:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()],
+             mins:d.getUTCHours()*60 + d.getUTCMinutes() };
+  }
+}
+/* 现货金交易时段（纽约时间）：周一至周四 17:00–18:00 结算停盘；
+   周五 17:00 收盘，周日 17:00 开盘（周日的 17:00 之后不再走结算规则）。 */
+var V76_CLOSE_MINS = 17*60, V76_OPEN_MINS = 18*60;
+function marketOpenAt(ts){
+  if(ts === undefined || ts === null) ts = Date.now();
+  ts = +ts;
+  if(!isFinite(ts)) return { open:true, why:"", label:"开市中" };
+  var c = nyClock(ts);
+  if(c.day === "Sat") return { open:false, why:"weekend", label:"周末休市" };
+  if(c.day === "Sun"){
+    return c.mins < V76_CLOSE_MINS
+      ? { open:false, why:"weekend", label:"周末休市" }
+      : { open:true, why:"", label:"开市中" };
+  }
+  if(c.day === "Fri" && c.mins >= V76_CLOSE_MINS){
+    return { open:false, why:"weekend", label:"周末休市" };
+  }
+  if(c.mins >= V76_CLOSE_MINS && c.mins < V76_OPEN_MINS){
+    return { open:false, why:"settle", label:"每日结算停盘" };
+  }
+  return { open:true, why:"", label:"开市中" };
+}
+
+function v76IsArr(x){ return Object.prototype.toString.call(x) === "[object Array]"; }
+/* 统一成对象形态（既有指标全按 {t,o,h,l,c,v} 取值），不修改入参 */
+function v76Norm(bars){
+  if(!bars || !bars.length) return [];
+  if(!v76IsArr(bars[0])) return bars;
+  return bars.map(function(x){
+    return { t:+x[0], o:+x[1], h:+x[2], l:+x[3], c:+x[4], v:+x[5] };
+  });
+}
+
+/* 休市填充根：Dukascopy 在停盘时段用前值填空，v=0 且四价完全相等。
+   四条必须同时满足——真实十字星有成交量，不能误删。 */
+function v76Filler(o,h,l,c,v){
+  return (+v === 0) && (+o === +h) && (+h === +l) && (+l === +c);
+}
+/* 返回与入参同构（数组进数组出，对象进对象出），供 T100 直接断言下标 */
+function sanitizeBars(bars, key){
+  var out = [], synthetic = 0, dup = 0;
+  if(!bars || !bars.length) return { bars:out, synthetic:0, dup:0 };
+  var arr = v76IsArr(bars[0]), map = {}, order = [], i;
+  for(i=0;i<bars.length;i++){
+    var b = bars[i];
+    var t = arr ? +b[0] : +b.t;
+    var o = arr ? +b[1] : +b.o;
+    var h = arr ? +b[2] : +b.h;
+    var l = arr ? +b[3] : +b.l;
+    var c = arr ? +b[4] : +b.c;
+    var v = arr ? +b[5] : +b.v;
+    if(!isFinite(t) || !isFinite(c)){ synthetic++; continue; }
+    if(v76Filler(o,h,l,c,v)){ synthetic++; continue; }
+    if(map[t] !== undefined){ dup++; map[t] = b; continue; }   // 同 t 以后到的为准
+    map[t] = b; order.push(t);
+  }
+  order.sort(function(a,b){ return a - b; });
+  for(i=0;i<order.length;i++) out.push(map[order[i]]);
+  return { bars:out, synthetic:synthetic, dup:dup };
+}
+
+/* 测试与上游共用：接受数组或对象两种 K 线形态 */
+function v76AtrOf(bars, n, idx){
+  var d = v76Norm(bars || []);
+  if(d.length <= (idx === undefined ? n : idx)) return null;
+  return atrOf(d, n, idx);
+}
+
+/* 缺口：间隔 > 1.6 个周期才算断层。中点落在闭市区间记 session（正常休市），
+   其余记 missing（真实缺数据）——两者混在一起会让「数据缺失」被周末淹没。
+   日线是特例：日线本来就没有周末根，周五→周一差 3 天属正常，不能算断层，
+   否则 90 根日线会被切成 18 段（实测过），通道图变成碎条。 */
+function v76GapsOf(bars, key){
+  var d = v76Norm(bars), pm = klPeriodMs(key) || 3600000, out = [];
+  if(d.length < 2) return out;
+  var step = (key === "1d") ? 4*86400000 : pm;      // 日线按交易日连续性判，容 4 天长假
+  for(var i=1;i<d.length;i++){
+    var dt = d[i].t - d[i-1].t;
+    if(dt > step*1.6){
+      var mid = d[i-1].t + dt/2;
+      out.push({ i:i, from:d[i-1].t, to:d[i].t,
+                 hours:Math.round(dt/3600*10)/10,
+                 kind: marketOpenAt(mid).open ? "missing" : "session" });
+    }
+  }
+  return out;
+}
+
+/* 箱体识别（只读）：斜率≈0 + 上下沿各触碰 ≥2 次 + 宽度 > 2 ATR。
+   停盘时只冻结计数，不隐藏既有图形（PAXG 时代冻结构会与图上的 K 线自相矛盾）。 */
+function boxDetect(bars, opt){
+  opt = opt || {};
+  var d = v76Norm(bars || []);
+  var op = marketOpenAt(opt.now);
+  var n = Math.min(opt.n || 60, d.length);
+  var base = { valid:false, upper:null, lower:null, touch_up:0, touch_dn:0,
+               width_atr:null, adx:null, slope_atr:null, breakout:"未突破",
+               frozen:!op.open, evaluated:op.open, reason:"" };
+  if(n < 20){ base.reason = "样本不足"; return base; }
+  var w = d.slice(-n), i, upper = -Infinity, lower = Infinity;
+  for(i=0;i<w.length;i++){
+    if(w[i].h > upper) upper = w[i].h;
+    if(w[i].l < lower) lower = w[i].l;
+  }
+  var atr = atrOf(w, 14, w.length-1);
+  if(!atr || !isFinite(atr) || atr <= 0){ base.reason = "ATR 不可用"; return base; }
+  /* 触碰容差取 min(0.25 ATR, 宽度 8%)：窄箱里 0.25 ATR 会占宽度 12% 以上，触碰数虚高 */
+  var tol = Math.min(atr*0.25, (upper-lower)*0.08);
+  for(i=0;i<w.length;i++){
+    if(Math.abs(w[i].h - upper) <= tol) base.touch_up++;
+    if(Math.abs(w[i].l - lower) <= tol) base.touch_dn++;
+  }
+  var adx = adxOf(w, 14).adx;
+  var sx=0, sy=0, sxx=0, sxy=0;
+  for(i=0;i<w.length;i++){ sx+=i; sy+=w[i].c; sxx+=i*i; sxy+=i*w[i].c; }
+  var den = w.length*sxx - sx*sx;
+  var slope = den ? (w.length*sxy - sx*sy)/den/atr : 0;
+  var last = w[w.length-1].c;
+  var breakout = "未突破";
+  if(last > upper + atr*0.5) breakout = "真突破";
+  else if(last < lower - atr*0.5) breakout = "真突破";
+  else if((w[w.length-1].h > upper || w[w.length-1].l < lower) && last <= upper && last >= lower){
+    breakout = "假突破";                                // 盘中刺破又收回
+  }
+  var wide = (upper-lower) > atr*2;
+  var valid = Math.abs(slope) < 0.06 && base.touch_up >= 2 && base.touch_dn >= 2 && wide;
+  if(!wide) base.reason = "宽度不足 2 ATR";
+  else if(Math.abs(slope) >= 0.06) base.reason = "斜率不为 0";
+  else if(base.touch_up < 2 || base.touch_dn < 2) base.reason = "触碰不足 2 次";
+  base.valid = valid; base.upper = upper; base.lower = lower;
+  base.width_atr = Math.round((upper-lower)/atr*10)/10;
+  base.adx = adx; base.slope_atr = Math.round(slope*1000)/1000;
+  base.breakout = breakout;
+  if(!op.open) base.reason = op.label + "：触碰计数已暂停";
+  return base;
+}
+
+/* 统一结构快照：唯一出口，字段名与开发计划书一致。
+   opt.now 可注入时间（测试用），不传取当前时刻。 */
+function structureSnapshot(opt){
+  opt = opt || {};
+  var now = opt.now || Date.now();
+  var op = marketOpenAt(now);
+  var pk = (S.kl && S.kl["1h"] && S.kl["1h"].length >= 20) ? "1h"
+         : ((S.kl && S.kl["1d"] && S.kl["1d"].length) ? "1d" : "");
+  var gaps = pk ? v76GapsOf(S.kl[pk], pk) : [];
+  var boxKey = (S.chPeriod && S.kl && S.kl[S.chPeriod] && S.kl[S.chPeriod].length) ? S.chPeriod
+             : (S.kl && S.kl["1d"] && S.kl["1d"].length ? "1d" : pk);
+  var box = boxDetect(boxKey ? S.kl[boxKey] : [], { now:now });
+  var ch = S.chan || null;
+  var adx1d = 0, adx4h = 0;
+  try{
+    if(S.kl && S.kl["1d"] && S.kl["1d"].length > 30) adx1d = adxOf(S.kl["1d"], 14).adx;
+    if(S.kl && S.kl["4h"] && S.kl["4h"].length > 30) adx4h = adxOf(S.kl["4h"], 14).adx;
+  }catch(e){ adx1d = adx1d || 0; }
+  if(V76.adxOverride !== null && V76.adxOverride !== undefined) adx1d = V76.adxOverride;
+  var adxUse = adx4h || adx1d;
+  var trend = adxUse > 25 ? "趋势" : (adxUse >= 20 ? "过渡" : "震荡");
+  var dominant = "无结构", conf = "Low", note = "";
+  if(adx1d > 25 || adxUse > 25){
+    dominant = "通道"; conf = "High"; note = "主结构：通道（ADX " + Math.round(adxUse) + "）";
+  }else if(box.valid){
+    dominant = adxUse >= 20 ? "双结构并存" : "水平箱体";
+    conf = adxUse >= 20 ? "Low" : "High";
+    note = "主结构：" + (adxUse >= 20 ? "通道为主，箱体为辅" : "水平箱体") +
+           "（上沿 " + num(box.upper,1) + "，下沿 " + num(box.lower,1) + "）";
+  }else{
+    note = "未形成可判定结构";
+  }
+  var missing = gaps.filter(function(g){ return g.kind === "missing"; }).length;
+  return {
+    is_market_open: op.open,
+    market_label: op.label,
+    as_of: now,
+    kl_src: V76.src,
+    sanitized: {
+      removed: V76.synthetic | 0, synthetic: V76.synthetic | 0, dup: V76.dup | 0,
+      gaps: gaps.length, missing: missing, period: pk
+    },
+    macro: { status: "数据延迟", tips: null, dxy: null, exception: false, note:"v7.6 P3 未接入" },
+    structure: {
+      adx: Math.round(adxUse*10)/10, adx_1d: Math.round(adx1d*10)/10,
+      adx_4h: Math.round(adx4h*10)/10,
+      state: trend, dominant: dominant, confidence: conf, arbiter_note: note,
+      channel: { valid: !!ch, position: ch ? Math.round(ch.pos*100) + "%" : "--",
+                 slope_atr: ch ? Math.round(ch.slopeAtr*1000)/1000 : null },
+      box: { valid: box.valid, upper: box.upper, lower: box.lower,
+             touch_up: box.touch_up, touch_dn: box.touch_dn,
+             width_atr: box.width_atr, breakout: box.breakout,
+             frozen: box.frozen, evaluated: box.evaluated, reason: box.reason },
+      extended_patterns: [],
+      warning: op.open ? "" : (op.label + "：结构已暂停刷新"),
+      event_window_flag: false
+    }
+  };
+}
 
 /* ===== 指标 ===== */
 function sma(bars, n, idx){
@@ -7076,10 +7354,21 @@ function renderChart(){
   var svg = $("chSvg");
   if(!svg) return;
   var k = S.chPeriod || "1d";
+  /* 只在「选中周期一根数据都没有」时降级到有数据的周期；有数据但不足 40 根
+     仍如实报「数据不足」——不能拿别的周期悄悄替代，那会让用户看错层级。 */
+  var probe = scaled(k);
+  if(!probe || !probe.length){
+    var alt = ["1d","4h","1h"].filter(function(x){
+      var b = scaled(x); return b && b.length >= 40;
+    })[0];
+    if(alt){ k = alt; }
+  }
   var label = CH_LABEL[k] || "日线";
   var win = CH_WIN[k] || 90;
   var meta = $("chMeta");
   if(meta) meta.textContent = label + " · " + win + " 根";
+  var srcNote = $("klSrcNote");
+  if(srcNote) srcNote.textContent = (V76.src === "dukascopy") ? "" : "K线 PAXG 代用 · 非现货";
   Array.prototype.forEach.call(document.querySelectorAll("#chChips button"), function(b){
     b.className = b.getAttribute("data-p") === k ? "on" : "";
   });
@@ -7102,23 +7391,42 @@ function renderChart(){
   hi += ch.atr*0.15; lo -= ch.atr*0.15;
   if(!(hi > lo)) { hi = lo + 1; }
   var Y = function(v){ return padT + (hi-v)/(hi-lo)*plotH; };
-  var step = plotW/m;
-  var X = function(j){ return padL + step*(j+0.5); };
+  /* X 轴：等距索引 + 断层留白。不用时间映射——channelOf 是索引回归，
+     改坐标基准会让通道轨整体错位；只在断点插固定空隙，视觉上断开即可。 */
+  var gps = v76GapsOf(d, k), gapAt = {}, extraTot = 0, extraPer = 0, gi;
+  for(gi=0;gi<gps.length;gi++) gapAt[gps[gi].i] = gps[gi];
+  if(gps.length){
+    extraTot = Math.min(plotW*0.3, gps.length*8);
+    extraPer = extraTot/gps.length;
+  }
+  var step = (plotW - extraTot)/m, acc = 0, Xs = [];
+  for(i=0;i<m;i++){
+    if(gapAt[i]) acc += extraPer;
+    Xs[i] = padL + step*(i+0.5) + acc;
+  }
+  var X = function(j){ return Xs[j] || padL; };
   var f = function(n){ return Math.round(n*10)/10; };
   var x0 = X(0), x1 = X(m-1);
 
-  // 通道带与三条轨
+  // 通道带与三条轨：按断层切段，段与段之间不连（周末不能拿一条线连过去）
   var UP = ch.up - ch.mid, DN = ch.dn - ch.mid;
-  var u0 = ch.a + UP, d0 = ch.a + DN;
-  var u1 = ch.a + ch.b*(m-1) + UP, d1 = ch.a + ch.b*(m-1) + DN;
-  var band = '<polygon class="chband" points="'+f(x0)+','+f(Y(u0))+' '+f(x1)+','+f(Y(u1))+
-             ' '+f(x1)+','+f(Y(d1))+' '+f(x0)+','+f(Y(d0))+'" fill="rgba(212,162,76,.07)"/>';
+  var segs = [], s0 = 0;
+  for(i=1;i<m;i++){ if(gapAt[i]){ segs.push([s0, i-1]); s0 = i; } }
+  segs.push([s0, m-1]);
+  var uAt = function(j){ return ch.a + ch.b*j + UP; };
+  var dAt = function(j){ return ch.a + ch.b*j + DN; };
   var col = ch.broken ? "rgba(124,135,152,.5)" : "rgba(212,162,76,.55)";
   var dash = ch.broken ? ' stroke-dasharray="3 3"' : '';
-  var rails =
-    '<line class="chup" x1="'+f(x0)+'" y1="'+f(Y(u0))+'" x2="'+f(x1)+'" y2="'+f(Y(u1))+'" stroke="'+col+'" stroke-width="1"'+dash+'/>' +
-    '<line class="chdn" x1="'+f(x0)+'" y1="'+f(Y(d0))+'" x2="'+f(x1)+'" y2="'+f(Y(d1))+'" stroke="'+col+'" stroke-width="1"'+dash+'/>' +
-    '<line class="chmid" x1="'+f(x0)+'" y1="'+f(Y(ch.a))+'" x2="'+f(x1)+'" y2="'+f(Y(ch.a+ch.b*(m-1)))+'" stroke="rgba(212,162,76,.35)" stroke-width="1" stroke-dasharray="2 3"/>';
+  var band = "", rails = "";
+  for(gi=0;gi<segs.length;gi++){
+    var a0 = segs[gi][0], a1 = segs[gi][1];
+    band += '<polygon class="chband" points="'+f(X(a0))+','+f(Y(uAt(a0)))+' '+f(X(a1))+','+f(Y(uAt(a1)))+
+            ' '+f(X(a1))+','+f(Y(dAt(a1)))+' '+f(X(a0))+','+f(Y(dAt(a0)))+'" fill="rgba(212,162,76,.07)"/>';
+    rails +=
+      '<line class="chup" x1="'+f(X(a0))+'" y1="'+f(Y(uAt(a0)))+'" x2="'+f(X(a1))+'" y2="'+f(Y(uAt(a1)))+'" stroke="'+col+'" stroke-width="1"'+dash+'/>' +
+      '<line class="chdn" x1="'+f(X(a0))+'" y1="'+f(Y(dAt(a0)))+'" x2="'+f(X(a1))+'" y2="'+f(Y(dAt(a1)))+'" stroke="'+col+'" stroke-width="1"'+dash+'/>' +
+      '<line class="chmid" x1="'+f(X(a0))+'" y1="'+f(Y(ch.a+ch.b*a0))+'" x2="'+f(X(a1))+'" y2="'+f(Y(ch.a+ch.b*a1))+'" stroke="rgba(212,162,76,.35)" stroke-width="1" stroke-dasharray="2 3"/>';
+  }
 
   // 蜡烛：涨红跌绿（国内习惯）
   var total = m, pw = Math.max(1.2, step*0.62), body = "";
@@ -10943,6 +11251,20 @@ if(/[?&]xt=1/.test(location.search)){
       return o;
     },
     klDue:function(k, t){ return klDue(k, t || Date.now()); },
+    /* v7.6 L1：清洗 / 休市 / 缺口 / 箱体 / 快照。纯函数为主，单测直接打这里 */
+    v76:{
+      sanitizeBars:sanitizeBars,
+      atrOf:v76AtrOf,
+      gapsOf:v76GapsOf,
+      marketOpenAt:marketOpenAt,
+      boxDetect:boxDetect,
+      snapshot:structureSnapshot,
+      klSrc:function(){ return V76.src; },
+      state:function(){ return { src:V76.src, at:V76.at, err:V76.err ? String(V76.err.message||V76.err) : "",
+                                 synthetic:V76.synthetic, dup:V76.dup }; },
+      loadXau:function(){ V76.doc = null; V76.err = null; V76.errAt = 0; return fetchXauKlines(true); },
+      setAdx:function(v){ V76.adxOverride = (v === null || v === undefined) ? null : +v; }
+    },
     patchFormingBar:patchFormingBar,
     fetchKlines:fetchKlines,
     /* J1：源健康度与备源。测试注入用 setAltUrl，不写死真实端点 */
