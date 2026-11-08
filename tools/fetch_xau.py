@@ -28,6 +28,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from zoneinfo import ZoneInfo
 
 BASE = ("https://datafeed.dukascopy.com/datafeed/XAUUSD/"
@@ -47,13 +48,17 @@ def log(*a):
 
 
 def fetch_day(day, tries=3):
-    """返回 [(ts, o, c, l, h, v)]，价格已还原为整数原值（未除 1000）。"""
+    """返回 [(ts, o, c, l, h, v)]，价格已还原为整数原值（未除 1000）。
+
+    404 是正常情况（周末/节假日没有文件），必须直接返回空、不重试：
+    旧版把它当异常重试 3 次，100 天回填里 28 个周末白白烧掉一半时间，直接跑超时。
+    """
     url = BASE.format(y=day.year, m=day.month - 1, d=day.day)   # 月份 0-based
     last = None
     for i in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=30) as r:
+            with urllib.request.urlopen(req, timeout=12) as r:
                 if r.status == 404:
                     return []
                 body = r.read()
@@ -70,12 +75,16 @@ def fetch_day(day, tries=3):
                 t, o, c, l, h, v = struct.unpack(">IIIIIf", raw[k * 24:(k + 1) * 24])
                 out.append((base + t, o, c, l, h, v))
             return out
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return []                       # 当天无文件 = 休市，不重试
+            last = e
         except Exception as e:  # noqa: BLE001
             last = e
-            if i < tries - 1:
+        if i < tries - 1:
                 time.sleep(1 + 2 * i)
     log("  ! %s 失败：%s" % (day, type(last).__name__))
-    return []
+    return None
 
 
 def is_filler(o, c, l, h, v):
@@ -173,20 +182,33 @@ def main():
         except Exception:  # noqa: BLE001
             old = {}
 
-    rows, syn_total, dup_total, days_ok, days_empty = [], 0, 0, 0, 0
+    rows, syn_total, dup_total = [], 0, 0
+    days_ok = days_empty = 0
+    failed = []
+
+    days = []
     d = start
     while d <= today:
-        got = fetch_day(d)
-        if not got:
-            days_empty += 1
-        else:
-            days_ok += 1
-            c, s, du = clean(got)
-            syn_total += s
-            dup_total += du
-            rows.extend(c)
+        days.append(d)
         d += dt.timedelta(days=1)
-        time.sleep(0.2)                     # 串行，别并发：实测并发会丢请求
+
+    # 并发 4：串行 100 天要 20 分钟以上（实测超时）。并发过高会丢连接，4 是平衡点，
+    # 单日内部仍有 3 次重试兜底。
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        results = list(ex.map(fetch_day, days))
+
+    for day, got in zip(days, results):
+        if got is None:                      # 重试耗尽 = 真失败，记下来
+            failed.append(str(day))
+            continue
+        if not got:                          # 404 = 休市无文件，正常
+            days_empty += 1
+            continue
+        days_ok += 1
+        c, s, du = clean(got)
+        syn_total += s
+        dup_total += du
+        rows.extend(c)
 
     if not rows:
         log("本次没抓到任何数据，保留旧文件不动")
@@ -213,7 +235,8 @@ def main():
         "agg": {"1h": "utc_hour", "4h": "utc_4h",
                 "1d": "ny_17_00", "1d_tz": "America/New_York"},
         "window": {"from": str(start), "to": str(today),
-                   "days_ok": days_ok, "days_empty": days_empty},
+                   "days_ok": days_ok, "days_empty": days_empty,
+                   "failed_n": len(failed), "failed": failed[:20]},
         "sanitized": {"synthetic": syn_total, "dup": dup_total},
         "stats": stats,
         "gaps": {p: gaps_of(kl[p], p) for p in kl},
