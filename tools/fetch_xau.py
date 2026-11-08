@@ -244,9 +244,12 @@ def gaps_of(bars, period):
         if dt_sec <= step * 1.6:
             continue
         mid = (bars[i - 1][0] + bars[i][0]) / 2000.0
+        # 真实最长休市是圣诞/元旦那几天（≤4 天）。超过 14 天的不可能是休市，
+        # 无论中点落在哪都只能算缺数据——否则 5 个月的洞会被标成「正常休市」。
+        closed_ok = dt_sec <= 14 * 86400 and is_closed(mid)
         out.append({"i": i, "from": bars[i - 1][0], "to": bars[i][0],
                     "hours": round(dt_sec / 3600.0, 1),
-                    "kind": "session" if is_closed(mid) else "missing"})
+                    "kind": "session" if closed_ok else "missing"})
     return out
 
 
@@ -262,6 +265,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=4, help="回填天数（默认 4）")
     ap.add_argument("--force", action="store_true", help="忽略已有文件")
+    ap.add_argument("--rebuild-from-1h", action="store_true",
+                    help="不联网：用产物里已有的 1h 重新派生 1d/1w（补历史缺段后修日线用）")
     ap.add_argument("--rebuild-daily", action="store_true",
                     help="用年度日线重建 1d/1w（不动 1h/4h）；口径变更后跑一次")
     ap.add_argument("--retry-failed", action="store_true",
@@ -284,6 +289,33 @@ def main():
             log("已有 %s，做增量合并" % OUT)
         except Exception:  # noqa: BLE001
             old = {}
+
+    # 离线修复：只用产物里已有的 1h 重算 1d/1w，不联网。
+    # 用途：逐日回填被限流中断后，日线缺段但 1h 还在——这时不需要再抓一遍。
+    if getattr(args, "rebuild_from_1h", False):
+        if not old.get("1h"):
+            log("产物里没有 1h，无法派生")
+            return 2
+        daily = aggregate(bars_to_rows(old["1h"]), "1d")
+        if old.get("1d"):
+            daily = merge_old(old["1d"], daily)          # 同 t 以新派生为准
+        weekly = aggregate(bars_to_rows(daily), "1w")
+        out = dict(json.load(open(OUT, encoding="utf-8")))
+        out["kl"] = dict(out.get("kl") or {})
+        out["kl"]["1d"] = daily[-KEEP["1d"]:]
+        out["kl"]["1w"] = weekly[-KEEP["1w"]:]
+        out["stats"] = dict(out.get("stats") or {})
+        out["gaps"] = dict(out.get("gaps") or {})
+        for per in ("1d", "1w"):
+            gp = gaps_of(out["kl"][per], per)
+            out["gaps"][per] = gp
+            out["stats"][per] = {"bars": len(out["kl"][per]), "gaps": len(gp),
+                                 "missing": sum(1 for g in gp if g["kind"] == "missing"),
+                                 "first": out["kl"][per][0][0], "last": out["kl"][per][-1][0]}
+        with open(OUT, "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+        log("离线派生完成：1d %d 根 / 1w %d 根" % (len(out["kl"]["1d"]), len(out["kl"]["1w"])))
+        return 0
 
     rows, syn_total, dup_total = [], 0, 0
     days_ok = days_empty = 0
