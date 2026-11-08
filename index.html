@@ -7392,6 +7392,20 @@ function renderChart(){
   });
 
   var bars = scaled(k);
+  /* 通道回归不能跨过长期缺数据的洞：上游某段没抓到（实测断过 308 天）时，
+     最小二乘会把一段跨越半年的直线拟合进窗口，轨道与 % 位全部失真。
+     命中 ≥7 天的真实缺口就从缺口之后起算，并如实标注截断。 */
+  var cut = false;
+  if(bars && bars.length){
+    /* 长缺口一律不信 kind：真实最长休市只有 3 天多，≥7 天的一律按缺数据处理
+       （上游曾把 5 个月的洞标成 session）。 */
+    var mg = v76GapsOf(bars, k).filter(function(g){ return g.hours >= 168; });
+    if(mg.length){
+      var last = mg[mg.length-1];
+      if(last.i < bars.length - 40){ bars = bars.slice(last.i); cut = true; }
+      else { bars = []; }                      // 缺口之后不足 40 根：宁可不画，也不画错的
+    }
+  }
   var ch = (bars && bars.length >= 40) ? channelOf(bars, win, S.price) : null;
   S.chan = ch;
   var line = $("chLine");
@@ -7484,7 +7498,7 @@ function renderChart(){
   svg.setAttribute("aria-label", label + "回归通道图");
   svg.innerHTML = band + rails + body + now + ticks;
   if(line){
-    line.textContent = chanText(ch, label);
+    line.textContent = chanText(ch, label) + (cut ? " · 前段缺口已截断" : "");
     line.style.color = ch.r2 < 0.35 ? "var(--tx3)" : "var(--tx2)";
   }
 }
