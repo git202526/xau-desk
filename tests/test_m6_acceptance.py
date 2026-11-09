@@ -79,9 +79,10 @@ def test_t8_no_overflow_all_viewports(make_env):
 
 
 def test_t9_overview_one_screen(make_env):
+    # 同 test_m4：v7.6 宏观条约 60px，预算 800 → 860
     env = make_env(width=390, height=844)
     h = env.page.eval_on_selector("#panel-ov", "e => e.getBoundingClientRect().height")
-    assert h <= 800, h
+    assert h <= 860, h
 
 
 def test_t10_keyboard(make_env):

@@ -1,0 +1,51 @@
+name: macro
+
+# 10Y TIPS 实际收益率 + ICE 美元指数，落 macro.json。
+#
+# 为什么一小时一次：FRED 的 DFII10 是日频、收盘后更新；CNBC 的 DXY 日线也是日频。
+# 前端把「抓取时间超过 90 分钟」判为数据延迟，所以刷新间隔必须小于 90 分钟。
+# 周末两个源都不出新值，脚本会输出「无变化」，不会产生空提交。
+#
+# 为什么两个源都成功才落盘：只有 TIPS 没有美元的半张卡，比一张明确标注
+# 「数据延迟」的旧卡更容易误导人（美元那一路往往才是当天的主导变量）。
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macro
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 抓取
+        run: python3 tools/fetch_macro.py --out macro.json
+
+      - name: 回写产物
+        run: |
+          git config user.name  "xau-macro-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add macro.json
+          if git diff --cached --quiet; then
+            echo "无变化"
+            exit 0
+          fi
+          git commit -m "chore: macro $(date -u +'%m-%d %H:%M')"
+          for i in 1 2 3; do
+            if git push; then echo "push ok"; break; fi
+            git pull --rebase --autostash || true
+          done

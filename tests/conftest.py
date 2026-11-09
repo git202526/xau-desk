@@ -124,6 +124,7 @@ class Env:
         self.page = page
         self.gh = gh
         self.ctx = ctx
+        self.errors = []          # pageerror 收集：白屏类问题必须能被断言
 
     def goto(self, hash_=""):
         self.page.goto(BASE + "/index.html" + hash_, wait_until="domcontentloaded")
@@ -140,7 +141,7 @@ def make_env(browser):
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
-              hash_="", bars=None, calendar=None, tz=None, jn=None, xau=None):
+              hash_="", bars=None, calendar=None, tz=None, jn=None, xau=None, macro=None):
         opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -186,6 +187,16 @@ def make_env(browser):
                 route.fulfill(status=200, content_type="application/json",
                               body=json.dumps(xau))
         page.route("**/xau/klines.json*", xau_route)
+
+        # v7.6 P3：宏观双变量产物。默认 404 = 中转没跑，页面必须显示「数据延迟」而不是崩。
+        def macro_route(route):
+            if macro is None:
+                route.fulfill(status=404, content_type="application/json",
+                              body=json.dumps({"message": "Not Found"}))
+            else:
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps(macro, ensure_ascii=False))
+        page.route("**/macro.json*", macro_route)
         page.route("**/open.er-api.com/**", lambda r: r.fulfill(
             status=200, content_type="application/json",
             body=json.dumps({"result": "success", "rates": {"CNY": FX_CNY}})))
@@ -256,6 +267,7 @@ def make_env(browser):
             "})();" % json.dumps(json.dumps(cred)))
 
         env = Env(page, gh, ctx)
+        page.on("pageerror", lambda e: env.errors.append(str(e)))
         created.append(env)
         page.goto(BASE + path + hash_, wait_until="domcontentloaded")
         page.wait_for_function("() => !!document.querySelector('.tabbar') || !!document.querySelector('.tabs')",

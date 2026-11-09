@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.6 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.6 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -56,6 +56,20 @@ body{
 /* 价格卡 */
 .hero{margin-top:14px;background:linear-gradient(165deg,#15202F 0%,#0F1826 62%);border:1px solid var(--line);border-radius:22px;padding:17px 17px 14px;position:relative;overflow:hidden}
 .hero:before{content:"";position:absolute;top:-70px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,76,.16),transparent 68%);pointer-events:none}
+/* 宏观双变量：hero 与持仓条之间的一条窄带，两行、约 60px。
+   做成大卡会把总览挤出一屏（390×844 的预算只有几十像素），所以只留必要信息。
+   利多用红、利空用绿——与行情同色系，避免「利空」写成红色让人误以为在涨。 */
+.macrocard{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.mcrow{display:flex;align-items:baseline;gap:5px;font-size:12px;min-width:0}
+.mk{color:var(--tx3);font-size:10.5px;letter-spacing:.4px;flex:0 0 auto}
+.mcrow .v{font-size:13.5px;font-weight:600;flex:0 0 auto}
+.mcrow .d{font-size:10.5px;flex:0 0 auto}
+.mcrow .d.bull{color:var(--up)}.mcrow .d.bear{color:var(--dn)}
+.mdiv{width:1px;height:10px;background:var(--line);align-self:center;margin:0 3px;flex:0 0 auto}
+.mcst{margin-left:auto;font-size:11.5px;font-weight:600;flex:0 0 auto}
+.mcst.bull{color:var(--up)}.mcst.bear{color:var(--dn)}.mcst.flatc{color:var(--tx2)}
+.mcsub{margin-top:4px;font-size:10px;color:var(--tx3);display:flex;gap:4px 10px;justify-content:space-between;flex-wrap:wrap}
+.vstate{font-size:11.5px;font-weight:400;color:var(--tx3);margin-left:6px}
 .hlabel{font-size:11px;color:var(--tx3);letter-spacing:1.3px;display:flex;align-items:center;gap:6px}
 .hmain{display:flex;align-items:flex-end;gap:10px;margin-top:3px;flex-wrap:wrap}
 .hprice{font-size:clamp(38px,11.5vw,52px);line-height:1.04;font-weight:660;letter-spacing:-1.5px}
@@ -358,6 +372,7 @@ body.tab-ov .tpx{display:none}
 .chcard{padding:6px 4px 2px;overflow:hidden}
 .chcard svg{display:block;width:100%;height:auto;font-family:inherit}
 .chline{font-size:11.5px;color:var(--tx2);padding:3px 8px 8px;line-height:1.5}
+.chline .chstruct{display:block;margin-top:2px;color:var(--tx3)}
 @media(max-width:359px){.chline{font-size:11px;padding:2px 6px 6px}}
 
 /* 档位 */
@@ -982,7 +997,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.6 · 11/08</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.6 · 11/09</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1036,6 +1051,16 @@ body.tab-ov .tpx{display:none}
       </div>
     </div>
   </section>
+
+  <div class="macrocard" id="macroCard">
+    <div class="mcrow">
+      <span class="mk">TIPS</span><b class="v num" id="mcTips">--</b><span class="d num" id="mcTipsD">--</span>
+      <span class="mdiv"></span>
+      <span class="mk">美元</span><b class="v num" id="mcDxy">--</b><span class="d num" id="mcDxyD">--</span>
+      <span class="mcst flatc" id="mcStatus">--</span>
+    </div>
+    <div class="mcsub"><span id="mcAs">--</span><span id="mcNote">--</span></div>
+  </div>
 
   <button class="posbar" id="posBar" type="button" aria-label="查看持仓明细">
     <div class="c"><div class="k">持仓</div><div class="v num" id="pbGram">—</div></div>
@@ -2004,7 +2029,8 @@ var V76 = {
   gaps:{},           // key -> [{i,from,to,hours,kind}]
   synthetic:0,       // 本次剔除的休市填充根
   dup:0,
-  adxOverride:null   // 仅供文案层覆盖，绝不写回 S.struct
+  adxOverride:null,  // 仅供文案层覆盖（日线），绝不写回 S.struct
+  adx4Override:null  // 同上（4H）
 };
 var KL_SRC_URL = "xau/klines.json";
 var V76_XAU_RETRY = 600000;   // 拉不到 xau 时，最多每 10 分钟重试一次
@@ -2114,16 +2140,16 @@ function v76GapsOf(bars, key){
   return out;
 }
 
-/* 箱体识别（只读）：斜率≈0 + 上下沿各触碰 ≥2 次 + 宽度 > 2 ATR。
-   停盘时只冻结计数，不隐藏既有图形（PAXG 时代冻结构会与图上的 K 线自相矛盾）。 */
+/* 箱体识别（只读）：斜率≈0 + 上下沿各触碰 ≥2 次且首末间隔 ≥10 根 + 宽度 > 2 ATR。
+   停盘时只冻结判定，不隐藏既有图形（PAXG 时代冻结构会与图上的 K 线自相矛盾）。 */
 function boxDetect(bars, opt){
   opt = opt || {};
   var d = v76Norm(bars || []);
   var op = marketOpenAt(opt.now);
-  var n = Math.min(opt.n || 60, d.length);
-  var base = { valid:false, upper:null, lower:null, touch_up:0, touch_dn:0,
+  var n = Math.min(opt.n || 30, d.length);
+  var base = { valid:false, upper:null, lower:null, touch_up:0, touch_dn:0, span:0,
                width_atr:null, adx:null, slope_atr:null, breakout:"未突破",
-               frozen:!op.open, evaluated:op.open, reason:"" };
+               frozen:!op.open, evaluated:op.open, reason:"", key:opt.key || "" };
   if(n < 20){ base.reason = "样本不足"; return base; }
   var w = d.slice(-n), i, upper = -Infinity, lower = Infinity;
   for(i=0;i<w.length;i++){
@@ -2134,10 +2160,12 @@ function boxDetect(bars, opt){
   if(!atr || !isFinite(atr) || atr <= 0){ base.reason = "ATR 不可用"; return base; }
   /* 触碰容差取 min(0.25 ATR, 宽度 8%)：窄箱里 0.25 ATR 会占宽度 12% 以上，触碰数虚高 */
   var tol = Math.min(atr*0.25, (upper-lower)*0.08);
+  var fUp=-1, lUp=-1, fDn=-1, lDn=-1;
   for(i=0;i<w.length;i++){
-    if(Math.abs(w[i].h - upper) <= tol) base.touch_up++;
-    if(Math.abs(w[i].l - lower) <= tol) base.touch_dn++;
+    if(Math.abs(w[i].h - upper) <= tol){ base.touch_up++; if(fUp<0) fUp=i; lUp=i; }
+    if(Math.abs(w[i].l - lower) <= tol){ base.touch_dn++; if(fDn<0) fDn=i; lDn=i; }
   }
+  base.span = Math.max(lUp - fUp, lDn - fDn, 0);
   var adx = adxOf(w, 14).adx;
   var sx=0, sy=0, sxx=0, sxy=0;
   for(i=0;i<w.length;i++){ sx+=i; sy+=w[i].c; sxx+=i*i; sxy+=i*w[i].c; }
@@ -2151,16 +2179,238 @@ function boxDetect(bars, opt){
     breakout = "假突破";                                // 盘中刺破又收回
   }
   var wide = (upper-lower) > atr*2;
-  var valid = Math.abs(slope) < 0.06 && base.touch_up >= 2 && base.touch_dn >= 2 && wide;
+  var flat = Math.abs(slope) < 0.05;
+  var held = base.touch_up >= 2 && base.touch_dn >= 2 && base.span >= 10;
+  var valid = flat && held && wide;
   if(!wide) base.reason = "宽度不足 2 ATR";
-  else if(Math.abs(slope) >= 0.06) base.reason = "斜率不为 0";
-  else if(base.touch_up < 2 || base.touch_dn < 2) base.reason = "触碰不足 2 次";
+  else if(!flat) base.reason = "斜率不为 0";
+  else if(base.span < 10) base.reason = "触碰跨度不足 10 根";
+  else if(!held) base.reason = "上下沿触碰不足 2 次";
   base.valid = valid; base.upper = upper; base.lower = lower;
   base.width_atr = Math.round((upper-lower)/atr*10)/10;
+  if(opt.key === "1d") base.width_atr_1d = base.width_atr;
+  if(opt.key === "4h") base.width_atr_4h = base.width_atr;
   base.adx = adx; base.slope_atr = Math.round(slope*1000)/1000;
   base.breakout = breakout;
   if(!op.open) base.reason = op.label + "：触碰计数已暂停";
   return base;
+}
+
+/* ===== v7.6 P2：形态标签（只出标签，绝不参与主导判定） =====
+   T108 是反向证明：关掉 patternTags 后 dominant / 箱沿 / 通道有效性必须逐字相等。
+   所以本段只读 bars，不写任何 S.* / V76.*，也不被 arbitrateStructure 调用。 */
+function v76Slope(vals){                 // 最小二乘斜率（美元/根）
+  var m = vals.length, sx=0, sy=0, sxx=0, sxy=0, i;
+  if(m < 2) return 0;
+  for(i=0;i<m;i++){ sx+=i; sy+=vals[i]; sxx+=i*i; sxy+=i*vals[i]; }
+  var den = m*sxx - sx*sx;
+  return den ? (m*sxy - sx*sy)/den : 0;
+}
+function v76AmpOf(seg){                  // 段内振幅（最高价 − 最低价）
+  var hi=-Infinity, lo=Infinity, i;
+  for(i=0;i<seg.length;i++){ if(seg[i].h>hi) hi=seg[i].h; if(seg[i].l<lo) lo=seg[i].l; }
+  return (hi>lo) ? hi-lo : 0;
+}
+/* 摆动点（分形）：左右各 k 根的极值，严格大于/小于邻居，避免平台误判 */
+function v76Swings(d, k){
+  var out=[], i, j, isH, isL;
+  for(i=k;i<d.length-k;i++){
+    isH = true; isL = true;
+    for(j=i-k;j<=i+k;j++){
+      if(j === i) continue;
+      if(d[j].h >= d[i].h) isH = false;
+      if(d[j].l <= d[i].l) isL = false;
+    }
+    if(isH) out.push({ i:i, p:d[i].h, type:"H" });
+    else if(isL) out.push({ i:i, p:d[i].l, type:"L" });
+  }
+  return out;
+}
+/* 旗形：旗杆 ≥5 根同向、位移 >3 ATR；旗面 8–20 根、振幅 <1.5 ATR、回撤 <50% */
+function v76FlagTag(w, atr){
+  var n = w.length, k, i, j;
+  for(k = Math.min(20, n-7); k >= 8; k--){
+    var end = n - k, pole = w.slice(Math.max(0, end-6), end);
+    if(pole.length < 5) continue;
+    var disp = pole[pole.length-1].c - pole[0].c, dir = disp > 0 ? 1 : -1;
+    if(Math.abs(disp) < atr*3) continue;
+    var same = true;
+    for(i=1;i<pole.length;i++){ if((pole[i].c - pole[i-1].c) * dir <= 0){ same = false; break; } }
+    if(!same) continue;
+    var face = w.slice(end);
+    if(v76AmpOf(face) > atr*1.5) continue;
+    var hi=-Infinity, lo=Infinity;
+    for(j=0;j<pole.length;j++){ if(pole[j].h>hi) hi=pole[j].h; if(pole[j].l<lo) lo=pole[j].l; }
+    var ref = dir > 0 ? hi : lo;
+    if(Math.abs(face[face.length-1].c - ref) / Math.abs(disp) >= 0.5) continue;
+    return { name:"旗形", status:"", score:0.66,
+             note:(dir>0 ? "上升旗形" : "下降旗形") + " · 旗面 " + k + " 根" };
+  }
+  return null;
+}
+/* 头肩：5 个交替摆动点，头最高/最低，两肩差 < 头到颈线距离的 15%。
+   未破颈线只能写「待确认」——提前喊破位是本系统最容易被骂的假信号。 */
+function v76HSTag(w){
+  var sw = v76Swings(w, 2);
+  if(sw.length < 5) return null;
+  var t = sw.slice(-5), types = t.map(function(x){ return x.type; }).join("");
+  var last = w[w.length-1].c, neck, ls, hd, rs, ok, top;
+  if(types === "HLHLH"){
+    ls = t[0].p; hd = t[2].p; rs = t[4].p;
+    neck = (t[1].p + t[3].p) / 2;
+    ok = hd > ls && hd > rs && Math.abs(ls-rs) <= Math.abs(hd-neck)*0.15;
+    top = true;
+  }else if(types === "LHLHL"){
+    ls = t[0].p; hd = t[2].p; rs = t[4].p;
+    neck = (t[1].p + t[3].p) / 2;
+    ok = hd < ls && hd < rs && Math.abs(ls-rs) <= Math.abs(neck-hd)*0.15;
+    top = false;
+  }else return null;
+  if(!ok) return null;
+  var broken = top ? (last < neck) : (last > neck);
+  return { name: top ? "头肩顶" : "头肩底", status: broken ? "已破颈线" : "待确认",
+           score: broken ? 0.78 : 0.7, note:"颈线 " + Math.round(neck*10)/10 };
+}
+function patternTags(bars, opt){
+  opt = opt || {};
+  var out = [];
+  try{
+    var d = v76Norm(bars || []);
+    var n = Math.min(opt.n || 30, d.length);
+    if(n < 12) return out;
+    var w = d.slice(-n);
+    var atr = atrOf(w, 14, w.length-1);
+    if(!atr || !isFinite(atr) || atr <= 0) atr = Math.max(0.01, w[w.length-1].c*0.005);
+    var sh = v76Slope(w.map(function(b){ return b.h; })) / atr;
+    var sl = v76Slope(w.map(function(b){ return b.l; })) / atr;
+    var seg = Math.max(5, Math.round(n/3));
+    var a0 = v76AmpOf(w.slice(0, seg)), a1 = v76AmpOf(w.slice(-seg));
+
+    if(sh < -0.02 && sl > 0.02 && a1 < a0*0.6)                       // 收敛三角
+      out.push({ name:"对称三角", status:"", score:0.72, note:"高点下压 + 低点抬升" });
+    if(Math.abs(sh) < 0.02 && sl > 0.02 && a1 < a0*0.85)             // 平顶抬底
+      out.push({ name:"上升三角", status:"", score:0.7, note:"平顶 + 抬底" });
+    if(Math.abs(sl) < 0.02 && sh < -0.02 && a1 < a0*0.85)            // 平底压顶
+      out.push({ name:"下降三角", status:"", score:0.7, note:"平底 + 压顶" });
+    if(sh > 0.02 && sl < -0.02 && a1 > a0*1.4)                       // 扩散
+      out.push({ name:"喇叭形", status:"", score:0.66, note:"高点抬升 + 低点下移" });
+
+    var fl = v76FlagTag(w, atr); if(fl) out.push(fl);
+    var hs = v76HSTag(w); if(hs) out.push(hs);
+  }catch(e){ return []; }
+  out.sort(function(a,b){ return b.score - a.score; });
+  return out.slice(0, 2);
+}
+
+/* ===== v7.6 P2：结构仲裁（唯一出口） =====
+   state 答形态，dominant 答谁主导；trend_state 用 4H ADX，dominant 用日线 ADX。
+   两者不互相兜底——日线说箱体、4H 说趋势时，各写各的，文案必须带周期。 */
+function v76GapAtr(bars, atr){
+  var d = v76Norm(bars || []);
+  if(d.length < 3) return { gap_atr:0, dir:0 };
+  var prev = d[d.length-2], last = d[d.length-1];
+  var a = atr;
+  if(!a || !isFinite(a) || a <= 0) a = atrOf(d, 14, d.length-2);
+  if(!a || !isFinite(a) || a <= 0) return { gap_atr:0, dir:0 };
+  var g = (last.o - prev.c)/a;
+  return { gap_atr:Math.abs(g), dir:g > 0 ? 1 : (g < 0 ? -1 : 0) };
+}
+function arbitrateStructure(opt){
+  opt = opt || {};
+  var now = opt.now || Date.now();
+  var op = marketOpenAt(now);
+  var d1 = opt.bars_1d || (S.kl && S.kl["1d"]) || [];
+  var d4 = opt.bars_4h || (S.kl && S.kl["4h"]) || [];
+  var adx1d = 0, adx4h = 0, atr1 = null;
+  try{
+    var n1 = v76Norm(d1);
+    if(n1.length > 20){ adx1d = adxOf(n1, 14).adx || 0; atr1 = atrOf(n1, 14, n1.length-2); }
+    var n4 = v76Norm(d4);
+    if(n4.length > 20) adx4h = adxOf(n4, 14).adx || 0;
+  }catch(e){ adx1d = adx1d || 0; }
+  if(opt.adx_1d !== undefined && opt.adx_1d !== null) adx1d = +opt.adx_1d;
+  if(opt.adx_4h !== undefined && opt.adx_4h !== null) adx4h = +opt.adx_4h;
+  if(opt.adx_1d === undefined && V76.adxOverride !== null && V76.adxOverride !== undefined){
+    adx1d = V76.adxOverride;
+  }
+  if(opt.adx_4h === undefined && V76.adx4Override !== null && V76.adx4Override !== undefined){
+    adx4h = V76.adx4Override;
+  }
+  var box = opt.box || boxDetect(d1, { now:now, key:"1d" });
+  var ch = (opt.chan !== undefined) ? opt.chan : (S.chan || null);
+  var gp = v76GapAtr(d1, atr1);
+  var state, dominant, conf, note;
+
+  if(gp.gap_atr >= 0.8){
+    state = "跳空"; dominant = "事件跳空"; conf = "High";
+    note = "日线开盘跳空 " + (Math.round(gp.gap_atr*100)/100) + " ATR（" +
+           (gp.dir > 0 ? "向上" : "向下") + "）";
+    box = { valid:false, upper:box.upper, lower:box.lower, touch_up:box.touch_up,
+            touch_dn:box.touch_dn, width_atr:box.width_atr, breakout:box.breakout,
+            frozen:box.frozen, evaluated:box.evaluated,
+            reason:"跳空事件覆盖箱体判定", key:box.key };
+  }else if(adx1d > 25){
+    state = "通道"; dominant = "通道为主"; conf = "High";
+    note = "日线 ADX " + (Math.round(adx1d*10)/10) + " > 25";
+    /* 趋势里不判箱体：ADX > 25 时通道已经能解释走势，再挂一个箱体等于自相矛盾。
+       不论数据本身是否成箱，结论都统一写成「趋势中不判箱体」，避免两套理由打架 */
+    box = { valid:false, upper:box.upper, lower:box.lower, touch_up:box.touch_up,
+            touch_dn:box.touch_dn, width_atr:box.width_atr, breakout:box.breakout,
+            frozen:box.frozen, evaluated:box.evaluated,
+            reason:"日线 ADX > 25，趋势中不判箱体", key:box.key };
+  }else if(adx1d >= 20){
+    if(box.valid){
+      state = "双结构"; dominant = "双结构并存"; conf = "Low";
+      note = "日线 ADX " + (Math.round(adx1d*10)/10) + " 落在 20–25，通道与箱体并存";
+    }else{
+      state = "过渡"; dominant = "通道为主"; conf = "Low";
+      note = "日线 ADX " + (Math.round(adx1d*10)/10) + " 落在 20–25，箱体未成立";
+    }
+  }else{
+    if(box.valid){
+      state = "箱体"; dominant = "水平箱体"; conf = "High";
+      note = "日线 ADX " + (Math.round(adx1d*10)/10) + " < 20，箱体有效";
+    }else{
+      state = "无结构"; dominant = "无结构"; conf = "Low";
+      note = "日线 ADX " + (Math.round(adx1d*10)/10) + " < 20 且未成箱";
+    }
+  }
+  /* 事件窗口防呆：窗口内不改 state / dominant —— 结构是已经发生的事实，
+     改的是「现在这个判断敢不敢当依据」。High 降 Medium，Medium 与 Low 一律落到 Low。
+     多条事件只取最近那条写文案，避免一句话里塞三个数据名。 */
+  var evWin = (opt.event_window && opt.event_window.length) ? opt.event_window : [];
+  if(evWin.length){
+    conf = conf === "High" ? "Medium" : "Low";
+    note += " · 事件窗口：距「" + evWin[0].name + "」约 " + (evWin[0].hours | 0) +
+            " 小时，结构判定仅供参考";
+  }
+  var trend_state = !adx4h ? "数据不足"
+                  : (adx4h > 25 ? "趋势" : (adx4h >= 20 ? "过渡" : "震荡"));
+  return {
+    state: state, dominant: dominant, confidence: conf, trend_state: trend_state,
+    event_window_flag: evWin.length > 0, event_window: evWin,
+    adx_1d: Math.round(adx1d*10)/10, adx_4h: Math.round(adx4h*10)/10,
+    gap_atr: Math.round(gp.gap_atr*100)/100,
+    box: box, channel: ch, note: note,
+    is_market_open: op.open,
+    warning: op.open ? "" : (op.label + "：结构已暂停刷新")
+  };
+}
+
+/* 事件窗口：未来 24 小时内、≥4 星、尚未开始的事件。
+   evRows 已按「未来 7 天 + 近 3 天」筛过，这里只做时间窗收窄。
+   抓不到日历（evRows 抛错）就当没有窗口 —— 宁可少降一档置信，也不能因为日历挂了让结构卡崩掉。 */
+function eventWindowOf(now, hours){
+  var out = [], end = now + (hours || 24) * 3600000;
+  try{
+    evRows().forEach(function(r){
+      if(!r.t || r.t <= now || r.t > end) return;
+      out.push({ name:r.name, t:r.t, stars:r.stars,
+                 hours:Math.max(1, Math.round((r.t - now) / 3600000)) });
+    });
+  }catch(e){ out = []; }
+  out.sort(function(a, b){ return a.t - b.t; });
+  return out;
 }
 
 /* 统一结构快照：唯一出口，字段名与开发计划书一致。
@@ -2172,29 +2422,13 @@ function structureSnapshot(opt){
   var pk = (S.kl && S.kl["1h"] && S.kl["1h"].length >= 20) ? "1h"
          : ((S.kl && S.kl["1d"] && S.kl["1d"].length) ? "1d" : "");
   var gaps = pk ? v76GapsOf(S.kl[pk], pk) : [];
-  var boxKey = (S.chPeriod && S.kl && S.kl[S.chPeriod] && S.kl[S.chPeriod].length) ? S.chPeriod
-             : (S.kl && S.kl["1d"] && S.kl["1d"].length ? "1d" : pk);
-  var box = boxDetect(boxKey ? S.kl[boxKey] : [], { now:now });
   var ch = S.chan || null;
-  var adx1d = 0, adx4h = 0;
-  try{
-    if(S.kl && S.kl["1d"] && S.kl["1d"].length > 30) adx1d = adxOf(S.kl["1d"], 14).adx;
-    if(S.kl && S.kl["4h"] && S.kl["4h"].length > 30) adx4h = adxOf(S.kl["4h"], 14).adx;
-  }catch(e){ adx1d = adx1d || 0; }
-  if(V76.adxOverride !== null && V76.adxOverride !== undefined) adx1d = V76.adxOverride;
-  var adxUse = adx4h || adx1d;
-  var trend = adxUse > 25 ? "趋势" : (adxUse >= 20 ? "过渡" : "震荡");
-  var dominant = "无结构", conf = "Low", note = "";
-  if(adx1d > 25 || adxUse > 25){
-    dominant = "通道"; conf = "High"; note = "主结构：通道（ADX " + Math.round(adxUse) + "）";
-  }else if(box.valid){
-    dominant = adxUse >= 20 ? "双结构并存" : "水平箱体";
-    conf = adxUse >= 20 ? "Low" : "High";
-    note = "主结构：" + (adxUse >= 20 ? "通道为主，箱体为辅" : "水平箱体") +
-           "（上沿 " + num(box.upper,1) + "，下沿 " + num(box.lower,1) + "）";
-  }else{
-    note = "未形成可判定结构";
-  }
+  /* 仲裁只看日线（dominant）+ 4H（trend_state），与图上显示周期无关，
+     避免「切到 4H 就把主结构改掉」这种自相矛盾 */
+  var ew = eventWindowOf(now);
+  var arb = arbitrateStructure({ now:now, chan:ch, event_window:ew });
+  var tags = opt.noPatterns ? []
+           : patternTags((S.kl && S.kl["1d"]) || [], { n:30 });
   var missing = gaps.filter(function(g){ return g.kind === "missing"; }).length;
   return {
     is_market_open: op.open,
@@ -2205,22 +2439,127 @@ function structureSnapshot(opt){
       removed: V76.synthetic | 0, synthetic: V76.synthetic | 0, dup: V76.dup | 0,
       gaps: gaps.length, missing: missing, period: pk
     },
-    macro: { status: "数据延迟", tips: null, dxy: null, exception: false, note:"v7.6 P3 未接入" },
+    macro: (function(){
+      var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
+      return { status: mj.status, tips: mj.tips, tips_bp: mj.tips_10y.change_bp,
+               dxy: mj.dxy.value, dxy_pct: mj.dxy.change_pct,
+               exception: mj.exceptions.length > 0, as_of: mj.dxy.as_of || mj.tips_10y.as_of,
+               stale: mj.stale, confidence: mj.confidence, note: mj.note,
+               exceptions: mj.exceptions };
+    })(),
     structure: {
-      adx: Math.round(adxUse*10)/10, adx_1d: Math.round(adx1d*10)/10,
-      adx_4h: Math.round(adx4h*10)/10,
-      state: trend, dominant: dominant, confidence: conf, arbiter_note: note,
+      adx: arb.adx_1d, adx_1d: arb.adx_1d, adx_4h: arb.adx_4h,
+      state: arb.state, trend_state: arb.trend_state,
+      dominant: arb.dominant, confidence: arb.confidence, arbiter_note: arb.note,
+      gap_atr: arb.gap_atr,
       channel: { valid: !!ch, position: ch ? Math.round(ch.pos*100) + "%" : "--",
                  slope_atr: ch ? Math.round(ch.slopeAtr*1000)/1000 : null },
-      box: { valid: box.valid, upper: box.upper, lower: box.lower,
-             touch_up: box.touch_up, touch_dn: box.touch_dn,
-             width_atr: box.width_atr, breakout: box.breakout,
-             frozen: box.frozen, evaluated: box.evaluated, reason: box.reason },
-      extended_patterns: [],
-      warning: op.open ? "" : (op.label + "：结构已暂停刷新"),
-      event_window_flag: false
+      box: arb.box,
+      extended_patterns: tags.map(function(t){
+        return t.status ? (t.name + "（" + t.status + "）") : t.name;
+      }),
+      warning: arb.warning,
+      event_window_flag: !!arb.event_window_flag,
+      event_window: arb.event_window || []
     }
   };
+}
+
+/* ===== v7.6 P3：宏观双变量（TIPS 10Y + DXY） =====
+   只管两个变量，不接 VIX / SPX / 加息概率——多接一个就多一处猜。
+   判读的是「变化」不是「绝对值」：2.6% 的 TIPS 本身说明不了什么，
+   一天跳 3bp 才是资金在重新定价。 */
+var MACRO = { doc:null, at:0, err:null };
+var MACRO_URL = "macro.json";
+var MACRO_STALE = 90*60000;          // 计划书：fetched_at 超 90 分钟即「数据延迟」
+var MACRO_REFRESH = 30*60000;
+
+function v76Num(x){
+  if(x === null || x === undefined || x === "") return null;
+  var n = +x;
+  return isFinite(n) ? n : null;
+}
+/* 金价当日涨跌：末根日线已是今天就用前一根收盘做基准，否则用末根收盘 */
+function goldDayPct(){
+  var d = (S.kl && S.kl["1d"]) || [];
+  var px = S.price || S.paxg || 0;
+  if(!px || !d.length) return 0;
+  var ref = d[d.length-1].c;
+  if(d.length >= 2 && utcDayKey(d[d.length-1].t) === utcDayKey(Date.now())) ref = d[d.length-2].c;
+  return ref ? (px/ref - 1) * 100 : 0;
+}
+function macroJudge(raw, opt){
+  opt = opt || {};
+  var now = opt.now || Date.now();
+  var empty = {
+    status:"数据延迟", macro_status:"数据延迟", stale:true,
+    note:"宏观数据不可用", tips:null, dxy:null, confidence:"Low", exceptions:[],
+    tips_10y:{ value:null, change_bp:null, trend_5d:null, as_of:"" },
+    dxy:{ value:null, change_pct:null, trend_5d:null, as_of:"", src:"" }
+  };
+  if(!raw) return empty;
+  var at = (typeof raw.fetched_at === "number") ? raw.fetched_at
+                                                : Date.parse(raw.fetched_at || "");
+  /* 未来时间超过 5 分钟也判异常：时钟错乱时宁可显示延迟，也不要假装新鲜 */
+  if(!isFinite(at) || now - at > MACRO_STALE || at - now > 5*60000) return empty;
+
+  var T = raw.tips_10y || {}, X = raw.dxy || {};
+  var tv = v76Num(T.value), xv = v76Num(X.value);
+  var tbp = v76Num(T.change_bp), xpc = v76Num(X.change_pct);
+  if(tv === null || xv === null || tbp === null || xpc === null) return empty;
+
+  /* 广义美元（DTWEXBGS）日波动天然比 ICE DXY 小，阈值放宽 0.02 个百分点 */
+  var dth = /broad|dtwex/i.test(String(X.src || "")) ? 0.08 : 0.10;
+  var tf = tbp >= 1.5 ? -1 : (tbp <= -1.5 ? 1 : 0);      // -1 利空金 / +1 利多金
+  var df = xpc >= dth ? -1 : (xpc <= -dth ? 1 : 0);
+
+  var status, conf, conflict = (tf * df < 0);
+  if(tf < 0 && df < 0){ status = "强利空"; conf = "High"; }
+  else if(tf > 0 && df > 0){ status = "强利多"; conf = "High"; }
+  /* 一空一多不能二选一：谁都不比谁更权威，只能记「方向相反，等确认」 */
+  else if(conflict){ status = "中性"; conf = "Low"; }
+  else if(tf < 0 || df < 0){ status = "利空"; conf = "Medium"; }
+  else if(tf > 0 || df > 0){ status = "利多"; conf = "Medium"; }
+  else { status = "中性"; conf = "Low"; }
+
+  var notes = ["TIPS " + (tbp > 0 ? "+" : "") + tbp.toFixed(1) + "bp",
+               "DXY " + (xpc > 0 ? "+" : "") + xpc.toFixed(2) + "%"];
+  if(conflict) notes.push("两变量方向相反，等待确认");
+  if(!tf) notes.push("TIPS 未达阈值 ±1.5bp");
+  if(!df) notes.push("DXY 未达阈值 ±" + dth.toFixed(2) + "%");
+
+  var exc = [], gp = v76Num(opt.gold_pct);
+  if(gp !== null && df < 0 && gp > 0){
+    exc.push("背离：美元与金同涨，可能是避险或流动性因素");
+  }else if(gp !== null && df > 0 && gp < 0){
+    exc.push("背离：美元与金同跌，可能是流动性收紧");
+  }
+  if(exc.length) conf = "Medium";        // 有背离就不能给 High
+
+  return {
+    status:status, macro_status:status, stale:false,
+    confidence:conf, exceptions:exc, note:notes.join(" · "),
+    tips:tv,                              // 扁平值方便卡片直接用；dxy 走下面的对象
+    tips_10y:{ value:tv, change_bp:tbp, trend_5d:v76Num(T.trend_5d), as_of:T.as_of || "" },
+    dxy:{ value:xv, change_pct:xpc, trend_5d:v76Num(X.trend_5d),
+          as_of:X.as_of || "", src:X.src || "" }
+  };
+}
+function fetchMacro(force){
+  var now = Date.now();
+  if(!force && MACRO.at && now - MACRO.at < MACRO_REFRESH) return Promise.resolve(MACRO.doc);
+  function after(){
+    if(typeof renderMacroCard === "function"){ renderMacroCard(); renderFusion(); }
+  }
+  return fetchJson(MACRO_URL + "?t=" + now, 12000).then(function(d){
+    MACRO.doc = d || null; MACRO.at = now; MACRO.err = null;
+    after();
+    return MACRO.doc;
+  }).catch(function(e){
+    MACRO.err = e; MACRO.at = now;         // 保留上一份 doc，过期由 macroJudge 判延迟
+    after();
+    return MACRO.doc;
+  });
 }
 
 /* ===== 指标 ===== */
@@ -5848,6 +6187,9 @@ function refreshCalendar(){
     if(sig === lastCalSig) return;
     lastCalSig = sig;
     renderEvents();
+    /* 日历可能晚于首屏到达：结构卡末尾的「事件窗口」提示必须先看到事件才知道要写，
+       所以这里补一次融合渲染。只重画两行文字，不动图与列表。 */
+    if(typeof renderFusion === "function") renderFusion();
   });
 }
 
@@ -6005,7 +6347,9 @@ var EV_RULES = [
   {id:"cb", rx:/购金|黄金储备|gold reserve/i, cat:"购金", dir:0, core:1, pre:0, h:"中期", sp:"cb",
    up:"购金加速 → 官方需求托底 → 中期利多（不构成短线做多理由）",
    dn:"购金放缓 → 边际支撑减弱 → 短期边际利空，不改中期方向"},
-  {id:"geo", rx:/伊朗|霍尔木兹|中东|以色列|美伊|战争|空袭|制裁|Hormuz/i,
+  /* 词表别只写「中东 / 伊朗」：俄乌、红海、胡塞是这两年最常见的触发源，
+     漏一个就整条事件掉进「其他 · 未收录」，自检还照样全绿 —— 误报的反面是漏报 */
+  {id:"geo", rx:/伊朗|霍尔木兹|中东|以色列|美伊|战争|空袭|制裁|俄乌|乌克兰|红海|胡塞|地缘|冲突|Hormuz|Red Sea|Houthi|Russia|Ukraine|geopolit/i,
    cat:"地缘", dir:0, core:1, pre:0, h:"中期", sp:"geo",
    up:"冲突升级 → 避险脉冲（短线利多）与油价上行（中期利空）同时出现",
    dn:"局势缓和 → 避险溢价消退 → 短线回吐，油价回落反而利多"},
@@ -6069,6 +6413,14 @@ function evRegion(e){
   return "其他";
 }
 
+/* 事件类 / 数值类：自检必须分开判，否则决议、讲话会被要求「有前值·预期」而误报。
+   注意 yield / dxy / oil 也走 sp 分支，但它们是数值指标，不能跟着一起归到事件类。 */
+var EV_EVENT_SP = { geo:1, liq:1, cb:1, elec:1, fomc:1 };
+function evKindOf(rule){
+  if(!rule) return "event";
+  return (EV_EVENT_SP[rule.sp] || rule.dir === 0) ? "event" : "num";
+}
+
 /* 单条判定：纯函数，不碰 DOM、不读全局行情 —— 便于单测 */
 function evJudge(e){
   var t = Number(e.ts || e.t || 0);
@@ -6080,7 +6432,8 @@ function evJudge(e){
     pv: e.pv || "", fc: e.fc || "", av: e.av || "",
     diff: diff, verdict: "待定", logic: "", horizon: "短线", conf: "低",
     src: e.src || "", cat: r ? r.cat : "其他", ruleId: r ? r.id : "",
-    pre: false, sp: r ? (r.sp || "") : ""
+    pre: false, sp: r ? (r.sp || "") : "",
+    kind: evKindOf(r)
   };
   if(!r){
     out.verdict = "待定";
@@ -6183,7 +6536,8 @@ function evRows(){
 /* 自检：10 项，任何一项不过都要在页面上说清楚，不能只报「全部通过」 */
 function evCheck(rows){
   function all(fn){ return rows.length > 0 && rows.every(fn); }
-  function numEv(r){ return !/地缘|政治|流动性|购金/.test(r.cat); }
+  /* 按 kind 判，不按 cat 猜：缺 kind 的旧行按数值处理（更严），不放水 */
+  function numEv(r){ return r.kind !== "event"; }
   var c = [];
   c.push({ k: "只含 4 星以上", ok: all(function(r){ return r.stars >= 4; }) });
   c.push({ k: "12 个字段齐全", ok: all(function(r){
@@ -6193,8 +6547,8 @@ function evCheck(rows){
   c.push({ k: "数值事件有前值/预期", ok: all(function(r){
     return !numEv(r) || (r.pv !== "" && r.fc !== "");
   }) });
-  c.push({ k: "未公布已给双情景", ok: all(function(r){
-    return r.diff !== "待公布" || /若超预期/.test(r.logic);
+  c.push({ k: "数值待公布已给双情景", ok: all(function(r){
+    return !numEv(r) || r.diff !== "待公布" || /若超预期/.test(r.logic);
   }) });
   c.push({ k: "预期差用词合规", ok: all(function(r){
     return ["超预期","不及预期","符合预期","待公布","无法判断"].indexOf(r.diff) >= 0;
@@ -6207,7 +6561,9 @@ function evCheck(rows){
     return r.cat !== "流动性" || /换取现金|与风险资产同跌/.test(r.logic);
   }) });
   c.push({ k: "无公布值不臆测", ok: all(function(r){
-    return r.av !== "" || r.diff === "待公布" || r.diff === "无法判断";
+    if(numEv(r)) return r.av !== "" || r.diff === "待公布" || r.diff === "无法判断";
+    /* 事件类没有数值公布值，但也绝不能凭空写「超预期」——写了就得有 av 对应 */
+    return (r.diff !== "超预期" && r.diff !== "不及预期") || r.av !== "";
   }) });
   c.push({ k: "判定用词合规", ok: all(function(r){
     return ["利多","利空","中性","待定","拉锯"].indexOf(r.verdict) >= 0;
@@ -7217,6 +7573,13 @@ function renderVerdict(){
 
   var v = verdictText(st);
   $("vMain").textContent = v.main;
+  /* 状态层后缀：4H 定状态、日线定主导，两个周期都必须写出来，避免读者拿 4H 的 ADX 当方向依据 */
+  var arb = arbitrateStructure({});
+  var vs = document.createElement("span");
+  vs.className = "vstate";
+  vs.textContent = "（状态：" + arb.trend_state + " · 4H ADX " + num(arb.adx_4h,1) +
+                   " / 日线 ADX " + num(arb.adx_1d,1) + "）";
+  $("vMain").appendChild(vs);
   $("vSub").innerHTML = sanitizeHtml(v.sub);
   /* 方向震荡时 conf 恒 0：不写「置信 0」，改写「强度 x」，条长按强度给 */
   var w = st.conf === 0 ? (st.confStr || 0) : st.conf;
@@ -7262,6 +7625,84 @@ function verdictText(st){
              sub: "4 小时无明确方向，按日线方向轻仓。　" + base };
   }
   return { main: "数据不足，无法判定", sub: base };
+}
+
+/* 宏观卡：两行数值 + 结论 + 数据截至。
+   数据延迟时一律显示 --：宁可承认没数，也不能拿昨天的数配今天的抓取时间。 */
+function signed(v, nd, unit){
+  if(v === null || v === undefined || !isFinite(v)) return "--";
+  return (v > 0 ? "+" : "") + num(v, nd) + unit;
+}
+function renderMacroCard(){
+  if(!$("macroCard")) return;
+  var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
+  var st = mj.stale;
+  $("mcTips").textContent = st ? "--" : num(mj.tips, 2) + "%";
+  $("mcDxy").textContent  = st ? "--" : num(mj.dxy.value, 2);
+  $("mcTipsD").textContent = st ? "--" : signed(mj.tips_10y.change_bp, 1, "bp");
+  $("mcDxyD").textContent  = st ? "--" : signed(mj.dxy.change_pct, 2, "%");
+  /* TIPS 上行 / 美元上行 = 对金价利空 → 绿；反之红。跟行情同一套颜色 */
+  $("mcTipsD").className = "d num " + (st ? "" : (mj.tips_10y.change_bp > 0 ? "bear"
+                          : mj.tips_10y.change_bp < 0 ? "bull" : ""));
+  $("mcDxyD").className  = "d num " + (st ? "" : (mj.dxy.change_pct > 0 ? "bear"
+                          : mj.dxy.change_pct < 0 ? "bull" : ""));
+  $("mcAs").textContent = st ? "数据延迟" :
+      ("数据截至 " + ((mj.dxy.as_of || mj.tips_10y.as_of || "").slice(5) || "--"));
+  var el = $("mcStatus");
+  el.textContent = mj.status;
+  el.className = "mcst " + (st || mj.status === "中性" ? "flatc"
+                 : (mj.status.indexOf("利空") >= 0 ? "bear" : "bull"));
+  $("mcNote").textContent = st ? "抓取超过 90 分钟或不可用" : mj.note;
+}
+
+/* 结构结论的单句表达，供 #chLine / .pnote 复用 */
+function fusionClause(st){
+  if(!st) return "主导：--";
+  var b = st.box || {};
+  var up = (b.upper === null || b.upper === undefined) ? "--" : num(b.upper, 1);
+  var lo = (b.lower === null || b.lower === undefined) ? "--" : num(b.lower, 1);
+  if(st.state === "跳空") return "主导：事件跳空（跳空 " + num(st.gap_atr, 2) + " ATR）";
+  if(st.state === "通道") return "主导：通道（有效）";
+  if(st.state === "箱体") return "主导：水平箱体（上沿 " + up + "，下沿 " + lo + "）";
+  if(st.state === "双结构")
+    return "双结构并存：通道为主，箱体为辅（上沿 " + up + "，下沿 " + lo + "）⚠ 震荡整理中";
+  if(st.state === "过渡") return "主导：通道为主（过渡，箱体未成立）";
+  return "主导：无结构";
+}
+
+/* 融合层：只改文字，不新开卡片。
+   #chLine 保留通道原句（周期 + % 位 + 宽），后面追加日线结构结论；
+   .pnote 换成「结构 + 宏观」一行验证。 */
+function renderFusion(){
+  var st = null;
+  try{ st = structureSnapshot({}).structure; }catch(e){ st = null; }
+  var line = $("chLine");
+  if(line && S.chanText){
+    /* 分两行：第一行保留通道原句（周期 + % 位 + 宽），第二行才是结构结论。
+       挤在一行时中文会在「前段缺口」中间断行，读起来像两句话拼错。 */
+    var tail = "日线 · " + fusionClause(st);
+    var tags = (st && st.extended_patterns) || [];
+    if(tags.length) tail += " · 辅助标签：" + tags.join("、");
+    line.innerHTML = sanitizeHtml(S.chanText) +
+                     '<span class="chstruct">' + sanitizeHtml(tail) + '</span>';
+  }
+  var pn = document.querySelector(".pnote");
+  if(pn && st){
+    var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
+    var boxTxt = st.box && st.box.valid
+      ? ("箱体 " + num(st.box.lower, 1) + "–" + num(st.box.upper, 1))
+      : "箱体未成立";
+    var line2 = "结构：日线 " + st.dominant + "（ADX " + num(st.adx_1d, 1) + "）· " + boxTxt +
+      " ｜ 宏观：" + mj.status +
+      (mj.stale ? "" : " · TIPS " + signed(mj.tips_10y.change_bp, 1, "bp") +
+                       " / DXY " + signed(mj.dxy.change_pct, 2, "%"));
+    /* 事件窗口写在同一行的末尾：读者看结构结论时，必须同时知道「两小时后有数据」 */
+    if(st.event_window_flag && st.event_window && st.event_window.length){
+      var e0 = st.event_window[0];
+      line2 += " ｜ 事件窗口：距「" + e0.name + "」约 " + e0.hours + " 小时，结构判定仅供参考";
+    }
+    pn.textContent = line2;
+  }
 }
 
 function renderStruct(){
@@ -7411,6 +7852,7 @@ function renderChart(){
   var line = $("chLine");
   if(!ch){
     svg.innerHTML = "";
+    S.chanText = "";
     if(line) line.textContent = "数据不足，等行情加载完再看";
     return;
   }
@@ -7498,7 +7940,9 @@ function renderChart(){
   svg.setAttribute("aria-label", label + "回归通道图");
   svg.innerHTML = band + rails + body + now + ticks;
   if(line){
-    line.textContent = chanText(ch, label) + (cut ? " · 前段缺口已截断" : "");
+    /* 存底：renderFusion 在这句后面追加结构结论，重绘时不能把结论写重复 */
+    S.chanText = chanText(ch, label) + (cut ? " · 前段缺口已截断" : "");
+    line.textContent = S.chanText;
     line.style.color = ch.r2 < 0.35 ? "var(--tx3)" : "var(--tx2)";
   }
 }
@@ -10049,6 +10493,8 @@ function refreshAll(){
   renderBadges();
   renderStruct();
   renderChart();
+  renderMacroCard();
+  renderFusion();
   renderBt();
   renderKL();
   renderMarks();
@@ -11250,6 +11696,8 @@ function boot(){
   }
   setInterval(setConn, 1000);                  // 读秒：每秒一次，秒数连续递增
   refreshCalendar();                           // 启动拉一次，之后每 20 分钟对齐中转
+  fetchMacro();                                // 宏观双变量：失败只影响卡片，不影响主链路
+  setInterval(function(){ fetchMacro(true); }, MACRO_REFRESH);
   setInterval(refreshCalendar, CAL_REFRESH);
   setInterval(refreshPrice, TICK_MS);          // 现货锚点：15 秒一次
   setInterval(refreshTick, 5000);              // 逐笔桥接：5 秒一次，报价不再卡 30 秒
@@ -11297,12 +11745,25 @@ if(/[?&]xt=1/.test(location.search)){
       gapsOf:v76GapsOf,
       marketOpenAt:marketOpenAt,
       boxDetect:boxDetect,
+      patternTags:patternTags,
+      arbitrate:arbitrateStructure,
       snapshot:structureSnapshot,
+      macroJudge:macroJudge,
+      eventWindow:function(h){ return eventWindowOf(Date.now(), h); },
+      macroState:function(){
+        var j = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
+        return { at:MACRO.at, err:MACRO.err ? String(MACRO.err.message||MACRO.err) : "",
+                 doc:!!MACRO.doc, status:j.status, judge:j };
+      },
+      loadMacro:function(){ return fetchMacro(true); },
       klSrc:function(){ return V76.src; },
       state:function(){ return { src:V76.src, at:V76.at, err:V76.err ? String(V76.err.message||V76.err) : "",
                                  synthetic:V76.synthetic, dup:V76.dup }; },
       loadXau:function(){ V76.doc = null; V76.err = null; V76.errAt = 0; return fetchXauKlines(true); },
-      setAdx:function(v){ V76.adxOverride = (v === null || v === undefined) ? null : +v; }
+      setAdx:function(v, v4){
+        V76.adxOverride = (v === null || v === undefined) ? null : +v;
+        V76.adx4Override = (v4 === null || v4 === undefined) ? null : +v4;
+      }
     },
     patchFormingBar:patchFormingBar,
     fetchKlines:fetchKlines,
