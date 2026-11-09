@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.7 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.8 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -285,9 +285,13 @@ body.tab-ov .tpx{display:none}
 .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 /* 320px 级窄屏四列放不下「5/5 · ADX 99」，两列更整齐 */
 @media(max-width:359px){.pgrid{grid-template-columns:repeat(2,1fr)}}
-.pcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 9px;text-align:center;cursor:pointer}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 9px;text-align:center;cursor:pointer;outline:none}
 .pcard.up{border-color:rgba(229,72,77,.34);background:linear-gradient(180deg,rgba(229,72,77,.07),var(--card))}
 .pcard.dn{border-color:rgba(47,163,107,.34);background:linear-gradient(180deg,rgba(47,163,107,.07),var(--card))}
+/* 选中态：金边 + 标题后一个小圆点。只靠边框颜色区分，色弱用户看不出选的是哪格 */
+.pcard.on{box-shadow:inset 0 0 0 1.5px rgba(212,162,76,.62)}
+.pcard.on .k::after{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--gold);margin-left:4px;vertical-align:middle}
+.pcard:focus-visible{box-shadow:0 0 0 2px rgba(212,162,76,.45)}
 .pcard .k{font-size:10.5px;color:var(--tx3);letter-spacing:.4px}
 .pcard .v{font-size:13px;font-weight:650;margin-top:3px}
 .pcard.up .v{color:var(--up)}.pcard.dn .v{color:var(--dn)}.pcard .v.rg{color:var(--tx2)}
@@ -299,6 +303,8 @@ body.tab-ov .tpx{display:none}
 .pnote .pn-m{margin-top:2px;color:var(--tx3);opacity:.85}
 
 /* 判定依据 */
+.rhd{font-size:12px;color:var(--tx2);font-weight:600}
+.rsub{font-size:10.5px;color:var(--tx3);margin-bottom:2px}
 .reasons{margin-top:10px}
 .rz{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.05);font-size:12px}
 .rz:first-child{border-top:none}
@@ -1019,7 +1025,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.7 · 11/09</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.8 · 11/09</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1105,10 +1111,11 @@ body.tab-ov .tpx{display:none}
 
   <section class="panel" id="panel-struct">
     <div class="sech"><h2>多周期共振 <span class="cnt" id="structMeta"></span></h2></div>
-    <div class="pgrid" id="pgrid"></div>
+    <div class="pgrid" id="pgrid" role="group" aria-label="四个周期，点击查看该周期判定依据"></div>
     <div class="pnote">日线定方向 · 周线定背景 · 4 小时定节奏 · 1 小时只做触发</div>
     <div class="card" style="margin-top:10px">
-      <div style="font-size:12px;color:var(--tx3);margin-bottom:2px">日线判定依据（4 维 5 条，满足 3 条即成方向）</div>
+      <div class="rhd" id="reasonsHd">日线判定依据 · 权重 50%</div>
+      <div class="rsub">4 维 5 条，满足 3 条即成方向</div>
       <div class="reasons" id="reasons"></div>
     </div>
 
@@ -1616,6 +1623,12 @@ var S = {
   alertSide:{}, armed:{},
   kl:{}, scale:1, ready:false,
   struct:null, verdict:null, levels:[], gears:[], takes:[],
+  /* 结构页「判定依据」当前看的周期。只存内存：刷新回日线，
+     避免上次停在周线、而周线数据当天没拉到，一进来看到一片「数据不足」 */
+  reasonK:"1d",
+  /* 设置页哪些输入被用户真正碰过。不落盘 —— 刷新后重新开始计数。
+     没有这张表时，派生显示（底仓保留随持仓变）会被当成「改了没保存」 */
+  setTouch:{},
   levelWin:12, levelOpen:false, levelFilter:"all",
   chPeriod:"1d", chan:null, mkEdit:null, mkAlert:null,
   cal:{ ok:false, events:[], updatedAt:0, week:"" },
@@ -1821,7 +1834,7 @@ function _walk(n){
     if(x.nodeType===1){
       if(!_ALLOW[x.tagName]){ n.removeChild(x); return; }
       Array.prototype.slice.call(x.attributes).forEach(function(a){
-        if(!/^(class|value|data-[\w-]+|title|aria-label)$/.test(a.name)) x.removeAttribute(a.name);
+        if(!/^(class|value|data-[\w-]+|title|aria-label|role|tabindex|aria-pressed)$/.test(a.name)) x.removeAttribute(a.name);
       });
       _walk(x);
     } else if(x.nodeType!==3){ n.removeChild(x); }
@@ -3167,8 +3180,11 @@ function structCore(p){
   if(out.shape === "counter") out.conf = Math.min(out.conf, 60);
   if(d1 && d1.adx && d1.adx.adx < 20) out.conf = Math.min(out.conf, 55);
 
-  /* 1h 只做触发：与日线同向即「触发」，不参与方向与置信 */
-  out.trig = (!dh || !d1 || d1.state === "rg") ? "na" : (dh.state === d1.state ? "on" : "off");
+  /* 1h 只做触发：与日线同向即「触发」，不参与方向与置信。
+     方向被二对一否决后（dir=rg），触发就不再指向任何方向 —— 此时一并置 na，
+     否则卡片写「触发」、结论写「方向作废」，同一屏两个答案。 */
+  out.trig = (!dh || !d1 || d1.state === "rg" || out.dir === "rg") ? "na"
+           : (dh.state === d1.state ? "on" : "off");
 
   out.label = dirWord(out.dir);
   var parts = [];
@@ -7651,8 +7667,10 @@ function verdictText(st){
   }
   if(st.shape === "align"){
     var wk = (dw && dw.state === st.dir) ? "确认" : "未反对";
+    /* 分母用实际投票数：周线缺数据时只有日线 + 4h 两票，
+       写死 3 会凭空多出一个没投票的周期。 */
     return { main: (st.dir==="dn" ? "空头共振" : "多头共振"),
-             sub: st.same + "/3 同向 · 周线" + wk + "　" + base };
+             sub: st.same + "/" + (st.valid || 3) + " 同向 · 周线" + wk + "　" + base };
   }
   if(st.shape === "mixed"){
     return { main: "方向待确认：日线" + dirW,
@@ -7742,30 +7760,46 @@ function renderFusion(){
   }
 }
 
+/* 依据区标题与权重：1 小时不投票，标题必须写明，否则读者以为它也在定多空 */
+var REASON_W = { "1w":"10%", "1d":"50%", "4h":"40%", "1h":"0" };
+function reasonTitle(k){
+  if(k === "1h") return "1小时判定依据 · 不参与方向（只做触发）";
+  return PNAME[k] + "判定依据 · 权重 " + REASON_W[k];
+}
+
 function renderStruct(){
   var st = S.struct;
   var keys=["1w","1d","4h","1h"];
-  var names={ "1w":"周线","1d":"日线","4h":"4小时","1h":"1小时" };
+  var names=PNAME;
+  var rk = keys.indexOf(S.reasonK) >= 0 ? S.reasonK : "1d";
+  S.reasonK = rk;
   var html="";
   keys.forEach(function(k){
     var j = st && st.p[k];
+    var on = (k === rk);
+    var attrs = ' data-k="'+k+'" role="button" tabindex="0" aria-pressed="'+(on?"true":"false")+'"';
     if(!j){
-      html += '<div class="pcard"><div class="k">'+names[k]+'</div><div class="v rg">--</div><div class="m">数据不足</div></div>';
+      /* 无数据的周期也能点：进去看的是「这个周期为什么没判定」，不是死格 */
+      html += '<div class="pcard'+(on?" on":"")+'"'+attrs+'><div class="k">'+names[k]+
+              '</div><div class="v rg">--</div><div class="m">数据不足</div></div>';
       return;
     }
-    /* 1 小时不投票：小字换成「触发 / 未触发」，不再摆 ADX 假装它参与定方向。
-       日线震荡时触发无从谈起（trig=na），显示 —，不写「未触发」 */
+    /* 1 小时不投票：小字写触发状态或条件统计，不再摆 ADX 假装它参与定方向。
+       三种情况分开写 —— 它自己震荡时报条件数（「—」在这里等于什么都没说），
+       触发无从谈起（日线震荡 / 方向被否决）才写「—」。 */
     var small;
     if(k === "1h"){
-      small = (st.trig === "na" || j.state === "rg") ? "—"
-        : (st.trig === "on" ? "触发" : "未触发") + ' · ' + (j.state==="up"?j.upN:j.dnN) + '/5';
+      if(j.state === "rg") small = Math.max(j.upN, j.dnN) + "/5 · 不投票";
+      else if(st.trig === "na") small = "—";
+      else small = (st.trig === "on" ? "触发" : "未触发") + ' · ' +
+                   (j.state==="up"?j.upN:j.dnN) + '/5';
     } else {
       /* 震荡态不能写 0/5：条件其实命中了一部分，两侧都没到 3 而已。
          取多数侧，与回溯明细、依据区同一口径 */
       small = (j.state==="up"?j.upN:j.state==="dn"?j.dnN:Math.max(j.upN,j.dnN))
             +'/5 · ADX '+num(j.adx.adx,0);
     }
-    html += '<div class="pcard '+dirCls(j.state)+'">' +
+    html += '<div class="pcard '+dirCls(j.state)+(on?" on":"")+'"'+attrs+'>' +
       '<div class="k">'+names[k]+'</div>' +
       '<div class="v '+(j.state==="rg"?"rg":"")+'">'+dirWord(j.state)+'</div>' +
       '<div class="m'+(k==="1h"?"":" num")+'">'+small+'</div>' +
@@ -7773,17 +7807,27 @@ function renderStruct(){
   });
   $("pgrid").innerHTML = sanitizeHtml(html);
 
-  var d1 = st && st.p["1d"];
-  if(!d1){ $("reasons").innerHTML='<div class="muted">日线数据不足</div>'; return; }
+  /* 标题与旁注都跟着选中的周期走。原来写死「日线」，切了周期标题还是日线，
+     正文却换成周线的数 —— 读者只会以为数据错乱。 */
+  var hd = $("reasonsHd");
+  if(hd) hd.textContent = reasonTitle(rk);
+  var j = st && st.p[rk];
+  var meta = $("structMeta");
+  if(meta) meta.textContent = j ? (PNAME[rk] + " " + j.bars + " 根 · 权重 " + REASON_W[rk]) : "";
+  if(!j){
+    $("reasons").innerHTML = '<div class="muted">' + PNAME[rk] +
+      '数据不足：至少需要 ' + JUDGE_MIN + ' 根，当前这个周期拿不到可用 K 线。</div>';
+    return;
+  }
   /* 震荡态展示多数侧，与 structCore / 回溯明细取侧规则一致（旧版固定写下行侧） */
-  var useUp = d1.state==="up" || (d1.state==="rg" && d1.upN >= d1.dnN);
-  var arr = useUp ? d1.upC : d1.dnC;
-  var other = useUp ? d1.dnC : d1.upC;
+  var useUp = j.state==="up" || (j.state==="rg" && j.upN >= j.dnN);
+  var arr = useUp ? j.upC : j.dnC;
+  var other = useUp ? j.dnC : j.upC;
   var rhtml = "";
   /* 震荡态说明取侧依据，否则读者只看见「2/5」不知道为何没成方向 */
-  if(d1.state === "rg"){
+  if(j.state === "rg"){
     rhtml += '<div class="rz"><span class="ok n">–</span>' +
-      '<span class="c">震荡：上行 <b>'+d1.upN+'</b> 条 / 下行 <b>'+d1.dnN+
+      '<span class="c">震荡：上行 <b>'+j.upN+'</b> 条 / 下行 <b>'+j.dnN+
       '</b> 条，均未达 3 条　以下按'+(useUp?"上行":"下行")+'侧列出</span></div>';
   }
   arr.forEach(function(x){
@@ -7795,8 +7839,6 @@ function renderStruct(){
   rhtml += '<div class="rz"><span class="ok '+(otherN>=3?"y":"n")+'">'+(otherN>=3?"!":"–")+'</span>' +
     '<span class="c">反向条件满足 <b>'+otherN+'/5</b>　'+(otherN>=3?"已构成反向信号":"不构成反向")+'</span></div>';
   $("reasons").innerHTML = sanitizeHtml(rhtml);
-
-  $("structMeta").textContent = d1 ? ("日线 " + d1.bars + " 根 · 权重 50%") : "";
 }
 
 function renderKL(){
@@ -10589,6 +10631,7 @@ function refreshAll(){
   renderGearSrc();
   renderAvgCard();
   renderSetGear();
+  syncKeepDisplay();
   renderGauge();
   renderPos();
   renderAcctCard();
@@ -11327,6 +11370,21 @@ function syncParamInputs(){
   syncKeep();
 }
 
+/* 底仓保留是派生显示：不填就按持仓 × (1 − 减仓比例) 算。
+   持仓一变（买入 / 卖出 / 切账户）就要跟着变，否则输入框写着 30、引擎按 24 算，
+   两个数在同一屏上打架。只在「没设过固定底仓」时接管显示 ——
+   用户显式保存过 keepGram，输入框代表他的设定值，不能被覆盖。 */
+function syncKeepDisplay(){
+  var el = $("setKeep");
+  if(!el || document.activeElement === el) return;
+  var k = S.cfg.keepGram;
+  if(k !== null && k !== undefined && k !== "") return;
+  var g = holdStats().grams;
+  if(!(g > 0)) return;
+  var v = String(computedKeep(g));
+  if(el.value !== v) el.value = v;
+}
+
 /* ===== P17-2 未保存状态 =====
 
    设置页只有这 6 项要点「保存参数」才写进 cfg，其余控件都是改即存。
@@ -11369,6 +11427,11 @@ function saveCfgVal(it){
 }
 
 function isDirty(it){
+  /* 没被用户碰过的输入框一律不算脏。
+     六项里至少「底仓保留」是派生显示 —— 按当前持仓算，持仓一变显示值就变。
+     旧判据拿显示值和 cfg 比，于是买一笔、卖一笔、甚至刷新后数据晚到，
+     都会把「派生值漂移」判成「用户改了没保存」，浮条自己冒出来。 */
+  if(!S.setTouch || !S.setTouch[it.id]) return false;
   var a = saveItemVal(it);
   if(a === null) return false;
   var b = saveCfgVal(it);
@@ -11400,8 +11463,11 @@ function bindDirtyWatch(){
   SAVE_KEYS.forEach(function(it){
     var el = $(it.id);
     if(!el) return;
-    el.addEventListener("input", renderDirtyBar);
-    el.addEventListener("change", renderDirtyBar);
+    /* 只有真实输入才算「碰过」。程序化赋值不会触发 input，
+       所以 syncParamInputs / syncKeepDisplay 重填显示值时不会污染这张表。 */
+    var touched = function(){ S.setTouch[it.id] = true; renderDirtyBar(); };
+    el.addEventListener("input", touched);
+    el.addEventListener("change", touched);
   });
   var save = $("dirtySave");
   if(save) save.onclick = function(){
@@ -11413,6 +11479,29 @@ function bindDirtyWatch(){
 
 function bindUI(){
   bindTabbar();
+
+  /* 四周期卡：点 / 回车切换下方依据区。
+     绑在容器上而不是卡片上 —— renderStruct 每次重建 innerHTML，
+     绑在卡片上的监听器第一次自动刷新就没了。 */
+  var pg = $("pgrid");
+  if(pg){
+    var pickPeriod = function(t){
+      var c = t && t.closest ? t.closest(".pcard") : null;
+      if(!c) return;
+      var k = c.getAttribute("data-k");
+      if(!k || k === S.reasonK) return;
+      S.reasonK = k;
+      renderStruct();            /* 只重绘本模块，不连带刷新别的面板 */
+    };
+    pg.addEventListener("click", function(e){ pickPeriod(e.target); });
+    pg.addEventListener("keydown", function(e){
+      if(e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+      var c = e.target.closest ? e.target.closest(".pcard") : null;
+      if(!c) return;
+      e.preventDefault();        /* 空格默认滚页，别让页面跟着跳一下 */
+      pickPeriod(e.target);
+    });
+  }
 
   Array.prototype.forEach.call(document.querySelectorAll("#klChips button"), function(b){
     b.onclick = function(){
@@ -11596,6 +11685,7 @@ function bindUI(){
     // 同步一份百分比，方便旧逻辑与导出文件对照
     if(hs.grams) S.cfg.cutRatio = Math.round((hs.grams - keep)/hs.grams*100);
 
+    S.setTouch = {};                 /* 保存即清账：存进去的值就是新基线 */
     saveCfg(); compute(); refreshAll(); syncKeep(); toast("参数已保存，建仓与止盈已按新参数重算");
   };
 
