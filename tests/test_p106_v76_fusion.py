@@ -142,6 +142,10 @@ def test_t97_card_renders(make_env):
     assert "美元" in c, c
     assert "数据截至" in c, c
     assert "强利空" in c, c
+    # 「TIPS」是术语，普通用户不知道它指 10 年期通胀保值国债的实际收益率，
+    # 容易误当成平时说的「美债收益率」（名义）。第一行标签直接用中文，
+    # 全称与数据源放 title 里，不占窄屏宽度。
+    assert "实际利率" in c, c
 
 
 def test_t97b_card_404(make_env):
