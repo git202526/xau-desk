@@ -86,9 +86,16 @@ def test_t116_check_no_false_positive(make_env):
 def test_t116b_check_still_catches(make_env):
     """放宽不等于放水：数值事件缺前值/预期、待公布没双情景，仍然必须报红。"""
     page = make_env().page
-    a = judge(page, name="美国非农就业人口", stars=5, fc="", pv="", av="16.5")
+    # 源没给预期值本身不算错（EIA 库存常缺 fc），错的是缺 fc 还给方向
+    a = judge(page, name="美国至11月6日当周EIA原油库存(万桶)", stars=4,
+              fc="", pv="-86.5", av="")
+    assert a["verdict"] == "待定" and a["kind"] == "num", a
+    c0 = stat(check(page, [a]))
+    assert c0["无预期值的数值事件不判方向"] is True, c0
+
+    a["verdict"] = "利空"          # 没有预期值却下了结论
     c1 = stat(check(page, [a]))
-    assert c1["数值事件有前值/预期"] is False, c1
+    assert c1["无预期值的数值事件不判方向"] is False, c1
 
     b = judge(page, name="美国非农就业人口", stars=5, fc="6.5", pv="2.9", av="")
     b["logic"] = "待公布，等数据。"

@@ -6544,8 +6544,11 @@ function evCheck(rows){
     return r.t && r.name && r.region && r.stars && r.diff && r.verdict &&
            r.logic && r.horizon && r.conf;
   }) });
-  c.push({ k: "数值事件有前值/预期", ok: all(function(r){
-    return !numEv(r) || (r.pv !== "" && r.fc !== "");
+  /* 「每条数值事件都有前值·预期」是要求数据源，做不到：金十对 EIA 库存常常不给 fc。
+     真正要守的是「没有预期值就不许下结论」——缺 fc 的事件只能是「待定」。
+     这样源缺数据时清单不红，但代码一旦拿没预期值的数据判方向，立刻报红。 */
+  c.push({ k: "无预期值的数值事件不判方向", ok: all(function(r){
+    return !numEv(r) || r.fc !== "" || r.verdict === "待定";
   }) });
   c.push({ k: "数值待公布已给双情景", ok: all(function(r){
     return !numEv(r) || r.diff !== "待公布" || /若超预期/.test(r.logic);
