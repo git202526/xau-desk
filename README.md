@@ -50,6 +50,33 @@ git commit -m "改了什么"
 git push origin main
 ```
 
+### 这台机器上改用 `tools/deploy.py`
+
+`git push` 到 github.com:443 会卡在对象协商上（实测 45~90 秒无响应，时通时断），
+所以这台机器上的部署走 GitHub Data API——同一个域名、同样的令牌，几百毫秒稳定返回：
+
+```bash
+python3 tools/deploy.py --dry-run              # 先看会推哪些文件，不写远端
+python3 tools/deploy.py --wait 180             # 推 + 等 Pages 构建完成后校验字节
+python3 tools/deploy.py --only index.html      # 只推指定文件
+python3 tools/deploy.py --verify               # 只做线上校验（不推）
+```
+
+它比 `git push` 多两道闸，都是踩过坑才加的：
+
+| 闸 | 拦什么 | 来由 |
+|---|---|---|
+| 按 blob 内容算差异 | 只推真正变了的文件，不再整份快照覆盖 | 旧的一次性脚本把 `xau/klines.json` 从 11-09 02:20 覆盖回 11-08，回退 1 根日线 7.7 小时 |
+| 数据文件按时间戳拦截 | 本地副本旧于远端时跳过该文件并告警 | `calendar.json` / `macro.json` / `jin10/*.json` 由 Actions 在云端直写，本地副本天然更旧 |
+
+`screenshots/`、`versions/`、缓存目录永远不进部署包。无差异时不会产生空提交。
+部署后用 `python3 -m pytest -m deploy` 复核，d2 判的是「远端 index.html 的内容
+是否等于本地 HEAD 的 index.html」，所以 API 部署产生的不同 commit sha 不会被误判成「没上线」。
+
+> 本地 `origin/main` 引用不会因 API 部署而更新，`git status` 可能提示 ahead——
+> 那是引用陈旧，不是没上线。以后提交继续用 `tools/deploy.py` 即可；想恢复普通 git 流程，
+> 等网络好的时候 `git fetch` 一次，`git reset --soft origin/main` 对齐。
+
 ### 换到自己的账号部署
 
 1. 新建公开仓库，把 `index.html` 推上去
@@ -79,7 +106,7 @@ Playwright + pytest，行情 / GitHub API / 汇率全部 mock，不依赖外网�
 ```bash
 python3 -m pytest tests/test_smoke.py    # 冒烟 19 条，约 30 秒，**改完先跑这个**
 python3 -m pytest -m smoke               # 同上（按 marker 选，等价）
-python3 -m pytest                        # 全量 1008 条，8 进程约 3 分钟，发布前跑
+python3 -m pytest                        # 全量 1132 条，8 进程约 5 分钟，发布前跑
 python3 -m pytest -m deploy              # 上线门禁 5 条，8 秒，**收尾必跑**
 python3 -m pytest tests/test_p18_review.py -q    # 单个文件
 ```
@@ -87,10 +114,10 @@ python3 -m pytest tests/test_p18_review.py -q    # 单个文件
 | 层 | 条数 | 耗时 | 什么时候跑 |
 |---|---|---|---|
 | 冒烟 `test_smoke.py` | 19 | 约 30 秒 | 每次改完 |
-| 全量 | 1008 | 8 进程约 3 分钟 | 每期收尾、发布前 |
-| 上线门禁 `-m deploy` | 5 | 8 秒 | 每次 `push` 之后 |
+| 全量 | 1132 | 8 进程约 5 分钟 | 每期收尾、发布前 |
+| 上线门禁 `-m deploy` | 5 | 8 秒 | 每次 `tools/deploy.py` 之后 |
 
-`-m deploy` 被 `addopts` 默认排除（`-m "not deploy"`），日常全量不联网。它查的是「线上那份文件是不是本地这份」：工作区干净、HEAD 与远端一致、线上 sha256 相等、版本号相等。详见 `docs/约束-代码与DOM.md` 第八节。
+`-m deploy` 被 `addopts` 默认排除（`-m "not deploy"`），日常全量不联网。它查的是「线上那份文件是不是本地这份」：工作区干净、**提交的 index.html 内容已在远端**、线上 sha256 相等、版本号相等。详见 `docs/约束-代码与DOM.md` 第八节。
 
 冒烟不是全量的随机抽样，而是**按链路挑**：十条链路各一两条主路径，回答「这个功能还活着吗」。边界仍归全量。`pytest.ini` 开了 `--strict-markers`，marker 写错会直接报错，不会静默少跑。
 
@@ -330,6 +357,7 @@ CHANGELOG.md        每次改了什么、有没有数据格式变化
 versions/           历史版本完整存档（v5.2 起每个发布版一份）+ 回退说明
 screenshots/        各版本界面实拍（390 / 320 宽为主）
 tests/              自动化测试（Playwright + mock 行情/GitHub API）
+tools/              数据抓取（fetch_*.py）与部署（deploy.py）
 docs/PRD-v2.md      当前版本的需求与算法说明
 docs/PRD-v1.0.md    初版需求（历史留档）
 docs/开发计划书-v6.2-移动版.md   v6.2 改版的开发计划与验收标准

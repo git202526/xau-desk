@@ -14,12 +14,22 @@ v6.35～v6.43 九个版本开发完都只提交在本地，24 小时没推送，
 五条按链路顺序排列，失败在哪一条就说明断在哪一段：
 
     d1  工作区干净          —— 改完没提交
-    d2  本地与 origin 同步   —— 提交了没推
-    d3  线上可访问          —— 推了但 Pages 挂了 / 没构建
+    d2  提交的内容已在远端   —— 提交了但没部署
+    d3  线上可访问          —— 部署了但 Pages 挂了 / 没构建
     d4  线上字节 == 本地     —— 构建成功但不是这份文件（缓存、部署目录错）
     d5  版本号一致          —— 给 d4 一个能读懂的失败说明
 
 d3/d4/d5 需联网，d1/d2 需要 git 仓库。无 remote 时 d2 跳过而不是失败。
+
+d2 为什么判「内容」而不是「commit sha」
+------------------------------------
+v7.6 P6 起部署改走 Git Data API（`tools/deploy.py`），因为这台机器到
+github.com:443 的 `git push` 会卡在对象协商上。API 生成的 commit 以远端 head
+为 parent、tree 与本地一致，但 **sha 与本地 HEAD 一定不同**（commit 对象内容不同）。
+所以「远端 sha == 本地 HEAD」这条判据在 API 部署下恒红，是个假警报。
+真正要守的是「用户打开线上看到的就是我提交的这份 index.html」，于是改成比
+`HEAD:index.html` 与远端 tree 里 index.html 的 blob sha —— 同一份内容 sha 必然相同，
+不管它是 push 上去的还是 API 拼出来的。
 """
 import hashlib
 import re
@@ -82,48 +92,70 @@ def test_d1_worktree_clean():
     assert out == "", "工作区有未提交改动，先提交再上线：\n" + out
 
 
-# ==== d2 本地：提交都推上去了 ====
-def test_d2_pushed_to_origin():
-    """两级判断：本地引用判「没推」，远端真实值判「远端被改过」。
+# ==== d2 本地：提交的内容已到远端 ====
+def _deploy_tool():
+    """复用部署工具的 token 解析与 API 封装，门禁不再自带一套凭据逻辑。"""
+    import importlib.util
+    path = ROOT / "tools" / "deploy.py"
+    assert path.exists(), "tools/deploy.py 不见了，部署链路断了"
+    spec = importlib.util.spec_from_file_location("xau_deploy", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_d2_content_deployed():
+    """两级判断：sha 相同即过；sha 不同则比 index.html 的 blob 内容。
 
     为什么不用 git fetch：github.com 的 fetch 会卡在对象协商上（实测 45~60 秒无响应），
     而 ls-remote 只取 ref 列表，几百毫秒。用 fetch 会让门禁自己变成不稳定源。
     """
     if not _git("remote").stdout.strip():
-        pytest.skip("本地仓库没有 remote，跳过推送检查")
+        pytest.skip("本地仓库没有 remote，跳过部署检查")
 
-    # 第一级：HEAD 领先本地 origin/main 引用 —— 离线也能判，抓的就是「忘推」
-    ahead, _behind = _git("rev-list", "--left-right", "--count",
-                            "HEAD...origin/main").stdout.split()
-    assert int(ahead) == 0, (
-        "本地领先 origin/main %s 条，肯定有提交没推。\n"
-        "→ git push origin main，再等 Pages 构建（约 1~2 分钟）。" % ahead
-    )
+    local_head = _git("rev-parse", "HEAD").stdout.strip()
+    local_blob = _git("rev-parse", "HEAD:index.html").stdout.strip()
+    assert local_blob, "取不到 HEAD:index.html 的 blob sha（index.html 还没提交？）"
 
-    # 第二级：远端 main 的真实 SHA 与 HEAD 一致（抓远端被别人改过）。
+    # 第一级：远端 main 的 sha 与本地 HEAD 相同 → 普通 git push 路径，直接过。
     # 这台机器到 github.com:443 时通时断，单次 60 秒常超时，改为 25 秒 × 2 次。
-    out = None
+    remote_head = None
     for i in range(2):
         try:
             out = _git("ls-remote", "origin", "refs/heads/main", timeout=25)
             if out.returncode == 0 and out.stdout.strip():
+                remote_head = out.stdout.split()[0]
                 break
         except subprocess.TimeoutExpired:
-            out = None
+            pass
         if i == 0:
             time.sleep(2)
-    if out is None:
-        pytest.skip("ls-remote 两次均超时，未核对远端真实状态（本地引用已确认不领先，d4 另证线上字节一致）")
-    if out.returncode != 0 or not out.stdout.strip():
-        pytest.skip("ls-remote 不通，未核对远端真实状态：%s" % out.stderr.strip()[:200])
+    if remote_head and remote_head == local_head:
+        return
 
-    remote_sha = out.stdout.split()[0]
-    local_sha = _git("rev-parse", "HEAD").stdout.strip()
-    assert remote_sha == local_sha, (
-        "远端 main 指向 %s，本地 HEAD 是 %s。\n"
-        "→ 远端比本地旧：没推。\n"
-        "→ 远端比本地新：别处（含 calendar.yml）推过，先 git pull --rebase 再重跑。"
-        % (remote_sha[:8], local_sha[:8])
+    # 第二级：sha 不同（多半是 API 部署）→ 比内容。取远端 tree 里 index.html 的 blob。
+    try:
+        dep = _deploy_tool()
+        api = dep.Api(dep.get_token())
+        rhead = api.get("/git/ref/heads/main")["object"]["sha"]
+        if rhead == local_head:
+            return
+        tree = api.get("/git/commits/" + rhead)["tree"]["sha"]
+        data = api.get("/git/trees/" + tree, params={"recursive": "1"})
+        blobs = {e["path"]: e["sha"] for e in data["tree"] if e["type"] == "blob"}
+        remote_blob = blobs.get("index.html")
+    except (SystemExit, Exception) as e:  # noqa: BLE001
+        pytest.skip("拿不到远端 tree（token 或网络问题），d4 另证线上字节一致：%s"
+                    % str(e)[:160])
+
+    assert remote_blob == local_blob, (
+        "远端 main（%s）里的 index.html 与本地 HEAD（%s）不是同一份：\n"
+        "  远端 %s\n  本地 %s\n"
+        "→ 远端比本地旧：提交了没部署，跑 python3 tools/deploy.py\n"
+        "→ 远端比本地新：别处推过（Actions 只写数据文件，不会动 index.html），"
+        "先 git pull --rebase 再重跑。\n"
+        "→ 若确认已部署：Pages 构建有延迟，等 1~2 分钟或加 --wait 180。"
+        % (rhead[:8], local_head[:8], (remote_blob or "无")[:16], local_blob[:16])
     )
 
 

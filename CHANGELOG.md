@@ -4,6 +4,42 @@
 
 ---
 
+## 部署流程 · 2026-11-09（`tools/deploy.py` 取代一次性推送脚本）
+
+v7.6 上线时是现场写脚本推的 Git Data API，sha 硬编码，且把 `xau/klines.json`
+覆盖回退了 7.7 小时。这一节把它收成工具，并把那次事故变成闸门。
+
+### 一、两道闸
+
+| 闸 | 判据 | 拦的是 |
+|---|---|---|
+| 内容差异 | 本地算 git blob sha（`sha1("blob <len>\0"+内容)`），与远端 tree 逐条比 | 整份快照覆盖，只推真正变了的文件 |
+| 数据新鲜度 | `xau/klines.json` / `calendar.json` / `macro.json` / `jin10/*.json` 按时间戳比 | 本地副本旧于远端 → 跳过该文件并告警 |
+
+首次 `--dry-run` 就同时拦下四个数据文件（`calendar.json` 本地 11-08 20:31 vs 远端 11-09 11:51，
+`macro.json` 11-09 10:01 vs 11:36，`jin10/` 两份同理），只推 2 个代码文件。
+上次事故是「四个里推了一个」，现在四个全拦。
+
+### 二、门禁 d2 改判据
+
+旧 d2 断言「远端 main 的 sha == 本地 HEAD」。API 部署生成的 commit 与本地 sha 必然不同，
+这条在 API 部署下**恒红**，红久了就没人看，等于门禁失效。
+
+新判据：sha 相同即过；不同则比远端 tree 里 `index.html` 的 blob sha 与
+`git rev-parse HEAD:index.html`——同一份内容 sha 必然相同，不管它是 push 上去的还是 API 拼出来的。
+只比 `index.html`：线上唯一入口，Actions 不碰它，云端数据更新不会误报。
+
+### 三、其它
+
+- 无差异不产生空提交（Actions 每小时跑 `macro.yml`，空提交会刷满历史）
+- `screenshots/`、`versions/`、缓存目录永远不进部署包
+- `--verify` / `--wait N` 部署后自动比线上 sha256，Pages 构建延迟按秒轮询
+- 新增单测 25 条，全量 1132 条 0 失败
+
+本地 `origin/main` 引用不随 API 部署更新，`git status` 可能提示 ahead——引用陈旧，不是没上线。
+
+---
+
 ## v7.6 · 2026-11-09（P5：事件窗口防呆 + 雷达自检误报修复）
 
 ### 一、自检误报（真 bug，已复现）
