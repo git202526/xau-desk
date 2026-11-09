@@ -364,6 +364,24 @@ class Deployer:
         return {"pushed": ready, "skipped": skipped, "commit": commit, "head": head}
 
 
+def create_tag(api, name, commit, message=None, out=print):
+    """在指定 commit 上打注解标签（refs/tags/<name>）。
+
+    走 API 而不是 `git push --tags`：本机的 git 协议链路在这个环境里会卡住，
+    而部署本身就是 API 直写，标签跟着 API 走才是同一条链路。
+    """
+    r = api._req("GET", "/git/ref/tags/" + name)
+    if r.status_code == 200:
+        out("标签 %s 已存在，跳过" % name)
+        return False
+    msg = message or ("XAU Desk " + name)
+    obj = api.post("/git/tags", {"tag": name, "message": msg,
+                                "object": commit, "type": "commit"})["sha"]
+    api.post("/git/refs", {"ref": "refs/tags/" + name, "sha": obj})
+    out("已打标签 %s → %s" % (name, commit[:8]))
+    return True
+
+
 def verify(wait=0, interval=15, out=print):
     """线上校验：字节 sha256 与本地 index.html 一致才算真上线。
 
@@ -407,6 +425,7 @@ def main(argv=None):
     ap.add_argument("--message", "-m", default=None, help="提交信息（默认取本地 HEAD subject）")
     ap.add_argument("--verify", action="store_true", help="只做线上校验")
     ap.add_argument("--wait", type=int, default=0, help="部署后等 Pages 构建的秒数")
+    ap.add_argument("--tag", default=None, help="推送成功后打注解标签，如 v7.9")
     ap.add_argument("--workdir", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     a = ap.parse_args(argv)
 
@@ -418,6 +437,8 @@ def main(argv=None):
     res = dep.run()
     if a.dry_run or not res["commit"]:
         return 0
+    if a.tag:
+        create_tag(dep.api, a.tag, res["commit"])
     if a.wait:
         return 0 if verify(a.wait) else 1
     return 0

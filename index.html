@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.8 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.9 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.9 P112 宏观定价卡（两列 10Y 实际利率 / 美元指数，数值固定 18px 白字，颜色只表达对金影响，四态 badge；单边缺失降级「数据不完整」而非整卡清空；死区 |Δbp|≤2.00、|Δ%|≤0.10 算平盘）+ 结构摘要固定化（首行主导/仲裁/ADX 单行省略，次行宏观 badge）+ #chLine 以 dataset.raw 为底防套娃 + 箱体结构卡（六项读数 / 触碰容差 min(0.25 ATR, 箱宽 8%) / 真·假突破按 0.5 ATR 判 / 形态推演 top2 且未破颈线优先 / 现价 20% 贴边判定 / 4 星窗口前 30 分后 45 分冻结触碰与突破）+ 修 boxDetect 真突破死代码（箱沿含当根最高价，c>上沿+0.5ATR 永不成立） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -56,22 +56,31 @@ body{
 /* 价格卡 */
 .hero{margin-top:14px;background:linear-gradient(165deg,#15202F 0%,#0F1826 62%);border:1px solid var(--line);border-radius:22px;padding:17px 17px 14px;position:relative;overflow:hidden}
 .hero:before{content:"";position:absolute;top:-70px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,76,.16),transparent 68%);pointer-events:none}
-/* 宏观双变量：hero 与持仓条之间的一条窄带，两行、约 60px。
-   做成大卡会把总览挤出一屏（390×844 的预算只有几十像素），所以只留必要信息。
-   利多用红、利空用绿——与行情同色系，避免「利空」写成红色让人误以为在涨。 */
-.macrocard{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
-.mcrow{display:flex;align-items:baseline;gap:5px;font-size:12px;min-width:0}
-.mk{color:var(--tx3);font-size:10.5px;letter-spacing:.4px;flex:0 0 auto}
-.mcrow .v{font-size:13.5px;font-weight:600;flex:0 0 auto}
-.mcrow .d{font-size:10.5px;flex:0 0 auto}
-.mcrow .d.bull{color:var(--up)}.mcrow .d.bear{color:var(--dn)}
-.mdiv{width:1px;height:10px;background:var(--line);align-self:center;margin:0 3px;flex:0 0 auto}
-.mcst{margin-left:auto;font-size:11.5px;font-weight:600;flex:0 0 auto}
-.mcst.bull{color:var(--up)}.mcst.bear{color:var(--dn)}.mcst.flatc{color:var(--tx2)}
-.mcsub{margin-top:4px;font-size:10px;color:var(--tx3);display:flex;gap:4px 10px;justify-content:space-between;flex-wrap:wrap}
-/* 320（iPhone SE 一代）：标签改中文后第一行放不下，直接允许折行。
-   不靠一味压字号——压到 9px 以下就不可读了，而 320 屏本来就整页滚动。 */
-@media(max-width:339px){.macrocard{padding:8px 10px}.macrocard .mk{font-size:9.5px;letter-spacing:0}.mcrow{gap:3px 4px;flex-wrap:wrap}.mdiv{margin:0 2px}}
+/* 宏观定价卡（v7.9）：两个定价因子并排，左实际利率、右美元指数。
+   数值固定白色 18px——颜色只用来表达「对金价的影响」。数值本身一染色，
+   读者就会拿颜色去猜涨跌（红=涨），而 TIPS 下行恰恰是红。
+   红＝利多金价、绿＝利空金价，与全站行情同色系。 */
+.macrocard{margin-top:10px;background:linear-gradient(160deg,rgba(22,32,47,.94),rgba(17,26,41,.88));
+  border:1px solid var(--line);border-radius:14px;padding:10px 16px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;min-width:0}
+.mcell{min-width:0}
+.mk{display:block;color:var(--tx3);font-size:13px;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrowv{display:flex;align-items:baseline;gap:6px;margin-top:1px;min-width:0}
+.mval{font-size:18px;font-weight:700;color:#fff;line-height:1.1;flex:0 0 auto}
+.mdlt{font-size:11.5px;flex:0 0 auto;white-space:nowrap}
+.mdlt.bull{color:var(--up)}.mdlt.bear{color:var(--dn)}.mdlt.flat{color:var(--tx2)}
+.mfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;min-width:0}
+.mcst{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:6px;white-space:nowrap;flex:0 0 auto}
+.mcst.bearc{color:#FF6B6E;background:rgba(229,72,77,.16)}
+.mcst.bullc{color:#3FD08A;background:rgba(47,163,107,.16)}
+.mcst.flatc{color:var(--tx2);background:rgba(255,255,255,.08)}
+.mcst.warnc{color:#FAAD14;background:rgba(250,173,20,.15)}
+.mas{font-size:10.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+/* 320（iPhone SE 一代）：两列各 ~130px，18px 数值 + 11.5px 变化仍放得下；
+   真放不下时只压标签与变化值，不动主数值（可读性优先）。 */
+@media(max-width:339px){.macrocard{padding:10px 12px}.mk{font-size:12px}.mdlt{font-size:10.5px}.mrowv{gap:4px}}
 .vstate{font-size:11.5px;font-weight:400;color:var(--tx3);margin-left:6px}
 .hlabel{font-size:11px;color:var(--tx3);letter-spacing:1.3px;display:flex;align-items:center;gap:6px}
 .hmain{display:flex;align-items:flex-end;gap:10px;margin-top:3px;flex-wrap:wrap}
@@ -296,11 +305,16 @@ body.tab-ov .tpx{display:none}
 .pcard .v{font-size:13px;font-weight:650;margin-top:3px}
 .pcard.up .v{color:var(--up)}.pcard.dn .v{color:var(--dn)}.pcard .v.rg{color:var(--tx2)}
 .pcard .m{font-size:10px;color:var(--tx3);margin-top:2px}
-.pnote{font-size:10.5px;color:var(--tx3);margin-top:8px;text-align:center}
-/* 结构与宏观分两块：结构是「现在看到的形态」，宏观是另一个维度的验证。
-   挤一行时手机端折行位置不可控，会读成一句错句。 */
-.pnote .pn-s,.pnote .pn-m{display:block}
-.pnote .pn-m{margin-top:2px;color:var(--tx3);opacity:.85}
+/* 结构摘要（v7.9）：第一行单行省略，第二行是宏观验证 badge。
+   结构行给到「主导 + 仲裁 + ADX + 次结构」，超出就省略——
+   窄屏折成两行会让「ADX」和它的数值分家，读起来像两个指标。 */
+.pnote{font-size:13px;color:#888;margin:8px 0}
+.pnote .pn-s,.pnote .pn-m{max-width:100%}
+.pnote .pn-s{display:block;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pnote .pn-m{display:inline-block;font-size:12px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.1);color:#888}
+.pnote .pn-m.mv-bear{color:#FF4D4F;background:rgba(255,77,79,.15)}
+.pnote .pn-m.mv-bull{color:#52C41A;background:rgba(82,196,26,.15)}
+.pnote .pn-m.mv-warn{color:#FAAD14;background:rgba(250,173,20,.15)}
 
 /* 判定依据 */
 .rhd{font-size:12px;color:var(--tx2);font-weight:600}
@@ -402,6 +416,31 @@ body.tab-ov .tpx{display:none}
    同字号同色时读者分不清谁在说背景。 */
 .chline .chstruct{display:block;margin-top:5px;padding-top:5px;border-top:1px solid var(--line);font-size:10.5px;color:var(--tx3)}
 @media(max-width:359px){.chline{font-size:11px;padding:2px 6px 6px}}
+
+/* 箱体结构卡（v7.9）：通道图与关键位之间的固定卡。
+   全部只读快照，不自己取数——箱体是「已经发生的事」，重算一次就少一次自相矛盾。 */
+.boxcard{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.bxbanner{font-size:11.5px;padding:5px 9px;border-radius:8px;margin-bottom:9px;line-height:1.45}
+.bxbanner.pre{color:#FAAD14;background:rgba(250,173,20,.12);border:1px solid rgba(250,173,20,.28)}
+.bxbanner.post{color:#FF6B6E;background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.30)}
+.bxempty{text-align:center;font-size:12px;color:var(--tx3);padding:14px 6px;line-height:1.6}
+.bxgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px 10px}
+@media(max-width:359px){.bxgrid{grid-template-columns:repeat(2,1fr)}}
+.bxrow{min-width:0}
+.bxk{display:block;font-size:10.5px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bxv{font-size:13px;color:var(--tx);font-weight:600;white-space:nowrap}
+.bxv.sub{font-weight:500;color:var(--tx2)}
+.bxfrz{color:var(--amber);font-size:11px}
+.bxbk{font-size:13px;font-weight:600}
+.bxbk.real{color:var(--up)}
+.bxbk.fake{color:var(--tx3);text-decoration:line-through}
+.bxbk.none{color:var(--tx2);font-weight:500}
+.bxbk.pend{color:var(--amber)}
+.bxps{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}
+.bxp{font-size:11.5px;color:var(--tx2);line-height:1.65}
+.bxp b{color:var(--gold);font-weight:600}
+.bxp .fa{color:var(--amber)}
+.bxsrc{font-size:10px;color:var(--tx3);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* 档位 */
 .lv{display:flex;gap:11px;padding:9px 0}
@@ -1025,7 +1064,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.8 · 11/09</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.9 · 11/09</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1080,14 +1119,18 @@ body.tab-ov .tpx{display:none}
     </div>
   </section>
 
-  <div class="macrocard" id="macroCard">
-    <div class="mcrow">
-      <span class="mk" title="10 年期通胀保值国债（TIPS）实际收益率，FRED DFII10">实际利率</span><b class="v num" id="mcTips">--</b><span class="d num" id="mcTipsD">--</span>
-      <span class="mdiv"></span>
-      <span class="mk" title="ICE 美元指数（DXY），CNBC 日线">美元指数</span><b class="v num" id="mcDxy">--</b><span class="d num" id="mcDxyD">--</span>
-      <span class="mcst flatc" id="mcStatus">--</span>
+  <div class="macrocard" id="macroCard" title="红＝利多金价 · 绿＝利空金价">
+    <div class="mgrid">
+      <div class="mcell">
+        <span class="mk" title="10 年期通胀保值国债（TIPS）实际收益率，FRED DFII10">10Y实际利率</span>
+        <div class="mrowv"><b class="mval num" id="mcTips">--</b><span class="mdlt num flat" id="mcTipsD">--</span></div>
+      </div>
+      <div class="mcell">
+        <span class="mk" title="ICE 美元指数（DXY），CNBC 日线">美元指数(DXY)</span>
+        <div class="mrowv"><b class="mval num" id="mcDxy">--</b><span class="mdlt num flat" id="mcDxyD">--</span></div>
+      </div>
     </div>
-    <div class="mcsub"><span id="mcAs">--</span><span id="mcNote">--</span></div>
+    <div class="mfoot"><span class="mcst flatc" id="mcStatus">--</span><span class="mas" id="mcAs">--</span></div>
   </div>
 
   <button class="posbar" id="posBar" type="button" aria-label="查看持仓明细">
@@ -1150,6 +1193,9 @@ body.tab-ov .tpx{display:none}
       <svg id="chSvg" viewBox="0 0 360 190" role="img" aria-label="日线回归通道图"></svg>
       <div class="chline" id="chLine">—</div>
     </div>
+
+    <div class="sech" style="margin-top:18px"><h2>箱体结构 <span class="cnt" id="bxMeta"></span></h2></div>
+    <div class="card boxcard" id="boxCard"><div class="bxempty">正在识别水平箱体…</div></div>
 
     <div class="sech" style="margin-top:18px"><h2>关键位 <span class="cnt" id="klMeta"></span></h2></div>
     <div class="klfilter">
@@ -2195,19 +2241,24 @@ function boxDetect(bars, opt){
                width_atr:null, adx:null, slope_atr:null, breakout:"未突破",
                frozen:!op.open, evaluated:op.open, reason:"", key:opt.key || "" };
   if(n < 20){ base.reason = "样本不足"; return base; }
-  var w = d.slice(-n), i, upper = -Infinity, lower = Infinity;
-  for(i=0;i<w.length;i++){
-    if(w[i].h > upper) upper = w[i].h;
-    if(w[i].l < lower) lower = w[i].l;
+  var w = d.slice(-n), rw = w.slice(0, w.length-1), i, upper = -Infinity, lower = Infinity;
+  /* v7.9：箱沿与 ATR 都取「当根之前」的 14 根。
+     旧版把当根也算进箱沿，于是 upper ≥ 当根最高价 ≥ 当根收盘，
+     「收盘 > 上沿 + 0.5 ATR」在数学上永不成立 —— 真突破是死代码，
+     所有向上突破都被判成假突破或未突破。 */
+  for(i=0;i<rw.length;i++){
+    if(rw[i].h > upper) upper = rw[i].h;
+    if(rw[i].l < lower) lower = rw[i].l;
   }
-  var atr = atrOf(w, 14, w.length-1);
+  var atr = atrOf(rw, 14, rw.length-1);
+  if(!atr || !isFinite(atr) || atr <= 0) atr = atrOf(w, 14, w.length-1);
   if(!atr || !isFinite(atr) || atr <= 0){ base.reason = "ATR 不可用"; return base; }
   /* 触碰容差取 min(0.25 ATR, 宽度 8%)：窄箱里 0.25 ATR 会占宽度 12% 以上，触碰数虚高 */
   var tol = Math.min(atr*0.25, (upper-lower)*0.08);
   var fUp=-1, lUp=-1, fDn=-1, lDn=-1;
-  for(i=0;i<w.length;i++){
-    if(Math.abs(w[i].h - upper) <= tol){ base.touch_up++; if(fUp<0) fUp=i; lUp=i; }
-    if(Math.abs(w[i].l - lower) <= tol){ base.touch_dn++; if(fDn<0) fDn=i; lDn=i; }
+  for(i=0;i<rw.length;i++){
+    if(Math.abs(rw[i].h - upper) <= tol){ base.touch_up++; if(fUp<0) fUp=i; lUp=i; }
+    if(Math.abs(rw[i].l - lower) <= tol){ base.touch_dn++; if(fDn<0) fDn=i; lDn=i; }
   }
   base.span = Math.max(lUp - fUp, lDn - fDn, 0);
   var adx = adxOf(w, 14).adx;
@@ -2215,11 +2266,11 @@ function boxDetect(bars, opt){
   for(i=0;i<w.length;i++){ sx+=i; sy+=w[i].c; sxx+=i*i; sxy+=i*w[i].c; }
   var den = w.length*sxx - sx*sx;
   var slope = den ? (w.length*sxy - sx*sy)/den/atr : 0;
-  var last = w[w.length-1].c;
+  var lastBar = w[w.length-1], last = lastBar.c;
   var breakout = "未突破";
-  if(last > upper + atr*0.5) breakout = "真突破";
+  if(last > upper + atr*0.5) breakout = "真突破";           // 收盘站上箱沿 + 半个 ATR
   else if(last < lower - atr*0.5) breakout = "真突破";
-  else if((w[w.length-1].h > upper || w[w.length-1].l < lower) && last <= upper && last >= lower){
+  else if((lastBar.h > upper || lastBar.l < lower) && last <= upper && last >= lower){
     breakout = "假突破";                                // 盘中刺破又收回
   }
   var wide = (upper-lower) > atr*2;
@@ -2235,6 +2286,7 @@ function boxDetect(bars, opt){
   if(opt.key === "1d") base.width_atr_1d = base.width_atr;
   if(opt.key === "4h") base.width_atr_4h = base.width_atr;
   base.adx = adx; base.slope_atr = Math.round(slope*1000)/1000;
+  base.tol = Math.round(tol*100)/100;            // 触碰到的那条线，卡片显示必须与判定同源
   base.breakout = breakout;
   if(!op.open) base.reason = op.label + "：触碰计数已暂停";
   return base;
@@ -2315,6 +2367,19 @@ function v76HSTag(w){
   return { name: top ? "头肩顶" : "头肩底", status: broken ? "已破颈线" : "待确认",
            score: broken ? 0.78 : 0.7, note:"颈线 " + Math.round(neck*10)/10 };
 }
+/* 形态排序：未破颈线的排前面，同组再按置信度降序。
+   已破颈线的形态「结论已经发生」，再用它推演下一步是本末倒置；
+   但也不能直接丢掉——它是「刚发生过什么」的证据，只能排后面。 */
+function orderPatterns(list){
+  var arr = (list || []).slice();
+  arr.sort(function(a, b){
+    var ba = (a && a.status === "已破颈线") ? 1 : 0;
+    var bb = (b && b.status === "已破颈线") ? 1 : 0;
+    if(ba !== bb) return ba - bb;
+    return (b.score || 0) - (a.score || 0);
+  });
+  return arr;
+}
 function patternTags(bars, opt){
   opt = opt || {};
   var out = [];
@@ -2331,7 +2396,7 @@ function patternTags(bars, opt){
     var a0 = v76AmpOf(w.slice(0, seg)), a1 = v76AmpOf(w.slice(-seg));
 
     if(sh < -0.02 && sl > 0.02 && a1 < a0*0.6)                       // 收敛三角
-      out.push({ name:"对称三角", status:"", score:0.72, note:"高点下压 + 低点抬升" });
+      out.push({ name:"收敛三角", status:"", score:0.72, note:"高点下压 + 低点抬升" });
     if(Math.abs(sh) < 0.02 && sl > 0.02 && a1 < a0*0.85)             // 平顶抬底
       out.push({ name:"上升三角", status:"", score:0.7, note:"平顶 + 抬底" });
     if(Math.abs(sl) < 0.02 && sh < -0.02 && a1 < a0*0.85)            // 平底压顶
@@ -2342,8 +2407,7 @@ function patternTags(bars, opt){
     var fl = v76FlagTag(w, atr); if(fl) out.push(fl);
     var hs = v76HSTag(w); if(hs) out.push(hs);
   }catch(e){ return []; }
-  out.sort(function(a,b){ return b.score - a.score; });
-  return out.slice(0, 2);
+  return orderPatterns(out).slice(0, 2);
 }
 
 /* ===== v7.6 P2：结构仲裁（唯一出口） =====
@@ -2484,7 +2548,9 @@ function structureSnapshot(opt){
       gaps: gaps.length, missing: missing, period: pk
     },
     macro: (function(){
-      var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
+      var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct(),
+                                       deadBp:MACRO_DEAD.bp, deadPct:MACRO_DEAD.pct,
+                                       deadStrict:MACRO_DEAD.strict });
       return { status: mj.status, tips: mj.tips, tips_bp: mj.tips_10y.change_bp,
                dxy: mj.dxy.value, dxy_pct: mj.dxy.change_pct,
                exception: mj.exceptions.length > 0, as_of: mj.dxy.as_of || mj.tips_10y.as_of,
@@ -2532,6 +2598,14 @@ function goldDayPct(){
   if(d.length >= 2 && utcDayKey(d[d.length-1].t) === utcDayKey(Date.now())) ref = d[d.length-2].c;
   return ref ? (px/ref - 1) * 100 : 0;
 }
+/* 单个因子的方向：-1 利空金 / +1 利多金 / 0 平盘。
+   strict=true 时「等于阈值」算平盘（|x| ≤ dead），否则算有方向（|x| ≥ dead）。 */
+function macroDirOf(v, th, strict){
+  if(v === null || v === undefined || !isFinite(v)) return 0;
+  var hit = strict ? (Math.abs(v) > th) : (Math.abs(v) >= th);
+  if(!hit) return 0;
+  return v > 0 ? -1 : 1;
+}
 function macroJudge(raw, opt){
   opt = opt || {};
   var now = opt.now || Date.now();
@@ -2550,12 +2624,35 @@ function macroJudge(raw, opt){
   var T = raw.tips_10y || {}, X = raw.dxy || {};
   var tv = v76Num(T.value), xv = v76Num(X.value);
   var tbp = v76Num(T.change_bp), xpc = v76Num(X.change_pct);
+  var tOk = (tv !== null && tbp !== null), xOk = (xv !== null && xpc !== null);
+  /* v7.9：单边缺失不再整卡清空。旧版任一边为 null 就返回「数据延迟」，
+     结果 TIPS 明明抓到了也跟着显示 --，等于用一处故障抹掉两处信息。
+     现在只把缺的那边置空，状态写「数据不完整」，另一边照常参与判断。 */
+  if(!tOk && !xOk) return empty;
+  if(!tOk || !xOk){
+    var missName = tOk ? "美元指数" : "实际利率";
+    return {
+      status:"数据不完整", macro_status:"数据不完整", stale:false, partial:true,
+      note:missName + "数据缺失 · 单边指标仍可参考",
+      tips:tOk ? tv : null, confidence:"Low", exceptions:[],
+      tips_10y:{ value:tOk ? tv : null, change_bp:tOk ? tbp : null,
+                 trend_5d:tOk ? v76Num(T.trend_5d) : null, as_of:T.as_of || "" },
+      dxy:{ value:xOk ? xv : null, change_pct:xOk ? xpc : null,
+            trend_5d:xOk ? v76Num(X.trend_5d) : null,
+            as_of:X.as_of || "", src:X.src || "" }
+    };
+  }
   if(tv === null || xv === null || tbp === null || xpc === null) return empty;
 
-  /* 广义美元（DTWEXBGS）日波动天然比 ICE DXY 小，阈值放宽 0.02 个百分点 */
+  /* 广义美元（DTWEXBGS）日波动天然比 ICE DXY 小，阈值放宽 0.02 个百分点。
+     默认口径沿用 v7.6（≥1.5bp / ≥0.10%）：旧调用方与历史断言都按它写。
+     v7.9 卡片显式传 deadBp=2.0 / deadPct=0.10 / deadStrict=true ——
+     「|变化| ≤ 阈值」算平盘，要严格大于才给方向，边界值不再算方向。 */
   var dth = /broad|dtwex/i.test(String(X.src || "")) ? 0.08 : 0.10;
-  var tf = tbp >= 1.5 ? -1 : (tbp <= -1.5 ? 1 : 0);      // -1 利空金 / +1 利多金
-  var df = xpc >= dth ? -1 : (xpc <= -dth ? 1 : 0);
+  var deadBp = (opt.deadBp === undefined) ? 1.5 : +opt.deadBp;
+  var deadPct = (opt.deadPct === undefined) ? dth : +opt.deadPct;
+  var tf = macroDirOf(tbp, deadBp, !!opt.deadStrict);    // -1 利空金 / +1 利多金
+  var df = macroDirOf(xpc, deadPct, !!opt.deadStrict);
 
   var status, conf, conflict = (tf * df < 0);
   if(tf < 0 && df < 0){ status = "强利空"; conf = "High"; }
@@ -2569,8 +2666,8 @@ function macroJudge(raw, opt){
   var notes = ["TIPS " + (tbp > 0 ? "+" : "") + tbp.toFixed(1) + "bp",
                "DXY " + (xpc > 0 ? "+" : "") + xpc.toFixed(2) + "%"];
   if(conflict) notes.push("两变量方向相反，等待确认");
-  if(!tf) notes.push("TIPS 未达阈值 ±1.5bp");
-  if(!df) notes.push("DXY 未达阈值 ±" + dth.toFixed(2) + "%");
+  if(!tf) notes.push("TIPS 未达阈值 ±" + deadBp + "bp");
+  if(!df) notes.push("DXY 未达阈值 ±" + deadPct.toFixed(2) + "%");
 
   var exc = [], gp = v76Num(opt.gold_pct);
   if(gp !== null && df < 0 && gp > 0){
@@ -2581,7 +2678,7 @@ function macroJudge(raw, opt){
   if(exc.length) conf = "Medium";        // 有背离就不能给 High
 
   return {
-    status:status, macro_status:status, stale:false,
+    status:status, macro_status:status, stale:false, partial:false,
     confidence:conf, exceptions:exc, note:notes.join(" · "),
     tips:tv,                              // 扁平值方便卡片直接用；dxy 走下面的对象
     tips_10y:{ value:tv, change_bp:tbp, trend_5d:v76Num(T.trend_5d), as_of:T.as_of || "" },
@@ -7685,78 +7782,153 @@ function signed(v, nd, unit){
   if(v === null || v === undefined || !isFinite(v)) return "--";
   return (v > 0 ? "+" : "") + num(v, nd) + unit;
 }
+/* v7.9 卡片口径：|Δbp| ≤ 2.00、|Δ%| ≤ 0.10 算平盘。
+   1.5bp 在日频 TIPS 上属于噪声，旧口径会把噪声写成方向。 */
+var MACRO_DEAD = { bp:2.0, pct:0.10, strict:true };
+function macroBadgeCls(s){
+  if(s === "强利空" || s === "利空") return "bearc";
+  if(s === "强利多" || s === "利多") return "bullc";
+  if(s === "数据不完整" || s === "数据延迟") return "warnc";
+  return "flatc";
+}
+function fmtAsOf(ts){
+  var d = new Date(isFinite(ts) ? ts : Date.now());
+  return pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":00";
+}
 function renderMacroCard(){
   if(!$("macroCard")) return;
-  var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
-  var st = mj.stale;
-  $("mcTips").textContent = st ? "--" : num(mj.tips, 2) + "%";
-  $("mcDxy").textContent  = st ? "--" : num(mj.dxy.value, 2);
-  $("mcTipsD").textContent = st ? "--" : signed(mj.tips_10y.change_bp, 1, "bp");
-  $("mcDxyD").textContent  = st ? "--" : signed(mj.dxy.change_pct, 2, "%");
-  /* TIPS 上行 / 美元上行 = 对金价利空 → 绿；反之红。跟行情同一套颜色 */
-  $("mcTipsD").className = "d num " + (st ? "" : (mj.tips_10y.change_bp > 0 ? "bear"
-                          : mj.tips_10y.change_bp < 0 ? "bull" : ""));
-  $("mcDxyD").className  = "d num " + (st ? "" : (mj.dxy.change_pct > 0 ? "bear"
-                          : mj.dxy.change_pct < 0 ? "bull" : ""));
-  $("mcAs").textContent = st ? "数据延迟" :
-      ("数据截至 " + ((mj.dxy.as_of || mj.tips_10y.as_of || "").slice(5) || "--"));
+  /* 兜底：宏观数据来自外部 JSON，字段缺失/类型错乱都不许把总览带白屏 */
+  try{ macroCardPaint(); }
+  catch(e){
+    try{
+      $("mcTips").textContent = "--"; $("mcDxy").textContent = "--";
+      $("mcTipsD").textContent = "--"; $("mcDxyD").textContent = "--";
+      $("mcStatus").textContent = "数据延迟";
+      $("mcStatus").className = "mcst warnc";
+      $("mcAs").textContent = "数据源不可达";
+    }catch(e2){ /* 数值节点都找不到就没什么可兜的了 */ }
+  }
+}
+function macroCardPaint(){
+  var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct(),
+                                   deadBp:MACRO_DEAD.bp, deadPct:MACRO_DEAD.pct,
+                                   deadStrict:MACRO_DEAD.strict });
+  var st = !!mj.stale;
+  var tv = mj.tips_10y.value, xv = mj.dxy.value;
+  /* 变化值先 toFixed(2) 再判方向：浮点误差会让 1.999999 判成 2.00 以外的值 */
+  var tbp = (tv === null || mj.tips_10y.change_bp === null) ? null
+          : Math.round(mj.tips_10y.change_bp * 100) / 100;
+  var xpc = (xv === null || mj.dxy.change_pct === null) ? null
+          : Math.round(mj.dxy.change_pct * 100) / 100;
+
+  $("mcTips").textContent = tv === null ? "--" : num(tv, 2) + "%";
+  $("mcDxy").textContent  = xv === null ? "--" : num(xv, 2);
+
+  /* 变化值只表达「对金价的影响」：利多用红、利空用绿，与全站行情同色系。
+     箭头同理——TIPS 下行→利多→↗，美元上行→利空→↘。
+     平盘（死区内）不给颜色，避免把 0.3bp 的噪声读成方向。 */
+  var tImp = (tbp === null) ? 0 : macroDirOf(tbp, MACRO_DEAD.bp, MACRO_DEAD.strict);
+  var xImp = (xpc === null) ? 0 : macroDirOf(xpc, MACRO_DEAD.pct, MACRO_DEAD.strict);
+  $("mcTipsD").textContent = tbp === null ? "--"
+      : signed(tbp, 1, "bp") + " " + (tImp > 0 ? "↗" : tImp < 0 ? "↘" : "→");
+  $("mcDxyD").textContent  = xpc === null ? "--"
+      : signed(xpc, 2, "%") + " " + (xImp > 0 ? "↗" : xImp < 0 ? "↘" : "→");
+  $("mcTipsD").className = "mdlt num " + (tImp > 0 ? "bull" : tImp < 0 ? "bear" : "flat");
+  $("mcDxyD").className  = "mdlt num " + (xImp > 0 ? "bull" : xImp < 0 ? "bear" : "flat");
+
+  var at = MACRO.at || (MACRO.doc && MACRO.doc.fetched_at) || Date.now();
+  /* 页脚一行到底：数据截至 + 说明。分开两行会把总览顶出一屏，
+     而说明本身（阈值、背离例外）是解释性文字，跟在时间后面不算挤。 */
+  var asTxt = "数据截至 " + fmtAsOf(at);
+  if(st) asTxt += " · 数据源不可达";
+  else if(mj.note) asTxt += " · " + mj.note;
+  $("mcAs").textContent = asTxt;
+
   var el = $("mcStatus");
   el.textContent = mj.status;
-  el.className = "mcst " + (st || mj.status === "中性" ? "flatc"
-                 : (mj.status.indexOf("利空") >= 0 ? "bear" : "bull"));
-  $("mcNote").textContent = st ? "抓取超过 90 分钟或不可用" : mj.note;
+  el.className = "mcst " + macroBadgeCls(mj.status);
 }
 
-/* 结构结论的单句表达，供 #chLine / .pnote 复用 */
+/* 结构结论的单句表达，供 #chLine / .pnote 复用。
+   一律以「日线主导：」开头——图上画的是当前周期，结论说的是日线仲裁，
+   不写周期读者会把 4H 的图当成日线的判断。 */
 function fusionClause(st){
-  if(!st) return "主导：--";
+  if(!st) return "日线主导：--";
   var b = st.box || {};
   var up = (b.upper === null || b.upper === undefined) ? "--" : num(b.upper, 1);
   var lo = (b.lower === null || b.lower === undefined) ? "--" : num(b.lower, 1);
-  if(st.state === "跳空") return "主导：事件跳空（跳空 " + num(st.gap_atr, 2) + " ATR）";
-  if(st.state === "通道") return "主导：通道（有效）";
-  if(st.state === "箱体") return "主导：水平箱体（上沿 " + up + "，下沿 " + lo + "）";
+  if(st.state === "跳空") return "日线主导：事件跳空（跳空 " + num(st.gap_atr, 2) + " ATR）";
+  if(st.state === "通道") return "日线主导：通道（有效）";
+  if(st.state === "箱体") return "日线主导：箱体（上沿 " + up + "，下沿 " + lo + "）";
   if(st.state === "双结构")
-    return "双结构并存：通道为主，箱体为辅（上沿 " + up + "，下沿 " + lo + "）⚠ 震荡整理中";
-  if(st.state === "过渡") return "主导：通道为主（过渡，箱体未成立）";
-  return "主导：无结构";
+    return "日线主导：双结构拉锯（通道为主）· 上沿 " + up + "，下沿 " + lo + " ⚠ 震荡整理中";
+  if(st.state === "过渡") return "日线主导：通道为主（过渡，箱体未成立）";
+  return "日线主导：无结构";
+}
+
+/* 结构摘要首行：主导 + 仲裁状态 + ADX + 次结构说明。
+   任何字段缺失一律写 --：这一行是「现在到底什么结构」的唯一回答，
+   出现 undefined / NaN 比写 -- 更糟——读者会以为系统在算，其实没数据。 */
+function dashNum(v, dp){
+  return (v === null || v === undefined || !isFinite(+v)) ? "--" : num(+v, dp);
+}
+function summaryLine(st, mj){
+  st = st || {};
+  var dom = st.dominant || "--";
+  var state = st.state || "--";
+  var adx = dashNum(st.adx_1d, 1);
+  var b = st.box || {};
+  var sub = (b && b.valid)
+    ? ("箱体 " + dashNum(b.lower, 1) + "–" + dashNum(b.upper, 1))
+    : ("箱体未成立" + (b && b.reason ? "（" + b.reason + "）" : ""));
+  if(st.trend_state) sub += " · 4H " + st.trend_state;
+  return "结构：" + dom + " " + state + " (ADX " + adx + ") · " + sub;
+}
+function fusionBadgeCls(status){
+  if(status === "数据不完整" || status === "数据延迟") return "mv-warn";
+  if(status === "强利空" || status === "利空") return "mv-bear";
+  if(status === "强利多" || status === "利多") return "mv-bull";
+  return "";
 }
 
 /* 融合层：只改文字，不新开卡片。
-   #chLine 保留通道原句（周期 + % 位 + 宽），后面追加日线结构结论；
-   .pnote 换成「结构 + 宏观」一行验证。 */
+   #chLine 以 dataset.raw 为底——这是防套娃的唯一锚点。
+   之前直接拼 S.chanText，一旦有人改成 append 到 innerText，
+   第二次渲染就会把「日线主导」再写一遍，而单测只比 startswith 抓不到。 */
 function renderFusion(){
   var st = null;
   try{ st = structureSnapshot({}).structure; }catch(e){ st = null; }
   var line = $("chLine");
   if(line && S.chanText){
-    /* 分两行：第一行保留通道原句（周期 + % 位 + 宽），第二行才是结构结论。
-       挤在一行时中文会在「前段缺口」中间断行，读起来像两句话拼错。 */
-    var tail = "日线 · " + fusionClause(st);
+    var base = S.chanText;
+    line.dataset.raw = base;
+    var tail = fusionClause(st);
     var tags = (st && st.extended_patterns) || [];
     if(tags.length) tail += " · 辅助标签：" + tags.join("、");
-    line.innerHTML = sanitizeHtml(S.chanText) +
+    line.innerHTML = sanitizeHtml(base) +
                      '<span class="chstruct">' + sanitizeHtml(tail) + '</span>';
   }
   var pn = document.querySelector(".pnote");
-  if(pn && st){
-    var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct() });
-    var boxTxt = st.box && st.box.valid
-      ? ("箱体 " + num(st.box.lower, 1) + "–" + num(st.box.upper, 1))
-      : "箱体未成立";
-    var line1 = "结构：日线 " + st.dominant + "（ADX " + num(st.adx_1d, 1) + "）· " + boxTxt;
-    var line2 = "宏观验证：" + mj.status +
-      (mj.stale ? "" : " · 实际利率 " + signed(mj.tips_10y.change_bp, 1, "bp") +
-                       " / DXY " + signed(mj.dxy.change_pct, 2, "%"));
+  if(pn){
+    var mj = macroJudge(MACRO.doc, { gold_pct:goldDayPct(),
+                                    deadBp:MACRO_DEAD.bp, deadPct:MACRO_DEAD.pct,
+                                    deadStrict:MACRO_DEAD.strict });
+    var line1 = summaryLine(st, mj);
+    var line2 = "宏观验证：" + mj.status;
+    if(!mj.stale && (mj.tips_10y.change_bp !== null || mj.dxy.change_pct !== null)){
+      line2 += " (实际利率 " + (mj.tips_10y.change_bp === null ? "--"
+                        : signed(mj.tips_10y.change_bp, 1, "bp")) + " / DXY " +
+                      (mj.dxy.change_pct === null ? "--"
+                        : signed(mj.dxy.change_pct, 2, "%")) + ")";
+    }
     /* 事件窗口写在宏观这段的末尾：读者看结构结论时，必须同时知道「两小时后有数据」 */
-    if(st.event_window_flag && st.event_window && st.event_window.length){
+    if(st && st.event_window_flag && st.event_window && st.event_window.length){
       var e0 = st.event_window[0];
       line2 += " ｜ 事件窗口：距「" + e0.name + "」约 " + e0.hours + " 小时，结构判定仅供参考";
     }
-    /* 分两块而不是一行：结构是「现在看到的形态」，宏观是「另一个维度的验证」，
-       挤一行时手机端的折行位置不可控，读起来像一句错句。 */
-    pn.innerHTML = '<span class="pn-s">' + escapeHtml(line1) + '</span>\n' +
-                   '<span class="pn-m">' + escapeHtml(line2) + '</span>';
+    pn.innerHTML = '<span class="pn-s">' + escapeHtml(line1) + '</span>' +
+                   '<span class="pn-m ' + fusionBadgeCls(mj.status) + '">' +
+                   escapeHtml(line2) + '</span>';
   }
 }
 
@@ -7765,6 +7937,160 @@ var REASON_W = { "1w":"10%", "1d":"50%", "4h":"40%", "1h":"0" };
 function reasonTitle(k){
   if(k === "1h") return "1小时判定依据 · 不参与方向（只做触发）";
   return PNAME[k] + "判定依据 · 权重 " + REASON_W[k];
+}
+
+/* ===== v7.9 P112：箱体结构卡 =====
+   只读快照 + 纯渲染。箱体本身由 boxDetect 算（结构仲裁也在用同一份），
+   这里只回答三个问题：箱沿在哪、有没有被碰/被破、当前处在箱体的哪一段。 */
+var BOX_LABEL = { "1d":"日线", "4h":"4小时", "1h":"1小时" };
+var PLAYBOOK = {
+  "收敛三角":"面临方向选择，突破上轨偏多，下破偏空。",
+  "对称三角":"面临方向选择，突破上轨偏多，下破偏空。",
+  "上升三角":"多头蓄势，突破上沿打开空间；⚠️ 失效：跌破下沿。",
+  "下降三角":"空头蓄势，跌破下沿打开空间；⚠️ 失效：突破上沿。",
+  "喇叭形":"多空分歧巨大，假突破极多，观望；⚠️ 失效：无。",
+  "旗形":"趋势中继，顺原趋势发展；⚠️ 失效：反向突破旗面。",
+  "头肩顶":"反转信号，关注颈线；⚠️ 失效：未破颈线前形态不成立。",
+  "头肩底":"反转信号，关注颈线；⚠️ 失效：未破颈线前形态不成立。"
+};
+function playbook(name){ return PLAYBOOK[name] || "形态含义待补充；⚠️ 失效：见形态定义。"; }
+
+/* 触碰容差：min(0.25 × ATR14, 箱宽 × 8%)。
+   窄箱里 0.25 ATR 会占到箱宽 12% 以上，触碰数会虚高，所以再压一道 8%。 */
+function touchTol(atr, width){
+  var a = +atr, w = +width;
+  if(!isFinite(a) || !isFinite(w) || a <= 0 || w <= 0) return 0;
+  return Math.min(a * 0.25, w * 0.08);
+}
+
+/* 4 星事件窗口：公布前 30 分钟黄条、公布后 45 分红条。
+   窗口内只冻结「触碰计数」与「突破结论」，箱沿和图表照常刷新——
+   数据要照常更新，只是不拿它下判断。 */
+var FREEZE_PRE = 30 * 60000, FREEZE_POST = 45 * 60000;
+function freezeOf(now, evs){
+  var best = null, i, e, d;
+  for(i = 0; i < (evs || []).length; i++){
+    e = evs[i];
+    if(!e || !isFinite(e.t)) continue;
+    d = e.t - now;
+    if(d >= 0 && d <= FREEZE_PRE && (!best || d < best.left)){
+      best = { phase:"pre", name:e.name || "事件", t:e.t, left:d, mins:Math.max(1, Math.round(d/60000)) };
+    }else if(d < 0 && -d <= FREEZE_POST && (!best || -d < best.ago)){
+      best = { phase:"post", name:e.name || "事件", t:e.t, ago:-d, mins:Math.max(1, Math.round(-d/60000)) };
+    }
+  }
+  return best;
+}
+
+/* 当前价在箱体的哪一段：距任一边 ≤ 20% 箱高即算「贴边」，其余中轴区。
+   用比例不用固定美元数——箱体宽窄差三倍时，固定值会把窄箱的中间判成贴边。 */
+function posOf(price, upper, lower){
+  var p = +price, u = +upper, l = +lower, h = u - l;
+  if(!isFinite(p) || !isFinite(u) || !isFinite(l) || !(h > 0)) return "中轴区";
+  if(p - l <= h * 0.2) return "下沿";
+  if(u - p <= h * 0.2) return "上沿";
+  return "中轴区";
+}
+
+function boxViewModel(opt){
+  opt = opt || {};
+  var now = opt.now || Date.now();
+  var k = opt.period || S.chPeriod || "1d";
+  var bars = opt.bars || ((S.kl && S.kl[k]) || []);
+  var box = opt.box || boxDetect(bars, { now:now, key:k });
+  var atr = (opt.atr === undefined) ? atrOf(bars, 14, bars.length-1) : opt.atr;
+  var price = (opt.price === undefined || opt.price === null) ? S.price : opt.price;
+  var pats = orderPatterns(opt.patterns || patternTags(bars, { n:30 })).slice(0, 2);
+  var fz = (opt.freeze === undefined) ? freezeOf(now, eventWindowOf(now, 24)) : opt.freeze;
+  var valid = !!(box && box.valid);
+  var upper = valid && box.upper !== null ? +box.upper : null;
+  var lower = valid && box.lower !== null ? +box.lower : null;
+  var width = (upper !== null && lower !== null) ? (upper - lower) : null;
+  var breakout = box ? box.breakout : "未突破";
+  /* 冻结期不认突破：刺破发生在数据公布前后 30 秒内，多半是流动性缺口 */
+  if(fz) breakout = "待确认";
+  var list = [];
+  pats.forEach(function(p){
+    if(!p || !p.name) return;
+    list.push({ name:p.name, status:p.status || "", score:p.score || 0,
+                pos:valid ? posOf(price, upper, lower) : "中轴区" });
+  });
+  return {
+    period:k, label:BOX_LABEL[k] || k, valid:valid,
+    upper:upper, lower:lower,
+    mid:(upper !== null && lower !== null) ? (upper + lower) / 2 : null,
+    width:width,
+    widthAtr:(box && box.width_atr !== null && box.width_atr !== undefined) ? box.width_atr
+            : ((width !== null && atr) ? width / atr : null),
+    atr:atr,
+    tol:(box && box.tol !== undefined && box.tol !== null) ? box.tol
+       : ((width !== null) ? touchTol(atr, width) : null),
+    touchUp:box ? (box.touch_up | 0) : 0, touchDn:box ? (box.touch_dn | 0) : 0,
+    breakout:breakout, frozen:!!fz, freeze:fz, patterns:list,
+    reason:(box && box.reason) || "", price:price,
+    bars:bars.length, isOpen:box ? box.evaluated : true
+  };
+}
+
+function renderBoxCard(opt){
+  var el = $("boxCard");
+  if(!el) return;
+  try{
+    var vm = boxViewModel(opt);
+    var html = "";
+    if(vm.freeze){
+      var f = vm.freeze;
+      html += '<div class="bxbanner ' + (f.phase === "post" ? "post" : "pre") + '">' +
+        (f.phase === "post"
+          ? ("数据窗口：「" + escapeHtml(f.name) + "」已公布 " + f.mins + " 分钟，突破结论待确认")
+          : ("数据窗口：距「" + escapeHtml(f.name) + "」" + f.mins + " 分钟，触碰计数已冻结")) +
+        '</div>';
+    }
+    if(!vm.valid){
+      html += '<div class="bxempty">当前由【通道】主导，未识别到有效水平箱体。</div>';
+      if(vm.reason) html += '<div class="bxsrc">未成箱：' + escapeHtml(vm.reason) + '</div>';
+    }else{
+      var bk = vm.breakout;
+      var bkCls = bk === "真突破" ? "real" : bk === "假突破" ? "fake"
+                : bk === "待确认" ? "pend" : "none";
+      var touchTxt = vm.frozen ? "冻结"
+        : ("上 " + vm.touchUp + " / 下 " + vm.touchDn);
+      html += '<div class="bxgrid">' +
+        bxRow("上沿", num(vm.upper, 1)) +
+        bxRow("下沿", num(vm.lower, 1)) +
+        bxRow("中轴", num(vm.mid, 1)) +
+        bxRow("宽度", num(vm.width, 1)) +
+        bxRow("触碰", '<span class="' + (vm.frozen ? "bxfrz" : "") + '">' + touchTxt + '</span>') +
+        '<div class="bxrow"><span class="bxk">突破</span>' +
+          '<span class="bxbk ' + bkCls + '">' + bk + '</span></div>' +
+      '</div>';
+      if(vm.patterns.length){
+        var ph = "";
+        vm.patterns.forEach(function(p){
+          ph += '<div class="bxp">[' + escapeHtml(p.name) + '] → 当前位于' +
+                escapeHtml(p.pos) + '；⚠️ 推演：' + escapeHtml(playbook(p.name)) + '</div>';
+        });
+        html += '<div class="bxps">' + ph + '</div>';
+      }
+      html += '<div class="bxsrc">' + vm.label + ' ' + vm.bars + ' 根 · 箱宽 ' +
+        (vm.widthAtr === null ? "--" : num(vm.widthAtr, 1) + " ATR") + ' · 容差 ' +
+        (vm.tol === null ? "--" : num(vm.tol, 1)) + ' · 现价 ' +
+        (vm.price === null || vm.price === undefined ? "--" : num(vm.price, 1)) + '</div>';
+    }
+    el.innerHTML = sanitizeHtml(html);
+    var meta = $("bxMeta");
+    if(meta) meta.textContent = vm.label + (vm.frozen ? " · 冻结" : "");
+  }catch(e){
+    /* 兜底：宁可显示「暂不可用」，也不能把整页带崩 */
+    try{
+      el.innerHTML = '<div class="bxempty">箱体数据暂不可用（--）</div>';
+      if($("bxMeta")) $("bxMeta").textContent = "";
+    }catch(e2){ /* 连兜底都失败就不再挣扎 */ }
+  }
+}
+function bxRow(k, v){
+  return '<div class="bxrow"><span class="bxk">' + k + '</span>' +
+         '<span class="bxv num">' + v + '</span></div>';
 }
 
 function renderStruct(){
@@ -10622,6 +10948,7 @@ function refreshAll(){
   renderBadges();
   renderStruct();
   renderChart();
+  renderBoxCard();
   renderMacroCard();
   renderFusion();
   renderBt();
@@ -11521,6 +11848,7 @@ function bindUI(){
       if(k === S.chPeriod) return;
       S.chPeriod = k;          // 设备偏好，只存内存，不写云端
       renderChart();
+      renderBoxCard();         // 箱体卡的 ATR / 容差都按「当前查看周期」，切周期必须跟着换
     };
   });
 
@@ -11997,6 +12325,20 @@ if(/[?&]xt=1/.test(location.search)){
         V76.adxOverride = (v === null || v === undefined) ? null : +v;
         V76.adx4Override = (v4 === null || v4 === undefined) ? null : +v4;
       }
+    },
+    /* v7.9 P112：宏观定价卡 / 箱体结构卡的纯函数出口。单测直接打这里 */
+    v79:{
+      touchTol:touchTol,
+      freezeOf:freezeOf,
+      posOf:posOf,
+      playbook:playbook,
+      orderPatterns:orderPatterns,
+      summaryLine:summaryLine,
+      boxView:boxViewModel,
+      renderBox:function(o){ renderBoxCard(o); },
+      renderFusion:function(){ renderFusion(); },
+      macroBadge:macroBadgeCls,
+      dead:function(){ return { bp:MACRO_DEAD.bp, pct:MACRO_DEAD.pct, strict:MACRO_DEAD.strict }; }
     },
     patchFormingBar:patchFormingBar,
     fetchKlines:fetchKlines,

@@ -268,18 +268,18 @@ def test_t123_chstruct_visual_rank(make_env):
 
 
 def test_t124_macro_row_fits_320(make_env):
-    """320（iPhone SE 一代）：标签改中文后第一行放不下，`@media` 里允许折行兜住。
+    """320（iPhone SE 一代）：宏观定价卡不得横向溢出。
 
-    试过只压字号不折行：`美元指数` + 「强利空」时仍溢出 14px，再压就得把
-    数值降到 12px 以下，320 屏上已经难认。320 本来就整页滚动，折行比压字号划算。
-    断言两件事——行内不溢出，页面不出现横向滚动。
+    v7.9 把原来的单行 `.mcrow` 改成两列 `.mgrid`（左实际利率 / 右美元指数），
+    所以这里改成量新容器；断言意图不变——容器内不溢出、整页不横滚、两个标签都在。
+    尺寸账由本用例守：320 下每列约 130px，18px 数值 + 11.5px 变化仍放得下。
     """
     env = make_env(width=320, height=568, macro=macro_doc())
     page = env.page
     page.wait_for_timeout(800)
     r = page.evaluate("""() => {
       const card = document.querySelector('#macroCard');
-      const row = card.querySelector('.mcrow');
+      const row = card.querySelector('.mgrid');
       return {rowW: row.clientWidth, rowSW: row.scrollWidth,
               cardW: card.clientWidth, cardSW: card.scrollWidth,
               docSW: document.documentElement.scrollWidth, iw: window.innerWidth,
