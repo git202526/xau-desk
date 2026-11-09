@@ -104,71 +104,63 @@ def test_k1_due_rules(make_env):
     assert p.evaluate("(t) => window.__xt.klDue('4h', t)", t0 + 61 * 60000) is True
 
 
-def test_k2_increment_pulls_only_tail(make_env):
-    """首次全量（limit=1000），到期后只拉 5 根增量，不重拉 1000 根。"""
+def test_k2_single_package_covers_all_periods(make_env):
+    """v7.10.1：一次 refreshData 只发一个 xau 请求，四个周期同源。
+
+    旧版按周期各拉一次（4 个 Binance 请求 + 增量/全量两套判据）；判定链只留
+    Dukascopy 之后，整包一次到位，「增量补洞」这套逻辑连同代币源一起下线。
+    """
     e = make_env(cfg=CFG_NORMAL)
     p = e.page
+    p.wait_for_timeout(600)
     urls = []
     p.on("request", lambda r: urls.append(r.url) if "klines" in r.url else None)
-    # 人为把 1h 标成 2 小时前抓的，触发到期
-    p.evaluate("""() => {
-        var m = window.__xt.state().klMeta['1h'];
-        m.at = Date.now() - 2*3600*1000;
-    }""")
-    urls.clear()
-    p.evaluate("() => window.__xt.refreshData()")
-    p.wait_for_timeout(600)
-    one_h = [u for u in urls if "interval=1h" in u]
-    assert one_h, "没有发起 1h 请求"
-    assert "limit=5" in one_h[0], one_h[0]
-    # 4 个周期里只有到期的才发，不该 4 个全发
-    assert len(urls) <= 2, urls
+    p.evaluate("() => window.__xt.refreshData(true)")
+    p.wait_for_timeout(700)
+
+    assert len(urls) == 1, urls
+    assert "xau/klines.json" in urls[0], urls
+    st = p.evaluate("() => window.__xt.klState()")
+    assert all(st[k]["n"] > 0 for k in ("1w", "1d", "4h", "1h")), st
 
 
-def test_k3_gap_falls_back_to_full(make_env):
-    """缺口超过 5 个周期（几天没开页面）→ 退回全量，增量接不上。"""
+def _align_bars_now(page, age_ms=5 * 60 * 1000):
+    """把四个周期的末根时间对齐到「刚刚」，专供 klStale() 的用例用。
+
+    夹具 _bars() 用 2026-10-29 的固定时间戳（数百条数值断言靠它做 UTC 周分组、
+    回溯窗口起止），按真实新鲜度判当然全落后。要验新鲜度判据的用例自己对齐，
+    不去动夹具 —— 平移夹具时间戳会连带打翻周枢轴和窗口索引。
+    """
+    page.evaluate("""(age) => {
+        var s = window.__xt.state(), now = Date.now();
+        ['1w','1d','4h','1h'].forEach(function(k){
+            var b = s.kl && s.kl[k];
+            if(b && b.length) b[b.length-1].t = now - age;
+        });
+    }""", age_ms)
+
+
+def test_k3_stale_product_keeps_retrying(make_env):
+    """产物落后一个周期就要重试，不能只看「上次什么时候拉的」。
+
+    上游当天文件为空时，19:06 拉回来的产物末根还停在 08:00：拉取时间很新、
+    数据却停了三小时。旧判据（按拉取时间）会认为"刚拉过不用再拉"，于是一整天
+    都不再重试；这里改成按末根时间判。
+    """
     e = make_env(cfg=CFG_NORMAL)
     p = e.page
+    p.wait_for_timeout(600)
+    _align_bars_now(p)
 
-    # 增量请求（limit<=5）返回"最近 5 根"，与本地最后一根（10 天前）之间留着大缺口；
-    # 全量请求（limit 大）返回 60 根。这样才能真正走到缺口判定分支。
-    def kline(route):
-        url = route.request.url
-        lim = 5
-        if "limit=" in url:
-            try:
-                lim = int(url.split("limit=")[1].split("&")[0])
-            except Exception:
-                lim = 5
-        now = 1762400000000
-        n = 5 if lim <= 5 else 60
-        step = 3600000
-        t0 = now - n * step
-        body = [[t0 + i * step, 4000 + i, 4010 + i, 3990 + i, 4005 + i, 10] for i in range(n)]
-        route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
+    fresh = p.evaluate("() => window.__xt.klStale()")
+    assert fresh is False, "四周期末根都在本周期内，不应判落后"
 
-    p.route("**/data-api.binance.vision/**", kline)
-    urls = []
-    p.on("request", lambda r: urls.append(r.url) if "interval=1h" in r.url else None)
-    # 把 1h 的最后一根挪到 10 天前，制造大缺口
-    # 本地最后一根固定在 1761741000000（远早于 mock 的 1762382000000），确保缺口成立
     p.evaluate("""() => {
         var s = window.__xt.state();
-        var bars = [];
-        for (var i = 0; i < 40; i++) {
-            var t = 1761600000000 + i*3600000;
-            bars.push({t: t, o: 4000+i, h: 4010+i, l: 3990+i, c: 4005+i, v: 10});
-        }
-        s.kl['1h'] = bars;
-        s.klMeta['1h'] = { at: Date.now() - 2*3600*1000,
-                           lastT: bars[bars.length-1].t, mode: 'full' };
+        var last = s.kl['1h'][s.kl['1h'].length-1];
+        last.t = last.t - 3 * 3600 * 1000;          // 末根退回 3 小时前
     }""")
-    urls.clear()
-    p.evaluate("() => window.__xt.refreshData()")
-    p.wait_for_timeout(900)
-    one_h = [u for u in urls if "interval=1h" in u]
-    assert one_h, "没有发起 1h 请求"
-    assert any("limit=1000" in u for u in one_h), one_h
+    assert p.evaluate("() => window.__xt.klStale()") is True
 
 
 def test_k4_skip_makes_no_request(make_env):
@@ -186,7 +178,7 @@ def test_k4_skip_makes_no_request(make_env):
 
 
 def test_k6_forming_bar_follows_tick(make_env):
-    """未收盘的 K 线用 PAXG 逐笔本地推进：c 跟着走，h/l 随之扩张。"""
+    """未收盘的 K 线用现货价本地推进：c 跟着走，h/l 随之扩张。"""
     e = make_env(cfg=CFG_NORMAL)
     p = e.page
     p.evaluate("""() => {
@@ -194,7 +186,7 @@ def test_k6_forming_bar_follows_tick(make_env):
         var now = Date.now();
         s.kl = { '1h': [ {t: now - 3600000, o: 4000, h: 4010, l: 3995, c: 4002, v: 1},
                          {t: now - 60000,  o: 4002, h: 4004, l: 4001, c: 4003, v: 1} ] };
-        s.paxg = 4030;
+        s.price = 4030;
     }""")
     p.evaluate("() => window.__xt.patchFormingBar()")
     last = p.evaluate("() => { var b = window.__xt.state().kl['1h']; return b[b.length-1]; }")
@@ -211,7 +203,7 @@ def test_k7_closed_bar_not_patched(make_env):
         var s = window.__xt.state();
         var now = Date.now();
         s.kl = { '1h': [ {t: now - 3*3600000, o: 4000, h: 4010, l: 3995, c: 4002, v: 1} ] };
-        s.paxg = 4030;
+        s.price = 4030;
     }""")
     p.evaluate("() => window.__xt.patchFormingBar()")
     last = p.evaluate("() => { var b = window.__xt.state().kl['1h']; return b[b.length-1]; }")
@@ -263,57 +255,26 @@ def test_r2_relay_no_token_skips():
     assert "跳过" in r.stderr
 
 
-def test_k8_small_gap_also_falls_back(make_env):
-    """缺口只有 2 个周期（小于增量根数）也必须回退全量。
-
-    增量只拉 5 根，接不上的那段不会自动补齐 —— 之前判据是「缺口 > 5 个周期」，
-    于是 2~5 个周期的洞会被放过去，图上出现断档。判据应是「只要有洞就全量」。
-    """
+def test_k8_within_period_is_not_stale(make_env):
+    """末根还在本周期内就不算落后：1 小时图的末根只要不到 1 小时就不重拉。"""
     e = make_env(cfg=CFG_NORMAL)
     p = e.page
+    p.wait_for_timeout(600)
+    _align_bars_now(p)
 
-    def kline(route):
-        url = route.request.url
-        lim = 5
-        if "limit=" in url:
-            try:
-                lim = int(url.split("limit=")[1].split("&")[0])
-            except Exception:
-                lim = 5
-        n = 5 if lim <= 5 else 60
-        step = 3600000
-        # 增量（limit<=5）从 now-5h 开始；全量返回 60 根
-        t0 = 1762400000000 - n * step
-        body = [[t0 + i * step, 4000 + i, 4010 + i, 3990 + i, 4005 + i, 10] for i in range(n)]
-        route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
-
-    p.route("**/data-api.binance.vision/**", kline)
-    urls = []
-    p.on("request", lambda r: urls.append(r.url) if "interval=1h" in r.url else None)
-
-    # 本地最后一根在 now-7h：增量从 now-5h 起，中间缺 1 根（2 个周期差）
     p.evaluate("""() => {
         var s = window.__xt.state();
-        var now = 1762400000000;
-        var bars = [];
-        for (var i = 0; i < 40; i++) {
-            var t = now - 7*3600000 - (39 - i) * 3600000;
-            bars.push({t: t, o: 4000+i, h: 4010+i, l: 3990+i, c: 4005+i, v: 10});
-        }
-        s.kl['1h'] = bars;
-        s.klMeta['1h'] = { at: Date.now() - 2*3600*1000,
-                           lastT: bars[bars.length-1].t, mode: 'full' };
+        var now = Date.now();
+        s.kl['1h'] = [{t: now - 5*60000, o: 4000, h: 4006, l: 3998, c: 4004, v: 1}];
     }""")
-    urls.clear()
-    p.evaluate("() => window.__xt.refreshData()")
-    p.wait_for_timeout(900)
+    assert p.evaluate("() => window.__xt.klStale()") is False
 
-    one_h = [u for u in urls if "interval=1h" in u]
-    assert one_h, "没有发起 1h 请求"
-    assert any("limit=1000" in u for u in one_h), one_h
+    p.evaluate("""() => {
+        var s = window.__xt.state();
+        s.kl['1h'][0].t = Date.now() - 95*60000;   // 跨过一个整点
+    }""")
+    assert p.evaluate("() => window.__xt.klStale()") is True
 
-
-# ================================================================ 日历刷新节奏
 
 def test_j9_calendar_refreshes_periodically(make_env):
     """日历必须按中转节奏重拉，不能只在启动时拉一次。

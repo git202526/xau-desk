@@ -7,6 +7,7 @@ import math
 import os
 import socket
 import threading
+import time
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -100,6 +101,53 @@ def _bars(interval, n=240):
     return out
 
 
+def _xau_doc_from(bars, price):
+    """把用例的 K 线参数包成 xau/klines.json 产物。
+
+    v7.10.1 起判定链只剩 Dukascopy 一份，夹具不能再靠 Binance PAXG 供数。
+    这里按老链路的口径把整条序列归一到 ``price``（老链路 scale = price / 1h 末根收盘，
+    四个周期共用同一个 scale），这样 700+ 条既有数值断言不用改。
+    """
+    if isinstance(bars, dict):
+        data = dict(bars)
+    elif bars is not None:
+        data = {k: bars for k in ("1w", "1d", "4h", "1h")}
+    else:
+        data = {k: _bars(k) for k in ("1w", "1d", "4h", "1h")}
+
+    scale = 1.0
+    one = data.get("1h")
+    if one:
+        last = float(one[-1][4])
+        if last:
+            scale = float(price) / last
+
+    # 时间戳保持用例原值：周线自然周分组、回溯窗口起止、序列索引 60 等
+    # 数百条断言都按 _bars() 的固定时间戳算，任何平移都会让期望值错位。
+    # 代价是夹具末根「看起来」很旧，页面会显示滞后角标——那只是文案，
+    # 不进任何计算；真正要验新鲜度的用例自己造相对现在的时间戳。
+    def norm(arr):
+        out = []
+        for b in arr:
+            out.append([int(b[0]),
+                        "%.3f" % (float(b[1]) * scale),
+                        "%.3f" % (float(b[2]) * scale),
+                        "%.3f" % (float(b[3]) * scale),
+                        "%.3f" % (float(b[4]) * scale),
+                        str(b[5])])
+        return out
+
+    kl = {k: norm(v) for k, v in data.items() if v}
+    return {
+        "updated": 1794150000000, "src": "dukascopy", "symbol": "XAUUSD",
+        "price_type": "bid",
+        "window": {"from": "2026-06-12", "to": "2026-11-08", "days_ok": 1,
+                   "days_empty": 0, "failed_n": 0, "failed": []},
+        "sanitized": {"synthetic": 0, "dup": 0},
+        "stats": {}, "gaps": {k: [] for k in kl}, "kl": kl,
+    }
+
+
 class GhState:
     def __init__(self, cfg=None):
         self.cfg = dict(cfg) if cfg is not None else None
@@ -141,7 +189,8 @@ def make_env(browser):
 
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
-              hash_="", bars=None, calendar=None, tz=None, jn=None, xau=None, macro=None):
+              hash_="", bars=None, calendar=None, tz=None, jn=None, xau="auto",
+              macro=None, tick=None):
         opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -175,17 +224,41 @@ def make_env(browser):
             route.fulfill(status=200, content_type="application/json",
                           body=json.dumps(data))
 
-        page.route("**/data-api.binance.vision/**", kline)
+        page.route("**/data-api.binance.vision/api/v3/klines**", kline)
 
-        # v7.6：真实 XAU 数据源默认 404 → 页面自动降级 PAXG，保持既有用例行为不变。
-        # 传 dict 时按 xau/klines.json 结构返回，供 T100/T101/T102/T112 使用。
+        # PAXG 逐笔（报价桥接，只让价格数字跳得细，不进判定链）。
+        # 默认回 price=0：页面判「结构不符」静默跳过（不 srcFail、不写 S.paxg），
+        # 于是 srcReady("paxg") 恒为真、锚点 paxg 保持 null，桥接类用例第一次
+        # 逐笔仍能走「只补锚点不跳价」的分支。若默认回 500，首屏那次请求就
+        # 触发 5 秒退避，所有显式 refreshTick() 的用例会在退避期里静默失效；
+        # 若默认给个真实价，又会把 S.anchor.paxg 顶成现货价，drift 全算错。
+        # 真正要验「逐笔断开」的场景传 tick="down"。
+        def tick_route(route):
+            if tick == "down":
+                route.fulfill(status=500, content_type="application/json", body="{}")
+            else:
+                px = 0 if tick in (None, True, False) else tick
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps({"symbol": "PAXGUSDT",
+                                               "price": "%.2f" % float(px)}))
+        page.route("**/ticker/price**", tick_route)
+
+        # v7.10.1：默认按 bars 现造一份 xau/klines.json——判定链只剩这一个源。
+        # xau=None 表示「产物不可用」，用于验「停算 + 数据延迟」。
+        if xau == "auto":
+            xau_doc = _xau_doc_from(bars, price)
+        elif isinstance(xau, dict):
+            xau_doc = xau
+        else:
+            xau_doc = None
+
         def xau_route(route):
-            if xau is None:
+            if xau_doc is None:
                 route.fulfill(status=404, content_type="application/json",
                               body=json.dumps({"message": "Not Found"}))
             else:
                 route.fulfill(status=200, content_type="application/json",
-                              body=json.dumps(xau))
+                              body=json.dumps(xau_doc))
         page.route("**/xau/klines.json*", xau_route)
 
         # v7.6 P3：宏观双变量产物。默认 404 = 中转没跑，页面必须显示「数据延迟」而不是崩。

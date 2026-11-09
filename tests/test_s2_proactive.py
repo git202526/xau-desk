@@ -3,7 +3,7 @@ import datetime
 
 import pytest
 
-from conftest import _bars
+from conftest import PRICE, _bars
 
 PROBE_JS = """() => {
   const X = window.__xt, S = X.state(), d = X.scaled('1d');
@@ -69,7 +69,9 @@ def _find(items, name):
 def test_week_pivot_r1_formula(probe):
     """周枢 R1 = 2P − 上周最低，P = (H+L+C)/3。"""
     w = _last_week(_bars_utc())
-    sc = probe["scale"]
+    # v7.10.1：夹具的 K 线已按现价归一（页面 scale 恒为 1），
+    # 老写法取 probe["scale"] 会拿到 1，导致「原始价 × 1」和页面价差一个归一因子。
+    sc = PRICE / float(_bars("1d")[-1][4])
     P = (w["hi"] + w["lo"] + w["c"]) / 3
     want = (2 * P - w["lo"]) * sc
     got = _find(probe["wideItems"], "周枢 R1")
@@ -79,7 +81,9 @@ def test_week_pivot_r1_formula(probe):
 def test_week_pivot_s1_formula(probe):
     """周枢 S1 = 2P − 上周最高。"""
     w = _last_week(_bars_utc())
-    sc = probe["scale"]
+    # v7.10.1：夹具的 K 线已按现价归一（页面 scale 恒为 1），
+    # 老写法取 probe["scale"] 会拿到 1，导致「原始价 × 1」和页面价差一个归一因子。
+    sc = PRICE / float(_bars("1d")[-1][4])
     P = (w["hi"] + w["lo"] + w["c"]) / 3
     want = (2 * P - w["hi"]) * sc
     got = _find(probe["wideItems"], "周枢 S1")
@@ -108,7 +112,9 @@ def test_fib_extension_161(probe):
 def test_ma5_ma10_match_sma(probe):
     """MA5 / MA10 必须等于最近 5 / 10 根收盘均价（按 scale 折算）。"""
     bars = _bars_utc()
-    sc = probe["scale"]
+    # v7.10.1：夹具的 K 线已按现价归一（页面 scale 恒为 1），
+    # 老写法取 probe["scale"] 会拿到 1，导致「原始价 × 1」和页面价差一个归一因子。
+    sc = PRICE / float(_bars("1d")[-1][4])
     for n, name in ((5, "MA5"), (10, "MA10")):
         want = sum(b["c"] for b in bars[-n:]) / n * sc
         got = _find(probe["wideItems"], name)

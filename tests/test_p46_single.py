@@ -300,10 +300,15 @@ def test_held_conversion_no_mode_switch(env):
 # ---------------------------------------------------------------- ATR 兜底
 
 def test_atr_missing_falls_back_to_one_percent(env):
+    """K 线整包不可用 → ATR 缺失 → 档距回退 1% × 高点。
+
+    v7.10.1：判定链只认 xau/klines.json，断它就等于断掉整条序列；旧写法断
+    Binance（v7.6 时代的 K 线源）现在只影响报价桥接，ATR 照样算得出来。
+    """
     e = env()
     p = e.page
-    p.unroute("**/data-api.binance.vision/**")
-    p.route("**/data-api.binance.vision/**", lambda r: r.fulfill(
+    p.unroute("**/xau/klines.json*")
+    p.route("**/xau/klines.json*", lambda r: r.fulfill(
         status=404, content_type="application/json", body="{}"))
     p.reload(wait_until="domcontentloaded")
     p.wait_for_function("() => window.__xt && window.__xt.ready", timeout=8000)

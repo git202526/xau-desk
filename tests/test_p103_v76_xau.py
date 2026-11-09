@@ -190,9 +190,13 @@ def test_t112_lastt_uses_clean_last_bar(make_env):
 
 
 # ---------------------------------------------------------------- T114 降级
-def test_t114_falls_back_to_paxg(make_env):
-    """xau/klines.json 404 → 降级 PAXG，且必须标注，不能冒充 XAU。"""
-    env = make_env(xau=None, bars=bars_1h(80))
+def test_t114_no_paxg_fallback(make_env):
+    """v7.10.1：产物 404 不再降级 PAXG（代币 24/7，形态不是伦敦金），改停算 + 数据延迟。
+
+    旧断言是「降级到 PAXG 并标注」，那是 v7.6 的过渡态；判定链只留 Dukascopy 之后，
+    再退回代币会让四周期的通道/ADX 变成另一种资产的形态，比空着更糟。
+    """
+    env = make_env(xau=None)
     page = env.page
     page.wait_for_timeout(700)
 
@@ -201,8 +205,9 @@ def test_t114_falls_back_to_paxg(make_env):
       note: (document.querySelector('#klSrcNote')||{}).textContent||'',
       price: (document.querySelector('#pNow')||{}).textContent||''
     })""")
-    assert r["src"] == "paxg", r
-    assert "PAXG" in r["note"], r
+    assert r["src"] != "paxg", r
+    assert "PAXG" not in r["note"], r
+    assert "延迟" in r["note"], r
     assert r["price"].strip() not in ("", "--"), r
 
 

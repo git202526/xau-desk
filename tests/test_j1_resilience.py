@@ -101,7 +101,8 @@ def test_h3_visibility_resume_refires_once(env):
     p.wait_for_timeout(600)
 
     assert gold.take() >= 1, "回前台没补报价"
-    assert kline.take() >= 4, "回前台没补 K 线（应 4 个周期各一次）"
+    # v7.10.1：K 线只剩 xau 一个整包，一次请求覆盖四个周期
+    assert kline.take() >= 1, "回前台没补 K 线"
 
     # 1 秒去重：窗口内再触发一次，不应再打
     p.evaluate("() => window.__xt.refreshPrice()")
@@ -153,9 +154,9 @@ def test_h5_kline_429_backoff(env):
     """K 线 429 后进入退避，5 分钟周期内不再拉。"""
     e = env()
     p = e.page
-    p.route("**/data-api.binance.vision/**", lambda r: r.fulfill(status=429, body="limited"))
+    p.route("**/xau/klines.json*", lambda r: r.fulfill(status=429, body="limited"))
     reset(p)
-    # J3 起 K 线默认按周期降频，首屏刚拉过就不再发；这里强制刷新才能真的打到 429
+    # 首屏刚拉过，不强制刷新会被 60 秒闸门挡住，打不到 429
     p.evaluate("() => window.__xt.refreshData(true)")
     p.wait_for_timeout(700)
     s = src(p)

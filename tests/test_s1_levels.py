@@ -75,7 +75,7 @@ def test_prev_week_matches_manual_aggregation(probe):
     """前周高低必须等于上一自然周（UTC 周一起）的实际最高/最低。"""
     import datetime
 
-    from conftest import _bars
+    from conftest import PRICE, _bars
 
     bars = _bars("1d")
     t = [b[0] for b in bars]
@@ -100,7 +100,8 @@ def test_prev_week_matches_manual_aggregation(probe):
         want_hi = hi[i] if want_hi is None else max(want_hi, hi[i])
         want_lo = lo[i] if want_lo is None else min(want_lo, lo[i])
 
-    sc = probe["scale"]
+    # 夹具已按现价归一，页面 scale 恒为 1；对照时用原始价 × 归一因子
+    sc = PRICE / float(_bars("1d")[-1][4])
     flat = [p for group in probe["wideRaw"] for p in group]
     assert any(abs(p - want_hi * sc) < 0.02 for p in flat), \
         "前周高对不上，期望 %.1f，原始价位 %s" % (want_hi * sc, sorted(flat)[-6:])
