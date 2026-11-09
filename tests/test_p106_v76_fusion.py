@@ -138,7 +138,6 @@ def test_t97_card_renders(make_env):
     page = env.page
     page.wait_for_timeout(800)
     c = txt(page, "#macroCard")
-    assert "TIPS" in c, c
     assert "美元" in c, c
     assert "数据截至" in c, c
     assert "强利空" in c, c
@@ -146,6 +145,10 @@ def test_t97_card_renders(make_env):
     # 容易误当成平时说的「美债收益率」（名义）。第一行标签直接用中文，
     # 全称与数据源放 title 里，不占窄屏宽度。
     assert "实际利率" in c, c
+    # v7.9.1：页脚只留「数据截至」，note（TIPS/DXY 变化值）移进 title，
+    # 卡内正文不再出现 TIPS 字样，术语全称仍由 .mk 的 title 承担。
+    tip = page.eval_on_selector("#macroCard .mk", "e => e.title")
+    assert "TIPS" in tip and "通胀保值" in tip, tip
 
 
 def test_t97b_card_404(make_env):

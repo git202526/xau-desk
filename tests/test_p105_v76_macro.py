@@ -3,7 +3,10 @@
 口径（计划书 §5.5）：
   - TIPS |Δbp| ≥ 1.5 才算有方向；DXY |Δ%| ≥ 0.10（广义美元 0.08）
   - 两变量同向 → 强利多/强利空 High；单边 → Medium；都没到阈值 → 中性 Low
-  - 抓取时间 > 90 分钟 → 「数据延迟」，数值置空，**不得输出「中性」**
+  - v7.9.1 起新鲜度按**数据日**（as_of）判：自然日差 ≤ 8 天算新鲜。
+    抓取时刻 > 90 分钟只在 as_of 缺失时兜底——日频值不变脚本就不落盘，
+    拿抓取时刻判日频数据会把「正常」判成「延迟」。
+    无论走哪条路径，过期数据一律「数据延迟」+ 数值置空，**不得输出「中性」**
   - 美元涨而金价日涨 → 记背离例外，置信降到 Medium
 
 本文件先红后绿：macroJudge 尚未实现，红在接口缺失。
@@ -13,15 +16,21 @@ import time
 NOW = lambda: int(time.time() * 1000)          # noqa: E731
 
 
+def _as_of(days_ago=1):
+    """数据日相对今天算，不写死日期——写死的话用例会在几个月后集体变红。"""
+    return time.strftime("%Y-%m-%d", time.gmtime(time.time() - days_ago * 86400))
+
+
 def doc(tips_bp=0.0, dxy_pct=0.0, age_min=0, tips=2.15, dxy=105.2,
-        src="cnbc", fetched=None):
+        src="cnbc", fetched=None, as_of=None):
+    d = _as_of(1) if as_of is None else as_of
     return {
         "fetched_at": NOW() - int(age_min * 60000) if fetched is None else fetched,
         "src": "fred+cnbc",
         "tips_10y": {"value": tips, "change_bp": tips_bp, "trend_5d": tips_bp,
-                     "as_of": "2026-11-05", "n": 5966},
+                     "as_of": d, "n": 5966},
         "dxy": {"value": dxy, "change_pct": dxy_pct, "trend_5d": dxy_pct,
-                "as_of": "2026-11-06", "src": src, "n": 259},
+                "as_of": d, "src": src, "n": 259},
         "hist": {"tips": [], "dxy": []},
         "errors": [],
     }
@@ -73,8 +82,13 @@ def test_t99f_broad_dollar_threshold(make_env):
 
 # ---------------------------------------------------------------- T110 失效
 def test_t110_stale_three_hours(make_env):
-    """抓取已过 3 小时：数值清空、判为数据延迟，绝不能拿旧数据给「中性」。"""
-    r = judge(make_env().page, doc(tips_bp=3.0, dxy_pct=0.2, age_min=180))
+    """数据日缺失 + 抓取已过 3 小时：只能按抓取时刻保守判延迟。
+
+    v7.9.1 把主判据换成数据日（as_of），这条守的是「没有数据日可依」时的兜底：
+    此时无法判断数据是新是旧，宁可降级也不能拿它给结论。
+    """
+    r = judge(make_env().page,
+              doc(tips_bp=3.0, dxy_pct=0.2, age_min=180, as_of=""))
     assert r["status"] == "数据延迟", r
     assert r["status"] != "中性", r
     assert r["stale"] is True, r

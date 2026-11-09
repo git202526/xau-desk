@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.9 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.9 P112 宏观定价卡（两列 10Y 实际利率 / 美元指数，数值固定 18px 白字，颜色只表达对金影响，四态 badge；单边缺失降级「数据不完整」而非整卡清空；死区 |Δbp|≤2.00、|Δ%|≤0.10 算平盘）+ 结构摘要固定化（首行主导/仲裁/ADX 单行省略，次行宏观 badge）+ #chLine 以 dataset.raw 为底防套娃 + 箱体结构卡（六项读数 / 触碰容差 min(0.25 ATR, 箱宽 8%) / 真·假突破按 0.5 ATR 判 / 形态推演 top2 且未破颈线优先 / 现价 20% 贴边判定 / 4 星窗口前 30 分后 45 分冻结触碰与突破）+ 修 boxDetect 真突破死代码（箱沿含当根最高价，c>上沿+0.5ATR 永不成立） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.9.1 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.9.1 P113 宏观新鲜度改按数据日（as_of 自然日差 ≤ 8 天，覆盖周末/长周末/假日与 T-1 滞后；as_of 缺失才退回抓取时刻 90 分钟兜底；单边过期只把那边写 --，状态「数据不完整」；页脚「数据截至」改数据日收盘，note 与抓取时刻移入 title）+ 结构摘要首行不再 ellipsis 截断，改自然换行并去掉「通道为主 通道」重复 + v7.9 P112 宏观定价卡（两列 10Y 实际利率 / 美元指数，数值固定 18px 白字，颜色只表达对金影响，四态 badge；单边缺失降级「数据不完整」而非整卡清空；死区 |Δbp|≤2.00、|Δ%|≤0.10 算平盘）+ 结构摘要固定化（首行主导/仲裁/ADX 单行省略，次行宏观 badge）+ #chLine 以 dataset.raw 为底防套娃 + 箱体结构卡（六项读数 / 触碰容差 min(0.25 ATR, 箱宽 8%) / 真·假突破按 0.5 ATR 判 / 形态推演 top2 且未破颈线优先 / 现价 20% 贴边判定 / 4 星窗口前 30 分后 45 分冻结触碰与突破）+ 修 boxDetect 真突破死代码（箱沿含当根最高价，c>上沿+0.5ATR 永不成立） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -310,7 +310,10 @@ body.tab-ov .tpx{display:none}
    窄屏折成两行会让「ADX」和它的数值分家，读起来像两个指标。 */
 .pnote{font-size:13px;color:#888;margin:8px 0}
 .pnote .pn-s,.pnote .pn-m{max-width:100%}
-.pnote .pn-s{display:block;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 首行不省略：390px 真实数据是「结构：通道为主 (ADX 32.4) · 箱体未成立（…）· 4H 震荡」，
+   ellipsis 会把箱体原因与 4H 状态一起切掉——这两个恰恰是读者要看的。
+   自然换行，长英文（DXY / ATR）用 anywhere 兜底，避免撑宽容器。 */
+.pnote .pn-s{display:block;margin-bottom:6px;line-height:1.55;overflow-wrap:anywhere}
 .pnote .pn-m{display:inline-block;font-size:12px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.1);color:#888}
 .pnote .pn-m.mv-bear{color:#FF4D4F;background:rgba(255,77,79,.15)}
 .pnote .pn-m.mv-bull{color:#52C41A;background:rgba(82,196,26,.15)}
@@ -1064,7 +1067,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.9 · 11/09</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.9.1 · 11/09</span></div>
       </div>
     </div>
     <div class="stat">
@@ -2581,7 +2584,12 @@ function structureSnapshot(opt){
    一天跳 3bp 才是资金在重新定价。 */
 var MACRO = { doc:null, at:0, err:null };
 var MACRO_URL = "macro.json";
-var MACRO_STALE = 90*60000;          // 计划书：fetched_at 超 90 分钟即「数据延迟」
+var MACRO_STALE = 90*60000;          // 仅在 as_of 缺失时兜底：没有数据日可依，只能看抓取时刻
+/* v7.9.1：日频指标的容忍窗（自然日）。
+   TIPS 是美东 T-1 收盘后发布、DXY 的 change_pct 也是日涨跌，两者一天只变一次；
+   抓取脚本「值没变就不落盘」，fetched_at 会合法地停在十几小时前。
+   正常最长空窗是「感恩节周四+周五休市 + 周末 + 周一」，周三数据到周二打开是 6 天。 */
+var MACRO_FRESH_DAYS = 8;
 var MACRO_REFRESH = 30*60000;
 
 function v76Num(x){
@@ -2606,6 +2614,20 @@ function macroDirOf(v, th, strict){
   if(!hit) return 0;
   return v > 0 ? -1 : 1;
 }
+/* 数据日新鲜度：as_of（YYYY-MM-DD）到今天的自然日差。
+   返回 { ok:true/false/null, days, asOf }；null 表示没有可用的数据日。 */
+function freshOf(asOf, now){
+  var s = String(asOf || "").slice(0, 10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return { ok:null, days:null, asOf:"" };
+  var t = Date.parse(s + "T00:00:00Z");
+  if(!isFinite(t)) return { ok:null, days:null, asOf:"" };
+  var n = (now === undefined || now === null) ? Date.now() : now;
+  var today = Math.floor(n / 86400000) * 86400000;
+  var days = Math.round((today - t) / 86400000);
+  /* 数据日晚于今天 1 天以上 = 时钟或时区错乱，宁可判延迟也不假装新鲜 */
+  if(days < -1) return { ok:false, days:days, asOf:s, future:true };
+  return { ok:days <= MACRO_FRESH_DAYS, days:days, asOf:s };
+}
 function macroJudge(raw, opt){
   opt = opt || {};
   var now = opt.now || Date.now();
@@ -2618,22 +2640,39 @@ function macroJudge(raw, opt){
   if(!raw) return empty;
   var at = (typeof raw.fetched_at === "number") ? raw.fetched_at
                                                 : Date.parse(raw.fetched_at || "");
-  /* 未来时间超过 5 分钟也判异常：时钟错乱时宁可显示延迟，也不要假装新鲜 */
-  if(!isFinite(at) || now - at > MACRO_STALE || at - now > 5*60000) return empty;
+  /* 未来时间超过 5 分钟判异常：时钟错乱时宁可显示延迟，也不要假装新鲜 */
+  if(!isFinite(at) || at - now > 5*60000) return empty;
 
   var T = raw.tips_10y || {}, X = raw.dxy || {};
+  /* v7.9.1 新鲜度改按数据日判（见 MACRO_FRESH_DAYS 注释）。
+     as_of 全缺时才退回 fetched_at 的 90 分钟口径——那是唯一还能看的时刻。 */
+  var fT = freshOf(T.as_of, now), fX = freshOf(X.as_of, now);
+  var noAsOf = (fT.ok === null && fX.ok === null);
+  var stale = noAsOf ? (now - at > MACRO_STALE) : (fT.ok === false && fX.ok === false);
+  if(stale){
+    var se = {}, sk;
+    for(sk in empty) if(Object.prototype.hasOwnProperty.call(empty, sk)) se[sk] = empty[sk];
+    se.note = noAsOf ? "宏观数据不可用（缺少数据日）"
+                     : ("数据日超出 " + MACRO_FRESH_DAYS + " 天，管线可能停摆");
+    se.fresh_days = noAsOf ? null : Math.max(fT.days === null ? -1 : fT.days,
+                                             fX.days === null ? -1 : fX.days);
+    return se;
+  }
   var tv = v76Num(T.value), xv = v76Num(X.value);
   var tbp = v76Num(T.change_bp), xpc = v76Num(X.change_pct);
-  var tOk = (tv !== null && tbp !== null), xOk = (xv !== null && xpc !== null);
+  var tOk = (tv !== null && tbp !== null && fT.ok !== false);
+  var xOk = (xv !== null && xpc !== null && fX.ok !== false);
   /* v7.9：单边缺失不再整卡清空。旧版任一边为 null 就返回「数据延迟」，
      结果 TIPS 明明抓到了也跟着显示 --，等于用一处故障抹掉两处信息。
      现在只把缺的那边置空，状态写「数据不完整」，另一边照常参与判断。 */
   if(!tOk && !xOk) return empty;
   if(!tOk || !xOk){
     var missName = tOk ? "美元指数" : "实际利率";
+    /* 区分「没抓到」和「抓到了但过期」：两者在 UI 上都是 --，原因不一样 */
+    var missWhy = (tOk ? fX : fT).ok === false ? "过期" : "缺失";
     return {
       status:"数据不完整", macro_status:"数据不完整", stale:false, partial:true,
-      note:missName + "数据缺失 · 单边指标仍可参考",
+      note:missName + "数据" + missWhy + " · 单边指标仍可参考",
       tips:tOk ? tv : null, confidence:"Low", exceptions:[],
       tips_10y:{ value:tOk ? tv : null, change_bp:tOk ? tbp : null,
                  trend_5d:tOk ? v76Num(T.trend_5d) : null, as_of:T.as_of || "" },
@@ -2683,7 +2722,9 @@ function macroJudge(raw, opt){
     tips:tv,                              // 扁平值方便卡片直接用；dxy 走下面的对象
     tips_10y:{ value:tv, change_bp:tbp, trend_5d:v76Num(T.trend_5d), as_of:T.as_of || "" },
     dxy:{ value:xv, change_pct:xpc, trend_5d:v76Num(X.trend_5d),
-          as_of:X.as_of || "", src:X.src || "" }
+          as_of:X.as_of || "", src:X.src || "" },
+    fetched_at:at,
+    fresh_days:Math.max(fT.days === null ? 0 : fT.days, fX.days === null ? 0 : fX.days)
   };
 }
 function fetchMacro(force){
@@ -7837,12 +7878,21 @@ function macroCardPaint(){
   $("mcDxyD").className  = "mdlt num " + (xImp > 0 ? "bull" : xImp < 0 ? "bear" : "flat");
 
   var at = MACRO.at || (MACRO.doc && MACRO.doc.fetched_at) || Date.now();
-  /* 页脚一行到底：数据截至 + 说明。分开两行会把总览顶出一屏，
-     而说明本身（阈值、背离例外）是解释性文字，跟在时间后面不算挤。 */
-  var asTxt = "数据截至 " + fmtAsOf(at);
-  if(st) asTxt += " · 数据源不可达";
-  else if(mj.note) asTxt += " · " + mj.note;
+  /* 页脚写「数据截至」就该是**数据日**，不是抓取时刻。
+     日频值不变脚本就不落盘，按抓取时刻写会出现「截至今天 19:00」而值其实是
+     上周五的——和 v7.9 整卡判延迟是同一个误解的两个方向。
+     完整数据日与抓取时刻放 title，一行正文只留 MM-DD，不占宽度。 */
+  var asOf = [mj.tips_10y.as_of, mj.dxy.as_of]
+             .filter(function(x){ return !!x; }).sort().pop() || "";
+  /* 页脚只留「数据截至 MM-DD 收盘」这一件事。
+     之前把 note（阈值、方向相反）也拼在后面，390px 下 scrollWidth 356 > 可用 284，
+     被 ellipsis 吃掉一半——同一个「右侧看不见」的毛病。note 与抓取时刻都是
+     解释性文字，放 title，正文不跟 badge 抢宽度。 */
+  var asTxt = st ? "数据源不可达"
+                 : ("数据截至 " + (asOf ? String(asOf).slice(5, 10) + " 收盘" : fmtAsOf(at)));
   $("mcAs").textContent = asTxt;
+  $("mcAs").title = (st ? "数据源不可达" : "数据日 " + (asOf || "--")) +
+                    " · 抓取 " + fmtAsOf(at) + (mj.note ? " · " + mj.note : "");
 
   var el = $("mcStatus");
   el.textContent = mj.status;
@@ -7882,7 +7932,11 @@ function summaryLine(st, mj){
     ? ("箱体 " + dashNum(b.lower, 1) + "–" + dashNum(b.upper, 1))
     : ("箱体未成立" + (b && b.reason ? "（" + b.reason + "）" : ""));
   if(st.trend_state) sub += " · 4H " + st.trend_state;
-  return "结构：" + dom + " " + state + " (ADX " + adx + ") · " + sub;
+  /* dominant 常是「通道为主」，state 是「通道」——直接拼会写出「通道为主 通道」。
+     state 已经包含在 dominant 里就不再重复，省下的宽度正是折行少一行的差别。 */
+  var head = dom;
+  if(state !== "--" && String(head).indexOf(state) < 0) head += " " + state;
+  return "结构：" + head + " (ADX " + adx + ") · " + sub;
 }
 function fusionBadgeCls(status){
   if(status === "数据不完整" || status === "数据延迟") return "mv-warn";
@@ -12338,6 +12392,8 @@ if(/[?&]xt=1/.test(location.search)){
       renderBox:function(o){ renderBoxCard(o); },
       renderFusion:function(){ renderFusion(); },
       macroBadge:macroBadgeCls,
+      freshOf:freshOf,
+      freshDays:function(){ return MACRO_FRESH_DAYS; },
       dead:function(){ return { bp:MACRO_DEAD.bp, pct:MACRO_DEAD.pct, strict:MACRO_DEAD.strict }; }
     },
     patchFormingBar:patchFormingBar,

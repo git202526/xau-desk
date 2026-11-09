@@ -12,14 +12,22 @@
 """
 import json
 import math
+import re
 import time
 
 DAY = 86400000
 START = 1793000000000
 
 
+def _as_of(days_ago=1):
+    """数据日相对今天算。写死日期会在几个月后让整组宏观用例变红。"""
+    return time.strftime("%Y-%m-%d", time.gmtime(time.time() - days_ago * 86400))
+
+
 def macro_doc(tips=2.15, tips_bp=3.0, dxy=105.2, dxy_pct=0.2, age_min=0,
-              tips_as_of="2026-11-05", dxy_as_of="2026-11-06"):
+              tips_as_of=None, dxy_as_of=None):
+    tips_as_of = tips_as_of if tips_as_of is not None else _as_of(2)
+    dxy_as_of = dxy_as_of if dxy_as_of is not None else _as_of(1)
     return {"fetched_at": int(time.time() * 1000) - int(age_min * 60000),
             "src": "fred+cnbc",
             "tips_10y": {"value": tips, "change_bp": tips_bp, "trend_5d": tips_bp,
@@ -128,13 +136,22 @@ def test_t162_card_partial_shows_dash_and_warn(make_env):
 
 
 def test_t163_card_footer_as_of(make_env):
-    """SRS 1.4：底部常驻「数据截至 MM-DD HH:00」。"""
+    """SRS 1.4：底部常驻「数据截至」。
+
+    v7.9.1 起时间取**数据日**（`MM-DD 收盘`）而不是抓取时刻：日频值不变脚本就不落盘，
+    按抓取时刻写会出现「截至今天 19:00」而值其实是上周五的。完整数据日与抓取时刻
+    移到 `title`，正文只留 MM-DD 不占宽度（页脚原来还要跟 badge 抢一行）。
+    """
     page = make_env(macro=macro_doc()).page
     page.wait_for_timeout(1000)
-    s = page.eval_on_selector("#mcAs", "e => e.textContent.trim()")
-    assert s.startswith("数据截至 "), s
-    import re
-    assert re.search(r"\d{2}-\d{2} \d{2}:\d{2}", s), s
+    r = page.evaluate("""() => {
+      const e = document.querySelector('#mcAs');
+      return {t: e.textContent.trim(), title: e.getAttribute('title') || ''};
+    }""")
+    assert r["t"].startswith("数据截至 "), r
+    assert re.search(r"\d{2}-\d{2} 收盘", r["t"]), r
+    assert re.search(r"\d{4}-\d{2}-\d{2}", r["title"]), r
+    assert "抓取" in r["title"], r
 
 
 def test_t164_card_two_column_grid(make_env):
@@ -244,7 +261,13 @@ def test_t170_pnote_badge_style(make_env):
 
 
 def test_t171_pnote_first_line_single_line(make_env):
-    """SRS 2.1：第一行单行省略，不许折成两行。"""
+    """SRS 2.1 原本要求「第一行单行省略」。
+
+    v7.9.1 按用户要求改成**不省略**：390px 上真实文本是
+    `结构：通道为主 (ADX 32.4) · 箱体未成立（…）· 4H 震荡`，ellipsis 会把
+    箱体原因与 4H 状态一起切掉——省略号在这里不是排版手段，是丢信息。
+    改为自然换行。断言随之改为「不 nowrap / 不裁切 / 不溢出」。
+    """
     env = make_env(macro=macro_doc())
     page = env.page
     page.wait_for_timeout(900)
@@ -254,11 +277,12 @@ def test_t171_pnote_first_line_single_line(make_env):
       const a = document.querySelector('.pnote .pn-s');
       const cs = getComputedStyle(a);
       return {ws: cs.whiteSpace, ov: cs.textOverflow, txt: a.textContent,
-              h: Math.round(a.getBoundingClientRect().height),
-              lh: parseFloat(cs.lineHeight) || 20};
+              sh: a.scrollHeight, ch: a.clientHeight,
+              sw: a.scrollWidth, cw: a.clientWidth};
     }""")
-    assert r["ws"] == "nowrap" and r["ov"] == "ellipsis", r
-    assert r["h"] <= r["lh"] + 1, r
+    assert r["ws"] != "nowrap", r
+    assert r["ov"] != "ellipsis", r
+    assert r["sh"] <= r["ch"] + 1 and r["sw"] <= r["cw"] + 1, r
     assert r["txt"].startswith("结构："), r
 
 
