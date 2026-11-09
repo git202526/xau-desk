@@ -193,3 +193,99 @@ def test_t116_pnote_has_structure_and_macro(make_env):
     page.wait_for_timeout(800)
     p = txt(page, ".pnote")
     assert "结构" in p and "宏观" in p, p
+
+
+# ---------------------------------------------------------------- UI 微调（P109）
+def test_t121_macro_labels_plain_chinese(make_env):
+    """宏观卡改用中文标签，缩写退到 title。
+
+    「TIPS」是行业黑话，普通用户会当成平时说的「美债收益率」（名义）。
+    但完整写法放不进第一行：390px 实测 `.mcrow` 的 scrollWidth 已经等于
+    clientWidth（336px，零余量），`美元指数(DXY)` 会溢出到 346px，
+    `10Y ` 前缀再宽 15px。所以标签写「实际利率 / 美元指数」，
+    全称与数据源放 title —— 桌面可读，不占窄屏宽度。
+    """
+    env = make_env(macro=macro_doc())
+    page = env.page
+    page.wait_for_timeout(800)
+    c = txt(page, "#macroCard")
+    assert "实际利率" in c, c
+    assert "美元指数" in c, c
+    assert "TIPS" not in c.split("数据截至")[0], "标签位还在用缩写：%s" % c
+
+    titles = page.evaluate(
+        "() => [...document.querySelectorAll('#macroCard .mk')].map(e => e.title)")
+    assert any("TIPS" in t for t in titles), titles
+    assert any("DXY" in t for t in titles), titles
+
+
+def test_t122_pnote_two_lines(make_env):
+    """结构结论与宏观验证分行：挤一行时手机端的折行位置不可控。
+
+    两段必须是各自独立的块（`.pn-s` / `.pn-m`），不是靠 `<br>`——
+    靠换行符的话 320px 下每段再折一次，仍然读串。
+    """
+    env = make_env(macro=macro_doc())
+    page = env.page
+    page.wait_for_timeout(800)
+    page.click('.tabbar button[data-tab="struct"]')   # .pnote 在结构页，不切页量不到位置
+    page.wait_for_timeout(400)
+    r = page.evaluate("""() => {
+      const p = document.querySelector('.pnote');
+      const a = p.querySelector('.pn-s'), b = p.querySelector('.pn-m');
+      return {a: a && a.textContent.trim(), b: b && b.textContent.trim(),
+              aTop: a ? a.getBoundingClientRect().top : null,
+              bTop: b ? b.getBoundingClientRect().top : null,
+              blocks: a ? getComputedStyle(a).display : null};
+    }""")
+    assert r["a"] and r["b"], r
+    assert "结构" in r["a"] and "宏观" not in r["a"], r["a"]
+    assert "宏观" in r["b"], r["b"]
+    assert r["blocks"] == "block", r
+    assert r["bTop"] > r["aTop"], "两段没分行：%s" % r
+
+
+def test_t123_chstruct_visual_rank(make_env):
+    """通道原句（当前周期描述）与日线仲裁结论要有主次。
+
+    两行同字号同色时，读者分不清哪句是「1 小时看到的」，哪句是「日线仲裁出来的」。
+    仲裁结论降半档（10.5px）并加一条淡分割线，视觉上归入「背景结论」。
+    """
+    env, page = boot(make_env, adx=(24.6, 22.1))
+    r = page.evaluate("""() => {
+      const line = document.querySelector('#chLine');
+      const s = line.querySelector('.chstruct');
+      if(!s) return {missing: true};
+      const cs = getComputedStyle(s), cl = getComputedStyle(line);
+      return {fsSmall: parseFloat(cs.fontSize), fsLine: parseFloat(cl.fontSize),
+              border: parseFloat(cs.borderTopWidth) || 0,
+              txt: s.textContent.trim()};
+    }""")
+    assert not r.get("missing"), "找不到 .chstruct"
+    assert r["fsSmall"] < r["fsLine"], r
+    assert r["border"] >= 1, "仲裁结论没有分隔线：%s" % r
+    assert r["txt"].startswith("日线"), r
+
+
+def test_t124_macro_row_fits_320(make_env):
+    """320（iPhone SE 一代）：标签改中文后第一行放不下，`@media` 里允许折行兜住。
+
+    试过只压字号不折行：`美元指数` + 「强利空」时仍溢出 14px，再压就得把
+    数值降到 12px 以下，320 屏上已经难认。320 本来就整页滚动，折行比压字号划算。
+    断言两件事——行内不溢出，页面不出现横向滚动。
+    """
+    env = make_env(width=320, height=568, macro=macro_doc())
+    page = env.page
+    page.wait_for_timeout(800)
+    r = page.evaluate("""() => {
+      const card = document.querySelector('#macroCard');
+      const row = card.querySelector('.mcrow');
+      return {rowW: row.clientWidth, rowSW: row.scrollWidth,
+              cardW: card.clientWidth, cardSW: card.scrollWidth,
+              docSW: document.documentElement.scrollWidth, iw: window.innerWidth,
+              txt: row.textContent};
+    }""")
+    assert r["rowSW"] <= r["rowW"] + 1, "第一行溢出：%s" % r
+    assert r["cardSW"] <= r["cardW"] + 1, r
+    assert r["docSW"] <= r["iw"] + 1, "页面横向滚动：%s" % r
+    assert "实际利率" in r["txt"] and "美元指数" in r["txt"], r["txt"]

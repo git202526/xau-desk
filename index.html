@@ -69,6 +69,9 @@ body{
 .mcst{margin-left:auto;font-size:11.5px;font-weight:600;flex:0 0 auto}
 .mcst.bull{color:var(--up)}.mcst.bear{color:var(--dn)}.mcst.flatc{color:var(--tx2)}
 .mcsub{margin-top:4px;font-size:10px;color:var(--tx3);display:flex;gap:4px 10px;justify-content:space-between;flex-wrap:wrap}
+/* 320（iPhone SE 一代）：标签改中文后第一行放不下，直接允许折行。
+   不靠一味压字号——压到 9px 以下就不可读了，而 320 屏本来就整页滚动。 */
+@media(max-width:339px){.macrocard{padding:8px 10px}.macrocard .mk{font-size:9.5px;letter-spacing:0}.mcrow{gap:3px 4px;flex-wrap:wrap}.mdiv{margin:0 2px}}
 .vstate{font-size:11.5px;font-weight:400;color:var(--tx3);margin-left:6px}
 .hlabel{font-size:11px;color:var(--tx3);letter-spacing:1.3px;display:flex;align-items:center;gap:6px}
 .hmain{display:flex;align-items:flex-end;gap:10px;margin-top:3px;flex-wrap:wrap}
@@ -277,6 +280,10 @@ body.tab-ov .tpx{display:none}
 .pcard.up .v{color:var(--up)}.pcard.dn .v{color:var(--dn)}.pcard .v.rg{color:var(--tx2)}
 .pcard .m{font-size:10px;color:var(--tx3);margin-top:2px}
 .pnote{font-size:10.5px;color:var(--tx3);margin-top:8px;text-align:center}
+/* 结构与宏观分两块：结构是「现在看到的形态」，宏观是另一个维度的验证。
+   挤一行时手机端折行位置不可控，会读成一句错句。 */
+.pnote .pn-s,.pnote .pn-m{display:block}
+.pnote .pn-m{margin-top:2px;color:var(--tx3);opacity:.85}
 
 /* 判定依据 */
 .reasons{margin-top:10px}
@@ -372,7 +379,9 @@ body.tab-ov .tpx{display:none}
 .chcard{padding:6px 4px 2px;overflow:hidden}
 .chcard svg{display:block;width:100%;height:auto;font-family:inherit}
 .chline{font-size:11.5px;color:var(--tx2);padding:3px 8px 8px;line-height:1.5}
-.chline .chstruct{display:block;margin-top:2px;color:var(--tx3)}
+/* 仲裁结论降半档 + 淡分割线：第一行是「当前周期看到的」，第二行是「日线仲裁出来的」，
+   同字号同色时读者分不清谁在说背景。 */
+.chline .chstruct{display:block;margin-top:5px;padding-top:5px;border-top:1px solid var(--line);font-size:10.5px;color:var(--tx3)}
 @media(max-width:359px){.chline{font-size:11px;padding:2px 6px 6px}}
 
 /* 档位 */
@@ -1056,7 +1065,7 @@ body.tab-ov .tpx{display:none}
     <div class="mcrow">
       <span class="mk" title="10 年期通胀保值国债（TIPS）实际收益率，FRED DFII10">实际利率</span><b class="v num" id="mcTips">--</b><span class="d num" id="mcTipsD">--</span>
       <span class="mdiv"></span>
-      <span class="mk">美元</span><b class="v num" id="mcDxy">--</b><span class="d num" id="mcDxyD">--</span>
+      <span class="mk" title="ICE 美元指数（DXY），CNBC 日线">美元指数</span><b class="v num" id="mcDxy">--</b><span class="d num" id="mcDxyD">--</span>
       <span class="mcst flatc" id="mcStatus">--</span>
     </div>
     <div class="mcsub"><span id="mcAs">--</span><span id="mcNote">--</span></div>
@@ -7695,16 +7704,19 @@ function renderFusion(){
     var boxTxt = st.box && st.box.valid
       ? ("箱体 " + num(st.box.lower, 1) + "–" + num(st.box.upper, 1))
       : "箱体未成立";
-    var line2 = "结构：日线 " + st.dominant + "（ADX " + num(st.adx_1d, 1) + "）· " + boxTxt +
-      " ｜ 宏观：" + mj.status +
-      (mj.stale ? "" : " · TIPS " + signed(mj.tips_10y.change_bp, 1, "bp") +
+    var line1 = "结构：日线 " + st.dominant + "（ADX " + num(st.adx_1d, 1) + "）· " + boxTxt;
+    var line2 = "宏观验证：" + mj.status +
+      (mj.stale ? "" : " · 实际利率 " + signed(mj.tips_10y.change_bp, 1, "bp") +
                        " / DXY " + signed(mj.dxy.change_pct, 2, "%"));
-    /* 事件窗口写在同一行的末尾：读者看结构结论时，必须同时知道「两小时后有数据」 */
+    /* 事件窗口写在宏观这段的末尾：读者看结构结论时，必须同时知道「两小时后有数据」 */
     if(st.event_window_flag && st.event_window && st.event_window.length){
       var e0 = st.event_window[0];
       line2 += " ｜ 事件窗口：距「" + e0.name + "」约 " + e0.hours + " 小时，结构判定仅供参考";
     }
-    pn.textContent = line2;
+    /* 分两块而不是一行：结构是「现在看到的形态」，宏观是「另一个维度的验证」，
+       挤一行时手机端的折行位置不可控，读起来像一句错句。 */
+    pn.innerHTML = '<span class="pn-s">' + escapeHtml(line1) + '</span>\n' +
+                   '<span class="pn-m">' + escapeHtml(line2) + '</span>';
   }
 }
 
