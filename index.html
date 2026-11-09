@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.6 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.7 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg）· 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -118,9 +118,22 @@ body{
 .sech h2{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap}
 .sech .cnt{font-size:11px;color:var(--tx3);font-weight:400;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sech .act{font-size:12px;color:var(--gold);background:none;border:none;padding:9px 6px;min-height:40px;cursor:pointer;flex:0 0 auto;white-space:nowrap}
-/* 标题右侧两个动作并排：320px 下按钮间距收紧，仍不折行 */
-.sact{display:flex;align-items:center;gap:2px;flex:0 0 auto}
-.sact .act{padding:9px 4px}
+/* 标题右侧两个动作并排：320px 下按钮间距收紧，仍不折行。
+   P110 的买/卖按钮用 .actpair，与 .sact 同一套尺寸但不共用类名 ——
+   计划页那条「全页 .sact .act 只有两个」的布局断言会把混用直接判红。 */
+.sact,.actpair{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.sact .act,.actpair .act{padding:9px 4px}
+/* P110：交易记录筛选（全部/买入/卖出）。默认全部，统计口径不随筛选变。 */
+#tradeChips{display:flex;gap:6px;margin:-2px 0 10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#tradeChips button{flex:0 0 auto;min-height:32px;padding:0 11px;border-radius:16px;border:1px solid var(--line);background:none;color:var(--tx2);font-size:11.5px;font-family:inherit;cursor:pointer}
+#tradeChips button b{font-weight:600;margin-left:2px;color:var(--tx3)}
+#tradeChips button.on{background:rgba(212,162,76,.14);border-color:rgba(212,162,76,.5);color:var(--gold)}
+#tradeChips button.on b{color:var(--gold)}
+/* P110：表单买卖分段。编辑态整组置灰 —— 换语义会让 S.editing 落到另一个数组里 */
+.segseg{display:flex;gap:3px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:11px;padding:3px;margin-bottom:13px}
+.segseg button{flex:1 1 0;min-height:40px;border:none;border-radius:8px;background:none;color:var(--tx2);font-size:13px;font-family:inherit;cursor:pointer;padding:0}
+.segseg button.on{background:linear-gradient(150deg,#D9AC5C,#B98A34);color:#1A1206;font-weight:650}
+.segseg button[disabled]{opacity:.45;cursor:not-allowed}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .muted{color:var(--tx3);font-size:12.5px;line-height:1.6}
 .note{font-size:11px;color:var(--tx3);line-height:1.65;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
@@ -1006,7 +1019,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.6 · 11/09</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.7 · 11/09</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1178,7 +1191,7 @@ body.tab-ov .tpx{display:none}
   <section class="panel" id="panel-pos">
     <!-- P16b：仓位进度（当前持仓 / 持仓上限），先看几成仓再看盈亏 -->
     <div class="card gauge" id="posGauge"></div>
-    <div class="sech"><h2>持仓汇总</h2><button class="act" id="btnHold">记一笔</button></div>
+    <div class="sech"><h2>持仓汇总</h2><span class="actpair"><button class="act" id="btnHold" title="记一笔买入">买入</button><button class="act" id="btnSell" title="记一笔卖出">卖出</button></span></div>
     <div class="card" id="posBox"></div>
 
     <!-- 盈利测算：v6.65 起独立成卡。原来塞在 #posBox 内部，跟着汇总卡的边距走，
@@ -1190,7 +1203,10 @@ body.tab-ov .tpx{display:none}
     <div class="sech" style="margin-top:16px"><h2>账户 <span class="cnt" id="acctMeta"></span></h2><button class="act" id="btnAcctMgr">管理</button></div>
     <div class="card" id="acctBox"></div>
 
-    <div class="sech" style="margin-top:16px"><h2>买入记录 <span class="cnt" id="buyMeta"></span></h2><button class="act" id="btnAddBuy">+ 记一笔</button></div>
+    <!-- P110：原来是「买入记录」，但列表里早就混着卖出（renderBuys 的 isSell 分支）。
+         名字只写买入，等于告诉用户没有卖出的账 —— 改叫交易记录，并给三个筛选。 -->
+    <div class="sech" style="margin-top:16px"><h2>交易记录 <span class="cnt" id="buyMeta"></span></h2><button class="act" id="btnAddBuy">+ 记一笔</button></div>
+    <div id="tradeChips" style="display:none"></div>
     <div class="card" id="buyList"></div>
 
     <!-- P18 执行复盘：逐档计划价 vs 成交均价 + 四态执行，默认收起不占首屏。
@@ -1233,7 +1249,7 @@ body.tab-ov .tpx{display:none}
         <div class="fld"><label>本轮计划减仓</label><input type="text" id="setCut" readonly style="color:var(--tx3)"></div>
       </div>
       <label class="chkline"><input type="checkbox" id="setStop"><span>允许在成本下方减仓<em>关掉后只在成本上方止盈；低于成本的压力位只作参考，不分配克重</em></span></label>
-      <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，无需手填。</div>
+      <div class="note" style="margin-top:0" id="holdNote">持仓由「买入记录」自动汇总，记卖出会按笔扣减，无需手填。</div>
       <div class="note" style="margin-top:8px" id="setNoCapNote">「不设仓位上限」：持仓已达目标总克重、剩余仓位不足时开启，建仓档距仍按名义目标均价反解，不被已持仓折算打断；开启后各档计划也按目标总克重全额分配。关闭时，未标记档位的持仓先从可分配额度中扣除，各档计划按剩余可用仓位分配；目标总克重仍是仓位进度与超上限判定的口径。</div>
     </div>
 
@@ -1454,6 +1470,12 @@ body.tab-ov .tpx{display:none}
 <div class="sheet" id="sheet">
   <div class="sh"><h3 id="sheetTitle">记录成交</h3><button id="sheetClose">关闭</button></div>
   <div class="form">
+    <!-- P110：买卖共用一张表单。入口决定默认值，这里的分段决定语义；
+         编辑态禁止切换 —— saveBuy/saveSell 共用 S.editing，切了会串账。 -->
+    <div class="segseg" id="sheetSeg" role="tablist" aria-label="买入或卖出">
+      <button type="button" data-mode="buy" class="on" role="tab">买入</button>
+      <button type="button" data-mode="sell" role="tab">卖出</button>
+    </div>
     <div class="fld"><label>标签</label><input type="text" name="g_name" placeholder="如 第3档 / 补仓"></div>
     <div class="fld" id="acctFld"><label>账户</label>
       <select id="gAcct"></select>
@@ -1513,7 +1535,7 @@ body.tab-ov .tpx{display:none}
       <button class="btn-ghost" id="markClear" style="margin-top:0">撤销标记</button>
     </div>
     <button class="btn-ghost" id="markToBuy" style="display:none">改成记一笔（留成交明细）</button>
-    <div class="note" id="markFoot">只释放计划额度，实际成交请到「持仓」记一笔。</div>
+    <div class="note" id="markFoot">只释放计划额度，实际成交请到「持仓」记账。</div>
   </div>
 </div>
 
@@ -8446,7 +8468,7 @@ function renderLadder(){
       var um = e && e.target && e.target.closest ? e.target.closest("[data-unmark]") : null;
       if(um){ unmarkGearByName(um.getAttribute("data-unmark")); return; }
       /* 点行：进「标记已买」面板（既有习惯，一行两下就标完）；
-         要留成交明细走「持仓 · 记一笔」，那边能选档位并对账。
+         要留成交明细走「持仓 · 买入」，那边能选档位并对账。
          P20：不再分模式 —— 档位表就是标记层，两种用户点下去都该是同一个动作。 */
       var gname = node.getAttribute("data-gear");
       openMarkSheet(gname, "buy");
@@ -8498,7 +8520,9 @@ function renderMarkSheet(){
   $("markGramLb").textContent = sell ? "本次卖出（g）" : "本次买入（g）";
   $("markSave").textContent = sell ? "确认卖出" : "确认买入";
   $("markClear").style.display = sell ? "none" : "";
-  if($("markToBuy")) $("markToBuy").style.display = sell ? "none" : "";
+  /* P110：卖出态也保留这个入口 —— 面板上看到「净持仓 16g」，进表单还要自己再打一遍是白折腾。
+     买入态照样带克重过去；卖出态走 openSell，克重预填该档净持。 */
+  if($("markToBuy")) $("markToBuy").style.display = "";
 
   /* 金额的币种标签随 Tab 切换：「实付」/「到账」 */
   if($("markAmtUnit")) $("markAmtUnit").textContent = sell ? "到账" : "实付";
@@ -8519,7 +8543,7 @@ function renderMarkSheet(){
         (rz < 0 ? "−¥" : "+¥") + money(Math.abs(rz), 0) + '</b>');
     $("markGram").value = g.boughtG > 0.05 ? gnum(g.boughtG) : "";
     $("markPx").value = num(S.price || 0, 2);          // 卖出按现价成交
-    $("markFoot").textContent = "只释放计划额度，实际成交请到「持仓」记一笔。";
+    $("markFoot").textContent = "只释放计划额度。要留成交明细（进交易记录 / 算已实现盈亏）点上面的「改成记一笔」。";
   } else {
     var pend = Math.max(0, g.plan - g.boughtG);
     $("markNote").innerHTML = '本档计划 <b>' + gnum(g.plan) + ' g</b>' +
@@ -8531,7 +8555,7 @@ function renderMarkSheet(){
         : "");
     $("markGram").value = gnum(pend > 0.05 ? pend : g.plan);
     $("markPx").value = num(g.price, 2);               // 买入默认档位价（挂单成交）
-    $("markFoot").textContent = "填本次成交克重，会累加到该档；要留成交明细改用「持仓 · 记一笔」，同一档别两边都填";
+    $("markFoot").textContent = "填本次成交克重，会累加到该档；要留成交明细改用「持仓 · 买入」，同一档别两边都填";
   }
   S.markAmtDirty = false;          // 重开面板：金额回到「按本档单价建议」的状态
   syncMarkAmt();
@@ -9678,8 +9702,8 @@ function renderPos(){
   /* 三个空态都必须先接筛选条，否则筛到空账户之后连"全部"都点不回去了 */
   if(!hs.grams && !hs.sold){
     box.innerHTML = sanitizeHtml(bar + '<div class="muted">' + (S.acctFilter
-      ? escapeHtml(acctName(S.acctFilter)) + " 还没有买入记录。换一个账户看看，或点右侧「记一笔」。"
-      : "还没有买入记录。点右侧「记一笔」填克重和单价（元/克），这里会自动汇总总金额与均价。") + "</div>");
+      ? escapeHtml(acctName(S.acctFilter)) + " 还没有买入记录。换一个账户看看，或点右侧「买入」。"
+      : "还没有买入记录。点右侧「买入」填克重和单价（元/克），这里会自动汇总总金额与均价。") + "</div>");
     bindAcctBar(box);
     hideCalcBox();
     return;
@@ -10029,7 +10053,17 @@ function allotLine(rec, isSell){
   if(!isSell) return "";
   var lot = rec && rec.allot;
   if(!lot || !Object.keys(lot).length){
-    return '<div class="l3 dim">已摊入：未记录（这笔记于 P21 之前，改动时按比例近似退回）</div>';
+    /* 「没摊入」有两个完全不同的原因，混着说会误导：
+       · 档位本来就没有净持（还没标记过 / 新建账户）—— 正常，只扣了持仓
+       · P21 之前的记录没存快照 —— 改动时只能按当前比例近似退回
+       旧版一律说成「这笔记于 P21 之前」，刚记的卖出也这么写，像在报错。 */
+    var hasMark = false;
+    for(var i = 1; i <= gearCount(); i++){
+      if(boughtOf(i) > 0.05){ hasMark = true; break; }
+    }
+    return '<div class="l3 dim">已摊入：' + (hasMark
+      ? "未记录（这笔记于分摊快照上线之前，改动时按比例近似退回）"
+      : "无需摊入（记账时各档都没有净持，只扣了持仓）") + '</div>';
   }
   var seq = gearSeq(), parts = [];
   Object.keys(lot).map(Number).sort(function(a,b){ return a-b; }).forEach(function(k){
@@ -10045,12 +10079,48 @@ function renderBuys(){
   var hs = holdStats(S.acctFilter || null);
   var multi = acctList().length > 1;
   var list = $("buyList");
+  var chips = $("tradeChips");
+  var total = hs.buys.length + hs.sells.length;
+
+  /* P110：筛选只作用于列表 DOM，#buyMeta 的统计恒为全量 ——
+     否则「剩 82g」会跟着筛选跳动，看着像持仓变了。 */
+  if(!total) S.tradeFilter = "all";
+  var f = S.tradeFilter || "all";
+  if(chips){
+    if(!total){ chips.style.display = "none"; chips.innerHTML = ""; }
+    else {
+      chips.style.display = "";
+      chips.innerHTML = [["all", "全部", total], ["buy", "买入", hs.buys.length], ["sell", "卖出", hs.sells.length]]
+        .map(function(d){
+          var on = f === d[0];
+          return '<button type="button" data-f="' + d[0] + '"' + (on ? ' class="on"' : "") +
+            ' aria-pressed="' + (on ? "true" : "false") + '">' + d[1] + "<b>" + d[2] + "</b></button>";
+        }).join("");
+    }
+  }
+
   var rows = hs.buys.map(function(b){ return {k:"b", d:b}; })
              .concat(hs.sells.map(function(s){ return {k:"s", d:s}; }))
              .sort(function(a,b){ return String(b.d.time||"").localeCompare(String(a.d.time||"")); });
+  if(f === "buy") rows = rows.filter(function(r){ return r.k === "b"; });
+  else if(f === "sell") rows = rows.filter(function(r){ return r.k === "s"; });
+
+  var pre = S.acctFilter ? shortName(acctName(S.acctFilter)) + " · " : "";
   if(!rows.length){
-    list.innerHTML = '<div class="muted">还没有逐笔记录。每买一次就记一笔，克重和单价都由你填。</div>';
-    $("buyMeta").textContent = "";
+    var empty;
+    if(!total){
+      empty = S.acctFilter
+        ? escapeHtml(acctName(S.acctFilter)) + " 还没有交易记录。换一个账户看看，或点右侧「记一笔」。"
+        : "还没有交易记录。点右侧「记一笔」填克重和单价（元/克），买和卖都在这里。";
+    } else if(f === "sell"){
+      empty = "还没有卖出记录。点上方「卖出」记一笔减仓，持仓和已实现盈亏会立刻更新。";
+    } else {
+      empty = "还没有买入记录。点上方「买入」记一笔。";
+    }
+    list.innerHTML = '<div class="muted">' + empty + "</div>";
+    $("buyMeta").textContent = total
+      ? (pre + hs.buys.length + " 买 / " + hs.sells.length + " 卖 · 剩 " + gnum(hs.grams) + "g")
+      : "";
     return;
   }
   var html = "";
@@ -10058,6 +10128,9 @@ function renderBuys(){
     var b = r.d, isSell = r.k === "s";
     var gg = Number(b.gram)||0, pp = Number(b.priceCny)||0;
     var amt = gg*pp;
+    /* 老记录的默认 name 是「减仓」，显示时统一翻成「卖出」；
+       用户自己起的标签（第3档 / 止盈一半）原样保留。 */
+    var nmTxt = (b.name && b.name !== "减仓") ? b.name : (isSell ? "卖出" : "买入");
     var d = b.time ? new Date(b.time) : null;
     var tm = d && !isNaN(d.getTime()) ? ((d.getMonth()+1)+"-"+pad(d.getDate())+" "+hhmm(d.getTime())) : "--";
     /* 色点用 data-c 传递颜色：sanitizeHtml 会剥掉 style 属性，不能内联写 background */
@@ -10072,7 +10145,7 @@ function renderBuys(){
         '<span class="nm">× '+num(pp,2)+' 元/克</span>' +
         '<span class="a '+(isSell?"cut":"")+' num">'+(isSell?"+":"")+money(amt,2)+'</span>' +
       '</div>' +
-      '<div class="l2">'+badge+escapeHtml(b.name||(isSell?"减仓":"买入"))+' · '+tm+(b.note?" · "+escapeHtml(b.note):"")+'</div>' +
+      '<div class="l2">'+badge+escapeHtml(nmTxt)+' · '+tm+(b.note?" · "+escapeHtml(b.note):"")+'</div>' +
       allotLine(b, isSell) +
     '</div>';
   });
@@ -10080,8 +10153,7 @@ function renderBuys(){
   Array.prototype.forEach.call(list.querySelectorAll(".abdot"), function(n){
     n.style.background = n.getAttribute("data-c") || "#D4A24C";
   });
-  var pre = S.acctFilter ? shortName(acctName(S.acctFilter)) + " · " : "";
-  $("buyMeta").textContent = pre + hs.buys.length + " 买 / " + hs.sells.length + " 减 · 剩 " + gnum(hs.grams) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
+  $("buyMeta").textContent = pre + hs.buys.length + " 买 / " + hs.sells.length + " 卖 · 剩 " + gnum(hs.grams) + "g · 持仓成本 " + money(hs.grams*hs.avg,0) + " 元";
 
   Array.prototype.forEach.call(list.querySelectorAll("[data-buy]"), function(node){
     node.onclick = function(){ openBuyEdit(node.getAttribute("data-buy")); };
@@ -10839,10 +10911,44 @@ function updateSubtotal(){
 function setSheetMode(mode){
   S.sheetMode = mode;
   var isSell = mode === "sell";
-  $("lbGram").textContent = isSell ? "减仓克重（g）" : "买入克重（g）";
+  $("lbGram").textContent = isSell ? "卖出克重（g）" : "买入克重（g）";
   $("lbPrice").textContent = isSell ? "卖出单价（元/克）" : "买入单价（元/克）";
-  $("btnSave").textContent = isSell ? "保存这笔减仓" : "保存这笔买入";
-  $("btnDelBuy").textContent = isSell ? "删除这笔减仓" : "删除这笔";
+  $("btnSave").textContent = isSell ? "保存这笔卖出" : "保存这笔买入";
+  $("btnDelBuy").textContent = isSell ? "删除这笔卖出" : "删除这笔";
+  renderSegState();
+}
+
+/* P110：表单顶部的买卖切换。只在新增态允许 —— saveBuy / saveSell 共用 S.editing，
+   编辑一笔买入时切到卖出，saveSell 在 sells[] 里找不到这个 id，会当成新增，
+   结果是「买入没改成，还凭空多一笔卖出」。 */
+function switchSheetMode(mode){
+  if(mode === S.sheetMode) return;
+  if(S.editing){ toast("修改中不能切换买卖，先保存或关闭"); return; }
+  setSheetMode(mode);
+  $("sheetTitle").textContent = mode === "sell" ? "记一笔卖出" : "记一笔买入";
+  if(mode === "sell"){
+    /* 卖出不指定档位：整体减仓由 allotSell 按各档净持占比摊，选单档反而会漏掉别的档 */
+    if($("gGear")) $("gGear").value = "";
+    S.linkGear = null;
+    /* 买入态可能预填了计划克重（档位计划 / 上次卖出量），超出持仓就清掉 ——
+       留着会让用户一进来就撞「卖不了」的报错。 */
+    var gr = qs('[name="g_gram"]'), hs = holdStats(curAcct());
+    if(gr && (Number(gr.value) || 0) > hs.grams + 0.001) gr.value = "";
+  }
+  updateSubtotal();
+}
+
+/* 分段控件的高亮与可点状态。编辑态整组置灰：换语义会让 S.editing 落到另一个数组里。 */
+function renderSegState(){
+  var seg = $("sheetSeg");
+  if(!seg) return;
+  var lock = !!S.editing;
+  Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){
+    var on = b.getAttribute("data-mode") === S.sheetMode;
+    b.classList.toggle("on", on);
+    b.disabled = lock;
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
 }
 
 /* 记账时选的是"这笔进出哪个账户" —— 卖出也必须选，否则余额校验没有分母。
@@ -10875,13 +10981,17 @@ function openSell(name, id){
     if(!item) return;
   }
   var take = name ? (S.takes||[]).filter(function(x){ return x.name===name; })[0] : null;
+  /* P110：从档位面板过来时 name 是档名（不是止盈位名），克重预填该档净持 ——
+     用户在面板上看到「净持仓 16g」，进表单还要自己再打一遍，是白折腾。 */
+  var g0 = name ? (S.gears||[]).filter(function(x){ return x.name===name; })[0] : null;
   S.editing = item ? item.id : null;
   S.linkGear = null;
   setSheetMode("sell");
   fillGearLink("");
-  $("sheetTitle").textContent = item ? "修改这笔减仓" : (name ? ("减仓 · " + name) : "记一笔减仓");
-  qs('[name="g_name"]').value = item ? (item.name||"") : (name || "减仓");
-  qs('[name="g_gram"]').value = item ? item.gram : (take ? take.cut : "");
+  $("sheetTitle").textContent = item ? "修改这笔卖出" : (name ? ("卖出 · " + name) : "记一笔卖出");
+  qs('[name="g_name"]').value = item ? (item.name||"") : (name || "卖出");
+  qs('[name="g_gram"]').value = item ? item.gram
+    : (take ? take.cut : (g0 && g0.boughtG > 0.05 ? gnum(g0.boughtG) : ""));
   var cny = nowCnyPrice();
   qs('[name="g_price"]').value = item ? item.priceCny : (cny ? cny.toFixed(2) : "");
   var d = item && item.time ? new Date(item.time) : new Date();
@@ -11016,7 +11126,7 @@ function saveBuy(){
 }
 
 function saveSell(){
-  var name = qs('[name="g_name"]').value.trim() || "减仓";
+  var name = qs('[name="g_name"]').value.trim() || "卖出";
   var gram = Number(qs('[name="g_gram"]').value);
   var priceCny = Number(qs('[name="g_price"]').value);
   var time = qs('[name="g_time"]').value;
@@ -11074,13 +11184,13 @@ function saveSell(){
   refreshAll();
   closeSheet();
   var tail = hit ? " · 已摊到 " + hit + " 档" : "";
-  toast((S.editing ? "已修改" : ("已减 " + gnum(gram) + " 克")) + tail);
+  toast((S.editing ? "已修改" : ("已卖出 " + gnum(gram) + " 克")) + tail);
 }
 
 function delBuy(){
   if(!S.editing) return;
   var isSell = String(S.editing).charAt(0) === "s";
-  var askSell = "删除这笔减仓记录？持仓和档位卖出量都会退回去。";
+  var askSell = "删除这笔卖出记录？持仓和档位卖出量都会退回去。";
   if(isSell){
     var rec = (S.cfg.sells||[]).filter(function(x){ return x.id===S.editing; })[0];
     if(rec && !rec.allot)
@@ -11330,6 +11440,18 @@ function bindUI(){
   $("btnSave").onclick = function(){ if(S.sheetMode === "sell") saveSell(); else saveBuy(); };
   $("btnDelBuy").onclick = delBuy;
   $("btnAddBuy").onclick = function(){ openSheet(null); };
+  /* P110：持仓汇总拆成买 / 卖两个入口。卖出走同一张表单，只是默认语义不同。 */
+  if($("btnSell")) $("btnSell").onclick = function(){ openSell(null); };
+  if($("sheetSeg")) $("sheetSeg").onclick = function(e){
+    var b = e.target && e.target.closest ? e.target.closest("[data-mode]") : null;
+    if(b && !b.disabled) switchSheetMode(b.getAttribute("data-mode"));
+  };
+  if($("tradeChips")) $("tradeChips").onclick = function(e){
+    var b = e.target && e.target.closest ? e.target.closest("[data-f]") : null;
+    if(!b) return;
+    S.tradeFilter = b.getAttribute("data-f") || "all";
+    renderBuys();
+  };
   $("btnRebuild").onclick = rebuildGears;
   $("btnRecalc").onclick = recalcGears;
   $("btnHold").onclick = function(){ openSheet(null); };
@@ -11584,9 +11706,10 @@ function bindUI(){
      面板里已经填好的克重与价格原样带过去，不用重打。 */
   if($("markToBuy")) $("markToBuy").onclick = function(){
     var nm = S.markName, gm = $("markGram") ? $("markGram").value : "";
+    var sell = S.markTab === "sell";
     closeMarkSheet();
     if(!nm) return;
-    openSheet(nm);
+    if(sell) openSell(nm); else openSheet(nm);
     if(gm && qs('[name="g_gram"]')){ qs('[name="g_gram"]').value = gm; updateSubtotal(); }
   };
 
@@ -11723,6 +11846,11 @@ function boot(){
 if(/[?&]xt=1/.test(location.search)){
   window.__xt = {
     ready:true,
+    /* P110：卖出记账的验收钩子（结算口径、账本、表单模式） */
+    holdStats:holdStats,
+    cfg:function(){ return S.cfg; },
+    sheetMode:function(){ return S.sheetMode; },
+    switchSheetMode:switchSheetMode,
     gotoTab:gotoTab,
     refreshAll:refreshAll,
     compute:compute,
