@@ -172,8 +172,14 @@ def test_t224_stale_marker_is_honest(make_env):
 
 
 def test_t224b_forming_marker_says_intraday(make_env):
-    """末根还在本周期内：标「盘中」。"""
-    end = now_ms() - 6 * HOUR                 # 日线本根（06:00 换日）内
+    """末根还在本周期内：标「盘中」。
+
+    末根取「本周期起点」，不用 now−6h 再对齐：bars() 会把时间戳对齐到周期边界，
+    now−6h 在 UTC 00:00–06:00 这段会对齐到**昨天** 00:00，`since` 超过 24h，
+    角标就从「盘中」变「滞后」——时段依赖的假红（实测北京 08:40 必红），
+    不是口径问题。取本周期起点则恒在窗内。
+    """
+    end = now_ms() - now_ms() % DAY
     arr = bars(DAY, 120, end, base=4000)
     env = make_env(price=PRICE, xau=xau_doc(**{"1d": arr}))
     page = env.page

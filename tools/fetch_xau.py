@@ -92,6 +92,176 @@ def fetch_day(day, tries=4):
     return None
 
 
+TICK = ("https://datafeed.dukascopy.com/datafeed/XAUUSD/"
+        "{y}/{m:02d}/{d:02d}/{h:02d}h_ticks.bi5")
+
+# tick 价格闸门：XAUUSD 的 point 是 0.001，÷1000 后应落在 1000~20000 美元。
+# 缩放猜错时（÷100 → 405 美元；÷10000 → 40554 美元）整段丢弃。
+# 量级闸门只管数量级，挡不住同量级的错段——那由 stitch_rows_checked 的连续性校验管。
+TICK_PX_MIN, TICK_PX_MAX = 1_000_000, 20_000_000
+
+
+def _get(url, tries=3, timeout=12):
+    """GET 一个 bi5。403/404 → b""（正常缺件）；网络故障重试后返回 None。"""
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                if r.status in (403, 404):
+                    return b""
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 404):
+                return b""
+        except Exception:                                  # noqa: BLE001
+            pass
+        if i < tries - 1:
+            time.sleep(1 + 2 * i)
+    return None
+
+
+def parse_ticks(raw, hour_start):
+    """tick 字节 → 分钟根 [(ts, o, c, l, h, v)]，价格 ×1000 整数（与 fetch_day 同口径）。
+
+    布局（实测）：>IIIff = time(相对该小时的毫秒), ask, bid, askVol, bidVol，20 字节。
+    价格字段已是整数域（4128410 == 4128.410），所以直接除以 1000 之外的换算都错。
+
+    为什么要做成纯函数：这是整条 T+0 补根链里唯一「格式靠推断」的一环，
+    必须能被夹具用假 bi5 反复验证，不能只在 Actions 里跑一次看运气。
+    """
+    if not raw:
+        return []
+    try:
+        data = lzma.decompress(raw)
+    except lzma.LZMAError:
+        try:
+            data = lzma.decompress(raw, format=lzma.FORMAT_ALONE)
+        except lzma.LZMAError:
+            return []
+    buckets = {}
+    for k in range(len(data) // 20):
+        t, ask, bid, av, bv = struct.unpack(">IIIff", data[k * 20:(k + 1) * 20])
+        if ask <= 0 or bid <= 0:
+            continue
+        px = (ask + bid) / 2.0
+        if not (TICK_PX_MIN <= px <= TICK_PX_MAX):
+            continue
+        ts = hour_start + t // 1000
+        key = ts - ts % 60
+        b = buckets.get(key)
+        if b is None:
+            buckets[key] = [px, px, px, px, (av + bv) / 2.0]
+        else:
+            if px > b[1]:
+                b[1] = px
+            if px < b[2]:
+                b[2] = px
+            b[3] = px
+            b[4] += (av + bv) / 2.0
+    return [(k, int(round(v[0])), int(round(v[3])), int(round(v[2])),
+             int(round(v[1])), v[4]) for k, v in sorted(buckets.items())]
+
+
+def stitch_rows(day_rows, tick_rows):
+    """按 ts 合并：日文件段原样保留，tick 只补「日文件末根之后」的分钟。
+
+    为什么不许覆盖重叠段：tick 取的是 (ask+bid)/2，日文件是 bid。同一分钟两边
+    差 0.01–0.03%，混在一起会让历史段与新增段出现一条系统性台阶（1h 收盘突然
+    跳 0.8 美元），排查看起来像行情跳空。日文件更权威，重叠一律以它为准。
+    """
+    cut = day_rows[-1][0] if day_rows else -1
+    seen = {}
+    for r in day_rows:
+        seen[r[0]] = r
+    for r in tick_rows:
+        if r[0] > cut:
+            seen[r[0]] = r
+    return [seen[k] for k in sorted(seen)]
+
+
+def stitch_rows_checked(day_rows, tick_rows, max_dev=0.03):
+    """带连续性校验的拼接：tick 段首根开盘偏离日文件末根收盘 > 3% → 整段丢弃。
+
+    防的是「串品种 / 上游错段」这类同量级错误：4050 跳到 6000 量级闸门放得过，
+    但它会让通道与 ATR 直接错位。宁可少补一段，也不能把假数据写进序列。
+    """
+    if not tick_rows:
+        return list(day_rows), 0
+    if day_rows:
+        base = day_rows[-1][4]
+        head = tick_rows[0][1]
+        if base and head and abs(head - base) / float(base) > max_dev:
+            return list(day_rows), 1
+    return stitch_rows(day_rows, tick_rows), 0
+
+
+def tick_hours(last_ts, now, max_hours=30):
+    """要补的小时起点：从 last_ts 所在小时，到「当前小时的前一小时」止。
+
+    当前这小时还没走完，tick 文件只有半根；拉它会得到一个低点偏高的假根，
+    留给页面用实时价推进更准。max_hours 从「现在」往回数，不是从旧末根往后数：
+    产物停了一周时，补最近 30 小时比补七天前的 30 小时有用得多。
+    """
+    start = last_ts - last_ts % 3600
+    end = now - now % 3600 - 3600
+    if end <= start:
+        return []
+    hrs = list(range(start, end + 3600, 3600))
+    if max_hours and len(hrs) > max_hours:
+        hrs = hrs[-max_hours:]
+    return hrs
+
+
+def expand_days(days, failed, today, keep_days=30):
+    """把 window.failed 里 keep_days 内的日期并进本次抓取。
+
+    为什么不能只靠 `--retry-failed`：Dukascopy 对 Azure 出口有明显抖动（实测
+    首轮 100 天里 46 天失败）。某天连续失败、又在 4 天窗口外滑走，就永久缺失，
+    图上表现为一条假的深断层，和真实周末缺口混在一起无法区分。
+    30 天上限是为了不让 failed 列表无限增长把每次运行拖成回填。
+    """
+    floor = today - dt.timedelta(days=keep_days)
+    out = list(days)
+    have = set(out)
+    for s in failed or []:
+        try:
+            d = dt.date.fromisoformat(s)
+        except (ValueError, TypeError):
+            continue
+        if floor <= d <= today and d not in have:
+            out.append(d)
+            have.add(d)
+    out.sort()
+    return out
+
+
+def fetch_recent_ticks(last_ts, now=None, max_hours=30, workers=4, tries=3):
+    """按小时并发拉 tick，返回 (分钟根 rows, 统计)。失败的小时静默跳过。"""
+    now = now or int(time.time())
+    hrs = tick_hours(last_ts, now, max_hours)
+    st = {"hours": len(hrs), "ok": 0, "empty": 0, "fail": 0}
+    if not hrs:
+        return [], st
+
+    def one(h):
+        d = dt.datetime.fromtimestamp(h, UTC)
+        body = _get(TICK.format(y=d.year, m=d.month - 1, d=d.day, h=d.hour), tries)
+        if body is None:
+            return "fail", []
+        if not body:
+            return "empty", []
+        rows = parse_ticks(body, h)
+        return ("ok" if rows else "empty"), rows
+
+    rows = []
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        for kind, rs in ex.map(one, hrs):
+            st[kind] += 1
+            rows.extend(rs)
+    rows.sort(key=lambda r: r[0])
+    return rows, st
+
+
 def is_filler(o, c, l, h, v):
     """占位/填充根：零量且四价完全相等。缺一条都不算，避免误杀低流动性真实根。"""
     return v == 0 and o == h and h == l and l == c
@@ -271,6 +441,8 @@ def main():
                     help="用年度日线重建 1d/1w（不动 1h/4h）；口径变更后跑一次")
     ap.add_argument("--retry-failed", action="store_true",
                     help="只补旧文件 window.failed 里记录的日期")
+    ap.add_argument("--no-ticks", action="store_true",
+                    help="不拉小时 tick（只跑 T+1 日文件，排查补根问题用）")
     args = ap.parse_args()
 
     rebuild_daily = bool(getattr(args, "rebuild_daily", False))
@@ -334,6 +506,7 @@ def main():
         while d <= today:
             days.append(d)
             d += dt.timedelta(days=1)
+        days = expand_days(days, old_failed, today)
 
     # 并发 4：串行 100 天要 20 分钟以上（实测超时）。并发过高会丢连接，4 是平衡点，
     # 单日内部仍有 4 次重试兜底。
@@ -378,6 +551,30 @@ def main():
         return 1
 
     rows.sort()
+
+    # T+0 补根：上游 BID_candles_min_1 是 **T+1 全量生成**，当天文件恒为空，
+    # 结构上最多滞后 24 小时（平均 12 小时）。这里用小时 tick 把「日文件末根
+    # 之后」补到现在（不含当前未收的小时），滞后压到 ≤1 小时。
+    # tick 不可用时静默跳过，只是退回原来的 T+1 —— 不能让补根失败拖垮整包。
+    tst = {"hours": 0, "ok": 0, "empty": 0, "fail": 0, "bars": 0, "dropped": 0}
+    if not args.no_ticks:
+        now_ts = int(time.time())
+        base = rows[-1][0]
+        prev_1h = old.get("1h") or []
+        if prev_1h:
+            # 上次已用 tick 补到的位置：不必重拉，否则每次都要从日文件末根
+            # 补起，产物停两天就撞上 max_hours 上限、永远补不满。
+            base = max(base, int(prev_1h[-1][0]) // 1000)
+        trs, got = fetch_recent_ticks(base, now=now_ts)
+        tst.update(got)
+        rows, dropped = stitch_rows_checked(rows, trs)
+        tst["bars"] = len(trs)
+        tst["dropped"] = dropped
+        if got["hours"]:
+            log("T+0 补根：%d 小时（ok=%d 空=%d 失败=%d）→ %d 根分钟线%s" % (
+                got["hours"], got["ok"], got["empty"], got["fail"], len(trs),
+                "，丢弃 %d 段（价差异常）" % dropped if dropped else ""))
+
     kl, stats = {}, {}
 
     # 1h / 4h 只从分钟线聚合（深历史用不到分钟级，也不需要）
@@ -436,7 +633,7 @@ def main():
     else:
         win = {"from": str(min(days) if days else start),
                "to": str(max(days) if days else today),
-               "days_ok": days_ok, "days_empty": days_empty,
+               "days_ok": days_ok, "days_empty": days_empty, "ticks": tst,
                "failed_n": len(failed), "failed": failed[:20]}
 
     doc = {
