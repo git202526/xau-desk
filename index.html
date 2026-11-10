@@ -12506,7 +12506,9 @@ if(/[?&]xt=1/.test(location.search)){
       PERIODS.forEach(function(p){
         var m = S.klMeta[p.key] || {};
         var bars = S.kl[p.key] || [];
-        o[p.key] = { at:m.at|0, mode:m.mode||"", n:bars.length,
+        /* at 是毫秒时间戳，不能用 `|0`：那会截成 32 位有符号整数，
+           1794265200000 变 -1024777342，排障时看着像「1970 年前的数据」。 */
+        o[p.key] = { at:m.at||0, mode:m.mode||"", n:bars.length,
                      lastT:bars.length ? bars[bars.length-1].t : 0 };
       });
       return o;
