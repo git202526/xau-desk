@@ -10,7 +10,10 @@ name: xau klines
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    # 30 分钟而不是 15：tick 补根本来只补到「上一小时」，两倍频率不会更鲜；
+    # 而 GitHub Pages legacy 构建有每小时 10 次的软限制（超了每次 4 秒内失败，
+    # 连页面本身的更新一起停），xau 4 次 + jin10 3 次 + macro 1 次已经贴着天花板。
+    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       days:
