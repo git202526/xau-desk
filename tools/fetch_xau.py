@@ -365,17 +365,23 @@ def fetch_recent_ticks(last_ts=None, now=None, max_hours=30, workers=4, tries=3,
         d = dt.datetime.fromtimestamp(h, UTC)
         body = _get(TICK.format(y=d.year, m=d.month - 1, d=d.day, h=d.hour), tries)
         if body is None:
-            return "fail", []
+            return h, "fail", []
         if not body:
-            return "empty", []
+            return h, "empty", []
         rows = parse_ticks(body, h)
-        return ("ok" if rows else "empty"), rows
+        return h, ("ok" if rows else "empty"), rows
 
-    rows = []
+    rows, bad = [], []
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        for kind, rs in ex.map(one, hrs):
+        for h, kind, rs in ex.map(one, hrs):
             st[kind] += 1
+            if kind == "fail":
+                bad.append(h)
             rows.extend(rs)
+    # 失败小时单独记一份：固定窗口每轮重拉，这个列表就是「下一轮能不能自愈」的观察点。
+    # 只留前 8 个，产物里 window.ticks.fail_hours 直接可读，不用翻日志。
+    st["fail_hours"] = [dt.datetime.fromtimestamp(h, UTC).strftime("%m-%d %H")
+                        for h in bad[:8]]
     rows.sort(key=lambda r: r[0])
     return rows, st
 
@@ -701,9 +707,11 @@ def main():
             tst["holes"] = mst["holes"]
         if hrs:
             log("T+0 补根：%d 小时（ok=%d 空=%d 失败=%d）→ 采用 %d 根分钟线，"
-                "补洞 %d 处，丢弃 %d 小时" % (
+                "补洞 %d 处，丢弃 %d 小时%s" % (
                     got["hours"], got["ok"], got["empty"], got["fail"],
-                    tst["bars"], tst["holes"], tst["dropped"]))
+                    tst["bars"], tst["holes"], tst["dropped"],
+                    ("　失败小时：" + " ".join(got.get("fail_hours") or []))
+                    if got.get("fail_hours") else ""))
 
     if not rows:
         log("本次既没有日文件也没有 tick，保留旧文件不动")

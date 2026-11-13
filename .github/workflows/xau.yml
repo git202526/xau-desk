@@ -104,6 +104,15 @@ jobs:
             fi
             commit_push
             i=$((i + 1))
-            if [ "$i" -le "$LOOP" ]; then sleep 3000; fi
+            if [ "$i" -le "$LOOP" ]; then
+              # 分 10 段等待，每 5 分钟往日志打一行：50 分钟静默的 job 看起来像卡死，
+              # 排查时也分不清「在等下一轮」还是「已经挂了」。
+              w=0
+              while [ "$w" -lt 10 ]; do
+                sleep 300
+                w=$((w + 1))
+                echo "  等待下一轮 $((w * 5))/50 分钟"
+              done
+            fi
           done
           echo "循环结束，共 $((i - 1)) 轮"
