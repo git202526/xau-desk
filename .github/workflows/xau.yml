@@ -6,8 +6,9 @@ name: xau klines
 #   线上实测 schedule 被大幅丢弃 —— cron 写的是 */30（理论 48 次/天），
 #   实际触发间隔 5.8 / 8.8 / 7.2 / 6.5 / 7.8 小时（见 2026-11-10 → 11-12 记录）。
 #   数据再怎么写实，一天只跑三次也压不住滞后（用户现场 11 小时）。
-#   所以改成「一次触发跑 6 轮，每轮间隔 50 分钟」：只要一天命中 4 次 schedule，
-#   就能把 24 小时铺满；命中不足时空窗由下一次的首轮补齐（tick 会补到当前）。
+#   所以改成「一次触发跑 10 轮，每轮间隔 30 分钟」：单次覆盖 5 小时，一天命中
+#   5 次 schedule 就能铺满 24 小时；命中不足时空窗由下一次的首轮补齐（tick 回看
+#   24 小时，能把空窗整段填回来）。
 #
 # 为什么后续轮次用 --ticks-only：
 #   T+1 的日文件一小时重抓一次是白烧请求（同一份内容），tick 才是 T+0 的来源。
@@ -35,9 +36,9 @@ on:
         required: false
         default: "0"
       loop:
-        description: "循环轮数（0=只跑一次；默认 6 轮 ≈ 5 小时）"
+        description: "循环轮数（0=只跑一次；默认 10 轮 × 30 分钟 ≈ 5 小时）"
         required: false
-        default: "6"
+        default: "10"
 
 permissions:
   contents: write
@@ -49,7 +50,7 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    # 6 轮 × (50 分钟等待 + 约 3 分钟抓取) ≈ 318 分钟，留 25 分钟余量。
+    # 10 轮 × (30 分钟等待 + 约 2 分钟抓取) ≈ 320 分钟，留 25 分钟余量。
     # 上限 360 分钟是 GitHub 的硬顶，不能贴着设。
     timeout-minutes: 345
     steps:
@@ -68,7 +69,7 @@ jobs:
         run: |
           set -u
           if [ -z "${DAYS:-}" ]; then DAYS=3; fi
-          if [ -z "${LOOP:-}" ]; then LOOP=6; fi
+          if [ -z "${LOOP:-}" ]; then LOOP=10; fi
           if [ "$LOOP" = "0" ]; then LOOP=1; fi
 
           git config user.name  "xau-klines-bot"
@@ -105,13 +106,13 @@ jobs:
             commit_push
             i=$((i + 1))
             if [ "$i" -le "$LOOP" ]; then
-              # 分 10 段等待，每 5 分钟往日志打一行：50 分钟静默的 job 看起来像卡死，
+              # 分 6 段等待，每 5 分钟往日志打一行：长时间静默的 job 看起来像卡死，
               # 排查时也分不清「在等下一轮」还是「已经挂了」。
               w=0
-              while [ "$w" -lt 10 ]; do
+              while [ "$w" -lt 6 ]; do
                 sleep 300
                 w=$((w + 1))
-                echo "  等待下一轮 $((w * 5))/50 分钟"
+                echo "  等待下一轮 $((w * 5))/30 分钟"
               done
             fi
           done
