@@ -407,3 +407,25 @@ def test_t263_ticks_only_keeps_history(tmp_path, monkeypatch):
     # window 的「几天成功」不能被这一轮覆盖成 0
     assert doc["window"]["days_ok"] == 3, doc["window"]
     assert doc["window"]["ticks"]["ok"] == 1
+
+
+def test_t264_tick_window_skips_hours_already_present():
+    """产物里已有的小时不重拉：只补缺的。
+
+    实测同一 24 小时窗口连着跑两轮：第一轮 ok=16 / fail=7，第二轮 ok=5 / fail=19
+    —— 全量重拉把源打到限流，真正的新小时反而补不进来。只拉缺的以后，正常一轮
+    只有 1–2 个请求（新小时 + 每日停盘那个永远为空的 22 点）。
+    """
+    end = ts(2026, 11, 12, 11)
+    have = set(range(end - 35 * HOUR, end + 1, HOUR)) - {ts(2026, 11, 12, 5)}
+    hrs = F.tick_window(ts(2026, 11, 12, 8), ts(2026, 11, 12, 12, 30),
+                        lookback_h=36, have=have)
+    assert hrs == [ts(2026, 11, 12, 5)], hrs
+
+
+def test_t265_tick_window_all_present_returns_empty():
+    """一个不缺时一个请求都不发。"""
+    end = ts(2026, 11, 12, 11)
+    have = set(range(end - 35 * HOUR, end + 1, HOUR))
+    assert F.tick_window(ts(2026, 11, 12, 10), ts(2026, 11, 12, 12, 30),
+                         lookback_h=36, have=have) == []

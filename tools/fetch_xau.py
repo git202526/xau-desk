@@ -231,15 +231,19 @@ TICK_LOOKBACK_H = 24      # 固定回看一天：当天日文件的洞最多也�
 TICK_MAX_HOURS = 48       # 单次硬上限：产物停一周也只补最近 48 小时
 
 
-def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOURS):
+def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOURS,
+                have=None):
     """要补的小时起点列表。
 
     固定回看 lookback_h 小时，**不从产物末根起**。这是 v7.11 上线后立刻踩到的
     坑：线上第一次跑显示「补根 1 小时、补洞 1 处」，而真正的 5 小时洞（11-12
     09:00 → 14:00）留在原地 —— 因为洞在末根之前，从末根起补永远够不着。
 
-    取「窗口起点」与「末根」中更早者，是为了产物停更超过窗口时不额外留白：
-    那时从末根起补，再由 max_hours 截断，代价可控。
+    取「窗口起点」与「末根」中更早者，是为了产物停更超过窗口时不额外留白。
+
+    have 给定时（产物里已有的整点集合）只返回**缺的小时**：每轮重拉 24 个文件
+    会把 Dukascopy 打到限流 —— 实测同一窗口第一轮 ok=16/24、第二轮 ok=5/24。
+    缺的小时下一轮还会再来，所以不需要全量重拉。
     当前这一小时还没走完，tick 文件只有半根，一律不拉（留给页面用现价推进）。
     """
     end = now - now % 3600 - 3600
@@ -253,7 +257,10 @@ def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOU
         start = floor
     if start > end:
         return []
-    return list(range(start, end + 3600, 3600))
+    hrs = list(range(start, end + 3600, 3600))
+    if have is None:
+        return hrs
+    return [h for h in hrs if h not in have]
 
 
 def day_plan(today, days=4, failed=None, keep_days=30):
@@ -695,9 +702,14 @@ def main():
             pt = int(prev_1h[-1][0]) // 1000
             if pt <= now_ts:
                 base = max(base, pt)
-        hrs = tick_window(base, now_ts)
-        # 并发 5 / 重试 4 次：实测 8 小时窗口里有 4 小时失败（503/超时），
-        # 24 小时窗口放大后失败面更大；固定窗口每轮都会重拉，失败的小时下一轮能自愈。
+        # 只拉产物里还没有的小时：24 个全量重拉会把源打到限流
+        # （实测第二轮 ok=5 / fail=19，第三轮起连 1h 都补不动）。
+        have = set()
+        if prev_1h:
+            have = set(int(b[0]) // 1000 for b in prev_1h)
+        hrs = tick_window(base, now_ts, have=have or None)
+        # 并发 5 / 重试 4 次：失败的小时会在下一轮重新进窗口（have 里没有它），
+        # 所以不需要在一轮里死磕。
         trs, got = fetch_recent_ticks(hours=hrs, workers=5, tries=4)
         tst.update(got)
         if trs:
