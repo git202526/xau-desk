@@ -43,22 +43,31 @@ def row(t, px):
 # ---------------- tick 窗口 ----------------
 
 
-def test_t243_tick_window_from_last_bar():
-    """产物末根 08:00、现在 12:30 → 补 08:00–11:00（当前小时 12 点未收，不拉）。"""
+def test_t243_tick_window_is_fixed_lookback():
+    """固定回看窗口，**不从末根起** —— 洞通常就在末根之前。
+
+    线上第一次跑（v7.11.0 dispatch 43358778371）就是栽在这：从末根 15:00 起补，
+    日志只写「补根 1 小时、补洞 1 处」，而真正的 5 小时洞（11-12 09:00 → 14:00）
+    留在原地。窗口必须能盖住末根之前的历史。
+    """
     now = ts(2026, 11, 12, 12, 30)
-    hrs = F.tick_window(ts(2026, 11, 12, 8, 0), now, lookback_h=36)
-    assert hrs[0] == ts(2026, 11, 12, 8)
-    assert hrs[-1] == ts(2026, 11, 12, 11)
-    assert len(hrs) == 4
+    last = ts(2026, 11, 12, 8, 0)
+    hrs = F.tick_window(last, now, lookback_h=36)
+
+    assert hrs[-1] == ts(2026, 11, 12, 11), "当前小时 12 点未收，不拉"
+    assert len(hrs) == 36
+    assert hrs[0] == ts(2026, 11, 12, 11) - 35 * HOUR
+    assert last in hrs, "末根所在小时必须在窗口内"
+    assert hrs[0] < last, "窗口起点要早于末根，否则补不到末根之前的洞"
 
 
 def test_t244_tick_window_lookback_when_product_stale():
-    """产物停了三天：只补最近 36 小时（lookback），不从三天前开始。"""
+    """产物停三天：从末根起补，但受 max_hours 截断（默认 48 小时）。"""
     now = ts(2026, 11, 12, 12, 30)
     hrs = F.tick_window(ts(2026, 11, 9, 8, 0), now, lookback_h=36)
-    assert len(hrs) == 36
+    assert len(hrs) == 48
     assert hrs[-1] == ts(2026, 11, 12, 11)
-    assert hrs[0] == ts(2026, 11, 12, 11) - 35 * HOUR
+    assert hrs[0] == ts(2026, 11, 12, 11) - 47 * HOUR
 
 
 def test_t245_tick_window_max_hours_cap():
@@ -68,9 +77,13 @@ def test_t245_tick_window_max_hours_cap():
     assert len(hrs) == 48
 
 
-def test_t246_tick_window_empty_when_now_in_hour_zero():
-    """当前就处在第一个小时内（now < 1h）：没有「已收完的小时」可拉。"""
-    assert F.tick_window(ts(2026, 11, 12, 0, 20), ts(2026, 11, 12, 0, 20)) == []
+def test_t246_tick_window_excludes_forming_hour():
+    """当前这一小时永远不进窗口（tick 文件只有半根，会造出低点偏高的假根）。"""
+    now = ts(2026, 11, 12, 0, 20)
+    hrs = F.tick_window(now, now, lookback_h=6)
+    assert hrs, "窗口固定，不应该因为 now 在 0 点就返回空"
+    assert hrs[-1] == ts(2026, 11, 11, 23), "当前小时（00 点）不能进窗口"
+    assert ts(2026, 11, 12, 0) not in hrs
 
 
 # ---------------- 合并 ----------------
@@ -192,12 +205,13 @@ def test_t255_day_plan_pulls_failed_days_back_in():
 
 
 def test_t256_today_tick_span_covers_from_midnight():
-    """当天 tick 从 00:00 起（不是从产物末根起），保证日文件残片不回填也不丢根。"""
+    """当天的洞也要能被覆盖：窗口必须完整包含「今天 00:00 起」的所有小时。"""
     now = ts(2026, 11, 12, 15, 30)
     hrs = F.tick_window(ts(2026, 11, 12, 0), now, lookback_h=36)
-    assert hrs[0] == ts(2026, 11, 12, 0)
+    assert hrs[0] <= ts(2026, 11, 12, 0), "窗口要早于当天零点"
+    assert ts(2026, 11, 12, 0) in hrs
     assert hrs[-1] == ts(2026, 11, 12, 14)
-    assert len(hrs) == 15
+    assert len(hrs) == 36
 
 
 # ---------------- 端到端（不联网） ----------------
@@ -289,16 +303,21 @@ def test_t259_basis_line_shows_missing_bars(make_env):
 
 
 def test_t260_many_missing_marks_direction_as_reference(make_env):
-    """缺 ≥2 根时明确降级：缺口期间没有价格进均线，方向只能按参考看。"""
+    """缺 ≥2 根时明确降级：缺口期间没有价格进均线，方向只能按参考看。
+
+    用 1H 卡验（同样的 11 小时，1H 缺 10 根、4H 只缺 1 根）——这正是要区分开的东西：
+    4H 还能看方向，1H 的 MA20 有一半是更早的价格。
+    """
     end = int(time.time() * 1000) - int(11.5 * HOUR_MS)
     env = make_env(xau=_doc(end))
     page = env.page
     page.evaluate("() => window.__xt.gotoTab('struct')")
     page.wait_for_timeout(200)
-    page.click('#pgrid .pcard[data-k="4h"]', timeout=4000)
+    page.click('#pgrid .pcard[data-k="1h"]', timeout=4000)
     page.wait_for_timeout(250)
 
-    assert "方向按参考看" in page.inner_text("#reasons")
+    txt = page.inner_text("#reasons")
+    assert "方向按参考看" in txt, txt
 
 
 def test_t261_chart_note_carries_missing_count(make_env):

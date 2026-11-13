@@ -227,24 +227,27 @@ def tick_hours(last_ts, now, max_hours=30):
 #   3. `stitch_rows_checked` 拿整段比一次，任一小时价格异常就把整晚 240 根全丢
 #      （线上日志「丢弃 1 段（价差异常）」）。→ 校验下沉到小时段，只丢坏的那小时。
 
-TICK_LOOKBACK_H = 36      # 覆盖一个半交易日：够跨周末停盘，也够补当天的洞
+TICK_LOOKBACK_H = 24      # 固定回看一天：当天日文件的洞最多也就是 24 小时内的洞
 TICK_MAX_HOURS = 48       # 单次硬上限：产物停一周也只补最近 48 小时
 
 
 def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOURS):
     """要补的小时起点列表。
 
-    「最近 lookback_h 小时」与「last_ts 之后」取并集再截断：
-      - 产物新鲜（末根在窗口内）→ 从末根补起，不重拉已有小时；
-      - 产物停了几天 → 只补最近 lookback_h 小时，不浪费请求；
-      - 当前这一小时还没走完，tick 文件只有半根，一律不拉（留给页面用现价推进）。
+    固定回看 lookback_h 小时，**不从产物末根起**。这是 v7.11 上线后立刻踩到的
+    坑：线上第一次跑显示「补根 1 小时、补洞 1 处」，而真正的 5 小时洞（11-12
+    09:00 → 14:00）留在原地 —— 因为洞在末根之前，从末根起补永远够不着。
+
+    取「窗口起点」与「末根」中更早者，是为了产物停更超过窗口时不额外留白：
+    那时从末根起补，再由 max_hours 截断，代价可控。
+    当前这一小时还没走完，tick 文件只有半根，一律不拉（留给页面用现价推进）。
     """
     end = now - now % 3600 - 3600
     if end <= 0:
         return []
     start_win = end - (max(1, lookback_h) - 1) * 3600
     start_last = (last_ts - last_ts % 3600) if last_ts else start_win
-    start = max(start_win, start_last)
+    start = min(start_win, start_last)
     floor = end - (max(1, max_hours) - 1) * 3600
     if start < floor:
         start = floor
@@ -687,7 +690,9 @@ def main():
             if pt <= now_ts:
                 base = max(base, pt)
         hrs = tick_window(base, now_ts)
-        trs, got = fetch_recent_ticks(hours=hrs, workers=6)
+        # 并发 5 / 重试 4 次：实测 8 小时窗口里有 4 小时失败（503/超时），
+        # 24 小时窗口放大后失败面更大；固定窗口每轮都会重拉，失败的小时下一轮能自愈。
+        trs, got = fetch_recent_ticks(hours=hrs, workers=5, tries=4)
         tst.update(got)
         if trs:
             rows, mst = merge_sources(rows, trs, win_from=hrs[0])
