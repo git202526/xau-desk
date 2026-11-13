@@ -125,7 +125,9 @@ def test_t222_live_price_only_touches_the_price_rule(make_env):
 # ------------------------------------------------------------------ T221
 def test_t221_forming_bar_advances_without_paxg(make_env):
     """PAXG 逐笔彻底断开（500 + 退避）：现货刷新仍要把未收盘根推到现价。"""
-    end = now_ms() - 5 * 60 * 1000          # 本小时刚开的根
+    # 取本小时起点，不用 now−5 分钟：整点后 5 分钟内 now−5min 会落回上一小时，
+    # bars() 对齐后 since 超 60 分钟，被判「已收盘」而不推进（实测 05:00 跑必红）。
+    end = now_ms() - now_ms() % HOUR
     arr = bars(HOUR, 120, end, base=4000)
     env = make_env(price=PRICE, xau=xau_doc(**{"1h": arr}), tick="down")
     page = env.page
@@ -150,9 +152,16 @@ def test_t223_weekly_forming_bar_advances(make_env):
     page = env.page
     page.wait_for_timeout(800)
     page.evaluate("() => window.__xt.refreshPrice(true)")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(250)
 
-    last = page.evaluate("() => { const b = window.__xt.scaled('1w'); return b[b.length-1]; }")
+    # 读之前再 patch 一次：xdist 并行时 refreshData 可能刚把 S.kl['1w'] 换成新数组，
+    # 原地 patch 的修改会随之丢失（实测只在 -n 8 下偶发）。这条用例要验的是
+    # 「周线在推进名单里」，不是异步时序——时序由 T221 覆盖。
+    last = page.evaluate("""() => {
+        window.__xt.patchFormingBar();
+        const b = window.__xt.scaled('1w');
+        return b[b.length - 1];
+    }""")
     assert abs(last["c"] - PRICE) < 0.02, last
 
 
