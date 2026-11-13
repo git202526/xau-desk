@@ -141,7 +141,10 @@ def test_t221_forming_bar_advances_without_paxg(make_env):
 # ------------------------------------------------------------------ T223
 def test_t223_weekly_forming_bar_advances(make_env):
     """周线也在推进名单里：本周那根必须跟现价，不能永远停在产物末根。"""
-    end = now_ms() - 2 * DAY
+    # 取「本周期起点」而不是 now−2 天再对齐：bars() 的对齐基准是 1970-01-01（周四），
+    # 在周四/周五跑时 now−2 天会落到上一周期，since 超 7 天被判已收盘，
+    # 这条用例会在某些星期几恒红（与 t224b 同一类时段依赖）。
+    end = now_ms() - now_ms() % (7 * DAY)
     arr = bars(7 * DAY, 90, end, base=3900)
     env = make_env(price=PRICE, xau=xau_doc(**{"1w": arr}))
     page = env.page

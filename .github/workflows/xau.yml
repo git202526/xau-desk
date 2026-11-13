@@ -2,24 +2,30 @@ name: xau klines
 
 # 抓 Dukascopy 的 XAU/USD 分钟线，清洗聚合后落 xau/klines.json。
 #
-# 为什么是 15 分钟：日线/4H 都不需要更密；每次只抓最近 4 天（覆盖当天 + 前一交易日）。
-# 首次回填用 workflow_dispatch 手动跑 days=100，跑完若 window.failed 非空，再跑一次 retry=1。
+# v7.11 为什么改成长任务循环：
+#   线上实测 schedule 被大幅丢弃 —— cron 写的是 */30（理论 48 次/天），
+#   实际触发间隔 5.8 / 8.8 / 7.2 / 6.5 / 7.8 小时（见 2026-11-10 → 11-12 记录）。
+#   数据再怎么写实，一天只跑三次也压不住滞后（用户现场 11 小时）。
+#   所以改成「一次触发跑 6 轮，每轮间隔 50 分钟」：只要一天命中 4 次 schedule，
+#   就能把 24 小时铺满；命中不足时空窗由下一次的首轮补齐（tick 会补到当前）。
 #
-# 为什么并发 4 + 补漏轮：实测 Dukascopy 对 Azure 出口有抖动，100 天首轮 46 天失败；
-# 只并发不补漏会把缺日变成图上的「假断层」，与真实周末缺口混在一起。
+# 为什么后续轮次用 --ticks-only：
+#   T+1 的日文件一小时重抓一次是白烧请求（同一份内容），tick 才是 T+0 的来源。
+#   首轮 --days 3 抓日文件（顺便补失败的日期），其后 5 轮只拉最近 36 小时 tick。
+#
+# 为什么仍然保留 */30 的 cron：
+#   GitHub 对公共仓库的 schedule 是「尽力而为」，命中率不可控。多写几个表达式
+#   不会提高命中率，真正兜底的是长任务 + concurrency 排队接力。
 
 on:
   schedule:
-    # 30 分钟而不是 15：tick 补根本来只补到「上一小时」，两倍频率不会更鲜；
-    # 而 GitHub Pages legacy 构建有每小时 10 次的软限制（超了每次 4 秒内失败，
-    # 连页面本身的更新一起停），xau 4 次 + jin10 3 次 + macro 1 次已经贴着天花板。
     - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       days:
-        description: "回填天数（首次填 100，日常填 4）"
+        description: "回填天数（首次填 100，日常填 3）"
         required: false
-        default: "4"
+        default: "3"
       retry:
         description: "只补上次失败的日期（1=是）"
         required: false
@@ -28,6 +34,10 @@ on:
         description: "重建日线/周线（1=是，口径变更后跑一次）"
         required: false
         default: "0"
+      loop:
+        description: "循环轮数（0=只跑一次；默认 6 轮 ≈ 5 小时）"
+        required: false
+        default: "6"
 
 permissions:
   contents: write
@@ -39,7 +49,9 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # 6 轮 × (50 分钟等待 + 约 3 分钟抓取) ≈ 318 分钟，留 25 分钟余量。
+    # 上限 360 分钟是 GitHub 的硬顶，不能贴着设。
+    timeout-minutes: 345
     steps:
       - uses: actions/checkout@v4
 
@@ -47,31 +59,51 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 抓取并聚合
+      - name: 循环抓取（首轮含日文件，其后只补 tick）
+        env:
+          DAYS: ${{ github.event.inputs.days }}
+          RETRY: ${{ github.event.inputs.retry }}
+          REBUILD: ${{ github.event.inputs.rebuild }}
+          LOOP: ${{ github.event.inputs.loop }}
         run: |
-          DAYS="${{ github.event.inputs.days }}"
-          RETRY="${{ github.event.inputs.retry }}"
-          if [ -z "$DAYS" ]; then DAYS=4; fi
-          REBUILD="${{ github.event.inputs.rebuild }}"
-          if [ "$RETRY" = "1" ]; then
-            python3 tools/fetch_xau.py --retry-failed
-          elif [ "$REBUILD" = "1" ]; then
-            python3 tools/fetch_xau.py --days "$DAYS" --rebuild-daily
-          else
-            python3 tools/fetch_xau.py --days "$DAYS"
-          fi
+          set -u
+          if [ -z "${DAYS:-}" ]; then DAYS=3; fi
+          if [ -z "${LOOP:-}" ]; then LOOP=6; fi
+          if [ "$LOOP" = "0" ]; then LOOP=1; fi
 
-      - name: 回写产物
-        run: |
           git config user.name  "xau-klines-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add xau/klines.json
-          if git diff --cached --quiet; then
-            echo "无变化"
-            exit 0
-          fi
-          git commit -m "chore: xau klines $(date -u +'%m-%d %H:%M')"
-          for i in 1 2 3; do
-            if git push; then echo "push ok"; break; fi
-            git pull --rebase --autostash || true
+
+          # 每轮都独立提交：页面读的是 main 上的产物，攒到最后一起推等于中间几小时白跑。
+          # 被别的 bot 抢先推走时 rebase 重试，最多 3 次（与 jin10 的 */20 会撞车）。
+          commit_push() {
+            git add xau/klines.json
+            if git diff --cached --quiet; then echo "无变化"; return 0; fi
+            git commit -m "chore: xau klines $(date -u +'%m-%d %H:%M')"
+            for k in 1 2 3; do
+              if git push; then echo "push ok（第 $k 次）"; return 0; fi
+              echo "::warning::push 被拒，rebase 后重试（第 $k 次）"
+              git pull --rebase --autostash || true
+            done
+            echo "::warning::连续 3 次 push 失败，本轮产物未上线"
+          }
+
+          i=1
+          while [ "$i" -le "$LOOP" ]; do
+            echo "=== round $i/$LOOP · $(date -u +'%H:%M') UTC ==="
+            if [ "$i" = "1" ]; then
+              if [ "${RETRY:-0}" = "1" ]; then
+                python3 tools/fetch_xau.py --retry-failed || true
+              elif [ "${REBUILD:-0}" = "1" ]; then
+                python3 tools/fetch_xau.py --days "$DAYS" --rebuild-daily || true
+              else
+                python3 tools/fetch_xau.py --days "$DAYS" || true
+              fi
+            else
+              python3 tools/fetch_xau.py --ticks-only || true
+            fi
+            commit_push
+            i=$((i + 1))
+            if [ "$i" -le "$LOOP" ]; then sleep 3000; fi
           done
+          echo "循环结束，共 $((i - 1)) 轮"

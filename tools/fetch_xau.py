@@ -19,6 +19,7 @@
   python3 tools/fetch_xau.py --force        # 忽略已有文件，全量重抓
 """
 import argparse
+import bisect
 import datetime as dt
 import json
 import lzma
@@ -212,8 +213,117 @@ def tick_hours(last_ts, now, max_hours=30):
     return hrs
 
 
+# ---------- v7.11：tick 优先的数据新鲜度 ----------
+# 现场（2026-11-13 10:51 北京，线上 v7.10.2）：
+#   4H 卡「末根 20:00 收 3870.2 · 滞后 11 小时」，1H 同样；而当天 22:50 UTC
+#   那次 Actions 是 success，产物 updated 23:02。跑成功了，数据还是 11 小时前。
+#
+# 三层原因，逐条对应下面的改法：
+#   1. 当天 `BID_candles_min_1.bi5` 是**残片**：按小时异步追加，22:50 抓到的
+#      只有 0–9 点、14–15 点，中间 10–13 点根本没有。→ 当天不再读日文件，
+#      整段交给 tick（T+0，小时级可用）。
+#   2. 旧实现只在「日文件末根之后」补 tick，补不到日文件**中间**的洞。→ tick
+#      在窗口内优先，洞和尾部一起填。
+#   3. `stitch_rows_checked` 拿整段比一次，任一小时价格异常就把整晚 240 根全丢
+#      （线上日志「丢弃 1 段（价差异常）」）。→ 校验下沉到小时段，只丢坏的那小时。
+
+TICK_LOOKBACK_H = 36      # 覆盖一个半交易日：够跨周末停盘，也够补当天的洞
+TICK_MAX_HOURS = 48       # 单次硬上限：产物停一周也只补最近 48 小时
+
+
+def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOURS):
+    """要补的小时起点列表。
+
+    「最近 lookback_h 小时」与「last_ts 之后」取并集再截断：
+      - 产物新鲜（末根在窗口内）→ 从末根补起，不重拉已有小时；
+      - 产物停了几天 → 只补最近 lookback_h 小时，不浪费请求；
+      - 当前这一小时还没走完，tick 文件只有半根，一律不拉（留给页面用现价推进）。
+    """
+    end = now - now % 3600 - 3600
+    if end <= 0:
+        return []
+    start_win = end - (max(1, lookback_h) - 1) * 3600
+    start_last = (last_ts - last_ts % 3600) if last_ts else start_win
+    start = max(start_win, start_last)
+    floor = end - (max(1, max_hours) - 1) * 3600
+    if start < floor:
+        start = floor
+    if start > end:
+        return []
+    return list(range(start, end + 3600, 3600))
+
+
+def day_plan(today, days=4, failed=None, keep_days=30):
+    """要抓日文件的日期（不含 today）。
+
+    当天不抓：残留的日文件既断又缺，是洞的来源；tick 覆盖同一时段时更完整。
+    已失败日期（30 天窗内）要重新排进来，否则一次 503 就永久丢一天。
+    """
+    n = max(1, int(days))
+    out = [today - dt.timedelta(days=i) for i in range(n - 1, 0, -1)]
+    have = set(out)
+    floor = today - dt.timedelta(days=keep_days)
+    for s in failed or []:
+        try:
+            d = dt.date.fromisoformat(s)
+        except (ValueError, TypeError):
+            continue
+        if floor <= d < today and d not in have:
+            out.append(d)
+            have.add(d)
+    out.sort()
+    return out
+
+
+def merge_sources(day_rows, tick_rows, win_from=None, max_dev=0.03):
+    """合并日文件与 tick：窗口内 tick 优先，窗口外日文件为准。
+
+    返回 (rows, stats)。stats = {tick, day, dropped, holes}
+      tick   实际并入的分钟数（去重后）
+      dropped 被丢弃的**小时段**数（价格与相邻日文件偏离 > max_dev）
+      holes  被 tick 填上的缺口处数（前一分钟原先不存在的次数）
+
+    为什么要分段校验：串品种/缩放错配是按小时成段出现的，按分钟逐条判会把
+    正常波动误杀；按「整个 tick 窗口」判又会因为一小时异常丢掉整晚。
+    以小时为粒度是这两者之间唯一站得住的粒度。
+    """
+    day_rows = sorted(day_rows)
+    if not tick_rows:
+        return day_rows, {"tick": 0, "day": len(day_rows), "dropped": 0, "holes": 0}
+
+    win = -1 if win_from is None else int(win_from)
+    times = [r[0] for r in day_rows]
+    groups = {}
+    for r in tick_rows:
+        if r[0] < win:
+            continue
+        groups.setdefault(r[0] - r[0] % 3600, []).append(r)
+
+    tick, dropped = {}, 0
+    for h in sorted(groups):
+        rs = groups[h]
+        i = bisect.bisect_left(times, h)
+        # 基准取「该小时之前最近一根」的收盘价（索引 2）：原来是索引 4（最高价），
+        # 波幅大的根会把阈值抬高，等于放松了校验。
+        base = day_rows[i - 1][2] if i > 0 else None
+        head = rs[0][1]
+        if base and head and abs(head - base) / float(base) > max_dev:
+            dropped += 1
+            continue
+        for r in rs:
+            tick[r[0]] = r
+
+    out = {r[0]: r for r in day_rows}
+    out.update(tick)
+    rows = [out[k] for k in sorted(out)]
+    holes = sum(1 for k in tick if (k - 60) not in out)
+    return rows, {"tick": len(tick), "day": len(day_rows),
+                  "dropped": dropped, "holes": holes}
+
+
 def expand_days(days, failed, today, keep_days=30):
-    """把 window.failed 里 keep_days 内的日期并进本次抓取。
+    """把 window.failed 里 keep_days 内的日期并进本次抓取。（v7.11 起 main 改用
+    day_plan，本函数仅为 p116 的回归用例保留，行为不再影响线上。）
 
     为什么不能只靠 `--retry-failed`：Dukascopy 对 Azure 出口有明显抖动（实测
     首轮 100 天里 46 天失败）。某天连续失败、又在 4 天窗口外滑走，就永久缺失，
@@ -235,10 +345,15 @@ def expand_days(days, failed, today, keep_days=30):
     return out
 
 
-def fetch_recent_ticks(last_ts, now=None, max_hours=30, workers=4, tries=3):
-    """按小时并发拉 tick，返回 (分钟根 rows, 统计)。失败的小时静默跳过。"""
+def fetch_recent_ticks(last_ts=None, now=None, max_hours=30, workers=4, tries=3,
+                       hours=None):
+    """按小时并发拉 tick，返回 (分钟根 rows, 统计)。失败的小时静默跳过。
+
+    hours 直接给定时跳过 tick_hours 的推导（v7.11 的 tick_window 用的是
+    「lookback 并集」，语义比旧的「从末根往后」更宽，不能共用一套参数）。
+    """
     now = now or int(time.time())
-    hrs = tick_hours(last_ts, now, max_hours)
+    hrs = list(hours) if hours is not None else tick_hours(last_ts, now, max_hours)
     st = {"hours": len(hrs), "ok": 0, "empty": 0, "fail": 0}
     if not hrs:
         return [], st
@@ -443,6 +558,8 @@ def main():
                     help="只补旧文件 window.failed 里记录的日期")
     ap.add_argument("--no-ticks", action="store_true",
                     help="不拉小时 tick（只跑 T+1 日文件，排查补根问题用）")
+    ap.add_argument("--ticks-only", action="store_true",
+                    help="跳过日文件，只补 tick（循环刷新用：T+1 日文件一小时重抓一次就够了）")
     args = ap.parse_args()
 
     rebuild_daily = bool(getattr(args, "rebuild_daily", False))
@@ -494,19 +611,22 @@ def main():
     failed = []
 
     days = []
-    if args.retry_failed and old_failed:
+    if args.ticks_only:
+        log("--ticks-only：跳过日文件，只补 tick")
+    elif args.retry_failed and old_failed:
         for s in old_failed:
             try:
-                days.append(dt.date.fromisoformat(s))
+                d = dt.date.fromisoformat(s)
             except ValueError:
-                pass
+                continue
+            if d != today:                 # 当天由 tick 全量提供，不走日文件
+                days.append(d)
+        days.sort()
         log("只补失败日期：%d 天" % len(days))
     else:
-        d = start
-        while d <= today:
-            days.append(d)
-            d += dt.timedelta(days=1)
-        days = expand_days(days, old_failed, today)
+        days = day_plan(today, days=args.days, failed=old_failed)
+        log("日文件计划：%d 天（%s → %s，当天由 tick 提供）" % (
+            len(days), str(days[0]) if days else "-", str(days[-1]) if days else "-"))
 
     # 并发 4：串行 100 天要 20 分钟以上（实测超时）。并发过高会丢连接，4 是平衡点，
     # 单日内部仍有 4 次重试兜底。
@@ -546,34 +666,43 @@ def main():
         dup_total += du
         rows.extend(c)
 
-    if not rows:
-        log("本次没抓到任何数据，保留旧文件不动")
-        return 1
-
     rows.sort()
 
-    # T+0 补根：上游 BID_candles_min_1 是 **T+1 全量生成**，当天文件恒为空，
-    # 结构上最多滞后 24 小时（平均 12 小时）。这里用小时 tick 把「日文件末根
-    # 之后」补到现在（不含当前未收的小时），滞后压到 ≤1 小时。
-    # tick 不可用时静默跳过，只是退回原来的 T+1 —— 不能让补根失败拖垮整包。
-    tst = {"hours": 0, "ok": 0, "empty": 0, "fail": 0, "bars": 0, "dropped": 0}
+    # T+0 补根（v7.11 重构）：tick 在窗口内优先，日文件负责更早的历史。
+    #
+    # 旧口径只补「日文件末根之后」，补不到日文件中部的洞；当天日文件本身又
+    # 是残片（不是空，是断）。两件事叠起来的结果就是：运行成功、数据还停在
+    # 十几小时前。现在把整个 lookback 窗口交给 tick，日文件只在窗口外兜底。
+    # tick 全挂时静默退回日文件 —— 补根失败不能拖垮整包。
+    tst = {"hours": 0, "ok": 0, "empty": 0, "fail": 0,
+           "bars": 0, "dropped": 0, "holes": 0}
     if not args.no_ticks:
         now_ts = int(time.time())
-        base = rows[-1][0]
+        base = rows[-1][0] if rows else 0
         prev_1h = old.get("1h") or []
         if prev_1h:
-            # 上次已用 tick 补到的位置：不必重拉，否则每次都要从日文件末根
-            # 补起，产物停两天就撞上 max_hours 上限、永远补不满。
-            base = max(base, int(prev_1h[-1][0]) // 1000)
-        trs, got = fetch_recent_ticks(base, now=now_ts)
+            # 上次已补到的位置：不必重拉，否则每次都从日文件末根补起。
+            # 未来时间戳的根不算（上游错数据会把窗口推到明天，直接补空）。
+            pt = int(prev_1h[-1][0]) // 1000
+            if pt <= now_ts:
+                base = max(base, pt)
+        hrs = tick_window(base, now_ts)
+        trs, got = fetch_recent_ticks(hours=hrs, workers=6)
         tst.update(got)
-        rows, dropped = stitch_rows_checked(rows, trs)
-        tst["bars"] = len(trs)
-        tst["dropped"] = dropped
-        if got["hours"]:
-            log("T+0 补根：%d 小时（ok=%d 空=%d 失败=%d）→ %d 根分钟线%s" % (
-                got["hours"], got["ok"], got["empty"], got["fail"], len(trs),
-                "，丢弃 %d 段（价差异常）" % dropped if dropped else ""))
+        if trs:
+            rows, mst = merge_sources(rows, trs, win_from=hrs[0])
+            tst["bars"] = mst["tick"]
+            tst["dropped"] = mst["dropped"]
+            tst["holes"] = mst["holes"]
+        if hrs:
+            log("T+0 补根：%d 小时（ok=%d 空=%d 失败=%d）→ 采用 %d 根分钟线，"
+                "补洞 %d 处，丢弃 %d 小时" % (
+                    got["hours"], got["ok"], got["empty"], got["fail"],
+                    tst["bars"], tst["holes"], tst["dropped"]))
+
+    if not rows:
+        log("本次既没有日文件也没有 tick，保留旧文件不动")
+        return 1
 
     kl, stats = {}, {}
 
@@ -623,13 +752,17 @@ def main():
                       "first": bars[0][0] if bars else None,
                       "last": bars[-1][0] if bars else None}
 
-    if args.retry_failed and old_window:
-        # 补漏只跑几天，不能把 150 天的统计覆盖成「2 天成功」——
+    if (args.retry_failed or args.ticks_only) and old_window:
+        # 补漏/纯 tick 轮只动最近一小段，不能把 150 天的统计覆盖成「0 天成功」——
         # 那会让 window 看起来像刚建库，也看不出历史回填是否完整。
         win = dict(old_window)
-        win["failed"] = failed[:20]
-        win["failed_n"] = len(failed)
-        win["retried_at"] = dt.datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if failed:
+            win["failed"] = failed[:20]
+            win["failed_n"] = len(failed)
+        win["ticks"] = tst
+        win["ticks_at"] = dt.datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if args.retry_failed:
+            win["retried_at"] = win["ticks_at"]
     else:
         win = {"from": str(min(days) if days else start),
                "to": str(max(days) if days else today),
