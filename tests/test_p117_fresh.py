@@ -344,3 +344,66 @@ def test_t262_fresh_data_stays_quiet(make_env):
     assert info["missingN"] == 0, info
     assert "方向按参考看" not in page.inner_text("#reasons")
     assert "缺 " not in (page.text_content("#klSrcNote") or "")
+
+
+# ---------------- --ticks-only 是循环里的主路径，不能只测首轮 ----------------
+
+
+def test_t263_ticks_only_keeps_history(tmp_path, monkeypatch):
+    """--ticks-only：不抓日文件，但历史一根都不能丢。
+
+    循环里 6 轮有 5 轮走这条路径。若 `days=[]` 让 1d/1w 被清空，
+    产物会从 600 根日线掉成 1 根，页面通道与周线背景当场报废——
+    而且这种损坏是「安静的」，不会报错。
+    """
+    import json
+    import sys
+
+    now = int(time.time())
+    end1h = now - now % 3600
+
+    def series(n, step, end_sec, base=3900.0):
+        out = []
+        for i in range(n):
+            t = (end_sec - (n - 1 - i) * step) * 1000
+            out.append([t, "%.2f" % base, "%.2f" % (base + 1),
+                        "%.2f" % (base - 1), "%.2f" % base, "1"])
+        return out
+
+    old = {
+        "updated": (end1h - 3600) * 1000,
+        "src": "dukascopy", "symbol": "XAUUSD", "price_type": "bid",
+        "window": {"from": "2026-06-12", "to": "2026-11-12", "days_ok": 3,
+                   "days_empty": 0, "failed_n": 0, "failed": []},
+        "sanitized": {"synthetic": 0, "dup": 0},
+        "stats": {}, "gaps": {},
+        # 旧末根停在「上上个小时」：tick 窗口补最近一个已收小时，正好接在它后面。
+        # （取 end1h−3600 会与 tick 的 03:00 那根重叠，长度不增，测不出推进。）
+        "kl": {"1h": series(100, 3600, end1h - 2 * 3600),
+               "4h": series(40, 4 * 3600, end1h - 2 * 3600),
+               "1d": series(60, 24 * 3600, end1h - 2 * 3600),
+               "1w": series(10, 7 * 24 * 3600, end1h - 2 * 3600)},
+    }
+    p = tmp_path / "klines.json"
+    p.write_text(json.dumps(old), encoding="utf-8")
+
+    def fake_ticks(**kw):
+        h = end1h - 3600
+        rows = [(h + m * 60, 3_900_000, 3_901_000, 3_899_000, 3_900_000, 1.0)
+                for m in range(60)]
+        return rows, {"hours": 1, "ok": 1, "empty": 0, "fail": 0, "fail_hours": []}
+
+    monkeypatch.setattr(F, "OUT", str(p))
+    monkeypatch.setattr(F, "fetch_recent_ticks", fake_ticks)
+    monkeypatch.setattr(sys, "argv", ["fetch_xau.py", "--ticks-only"])
+
+    assert F.main() == 0, "ticks-only 必须正常收尾"
+    doc = json.loads(p.read_text(encoding="utf-8"))
+
+    assert len(doc["kl"]["1h"]) >= 101, "历史 1h 不能被 tick 轮清空"
+    assert len(doc["kl"]["1d"]) >= 60, "日线历史必须保留"
+    assert len(doc["kl"]["1w"]) >= 10, "周线历史必须保留"
+    assert doc["kl"]["1h"][-1][0] == (end1h - 3600) * 1000, "末根应推进到最近一个已收小时"
+    # window 的「几天成功」不能被这一轮覆盖成 0
+    assert doc["window"]["days_ok"] == 3, doc["window"]
+    assert doc["window"]["ticks"]["ok"] == 1

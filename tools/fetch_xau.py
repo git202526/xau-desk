@@ -728,14 +728,16 @@ def main():
         kl[per] = bars
 
     # 日线：本窗口分钟聚合 + 年度日线文件（3 个请求换 3 年，周线与回测靠它）
+    # --ticks-only 时不重抓年度日线：它一天只变一次，循环里每 50 分钟拉 3 个文件是纯浪费。
     daily = aggregate(rows, "1d")
     hist = []
-    for y in (today.year - 2, today.year - 1, today.year):
-        got = fetch_year_daily(y)
-        if got:
-            c, _s, _d = clean(got)
-            hist.extend(c)
-            log("  年度日线 %d：%d 条（清洗后 %d）" % (y, len(got), len(c)))
+    if not args.ticks_only:
+        for y in (today.year - 2, today.year - 1, today.year):
+            got = fetch_year_daily(y)
+            if got:
+                c, _s, _d = clean(got)
+                hist.extend(c)
+                log("  年度日线 %d：%d 条（清洗后 %d）" % (y, len(got), len(c)))
     if hist:
         hist_bars = aggregate(hist, "1d")
         daily = merge_old(hist_bars, daily)          # 同 t 以分钟聚合为准（更细）
