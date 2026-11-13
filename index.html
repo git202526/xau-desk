@@ -377,8 +377,16 @@ body.tab-ov .tpx{display:none}
 .btdist .up i{background:var(--up)}
 .btdist .rg i{background:var(--tx3)}
 .btdist .dn i{background:var(--dn)}
-.btsw{margin-top:11px}
-.btsw .r{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid rgba(255,255,255,.05);font-size:11.5px;color:var(--tx2)}
+/* 「当前方向 · 自何时起」（v7.12.1）：切换列表只列转折点，最新那条可能是十几个
+   小时前 —— 读者没法从「11-12 00:00 震荡→下行」判断现在到底还是不是下行。
+   这一行把「现在什么状态、已经持续多久」直接写死，不用推断。 */
+.btcur{margin-top:11px;padding:7px 9px;border-radius:9px;background:rgba(101,121,147,.11);
+  font-size:11.5px;color:var(--tx2);line-height:1.55}
+.btcur b{font-weight:650}
+.btcur b.up{color:var(--up)}
+.btcur b.dn{color:var(--dn)}
+.btcur b.rg{color:var(--tx2)}
+.btsw{margin-top:11px}.btsw .r{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid rgba(255,255,255,.05);font-size:11.5px;color:var(--tx2)}
 .btsw .r:first-child{border-top:none}
 .btsw .r em{font-style:normal;color:var(--tx);font-weight:600}
 .btsw .more{width:100%;margin-top:6px;background:none;border:1px solid var(--line);color:var(--tx2);border-radius:9px;min-height:36px;font-size:11.5px;font-family:inherit}
@@ -1205,6 +1213,7 @@ body.tab-ov .tpx{display:none}
       <div class="btdrag" id="btDrag" hidden>← 左右拖动查看更早</div>
       <div class="btpick" id="btPick" hidden></div>
       <div class="btdist" id="btDist"></div>
+      <div class="btcur" id="btCur"></div>
       <div class="btsw" id="btSw"></div>
       <div class="btnote" id="btNote"></div>
     </div>
@@ -3283,6 +3292,7 @@ function renderBt(){
       + bars.length + " 根。</div>";
     dist.innerHTML = "";
     sw.innerHTML = "";
+    if($("btCur")) $("btCur").innerHTML = "";
     note.textContent = "";
     if(pkEl) pkEl.hidden = true;
     var dg0 = $("btDrag");
@@ -3334,6 +3344,25 @@ function renderBt(){
     '<span class="up"><i></i>上行 <b>' + stat.count.up + "</b> " + unit + " · " + stat.pct.up + "%</span>" +
     '<span class="rg"><i></i>震荡 <b>' + stat.count.rg + "</b> " + unit + " · " + stat.pct.rg + "%</span>" +
     '<span class="dn"><i></i>下行 <b>' + stat.count.dn + "</b> " + unit + " · " + stat.pct.dn + "%</span>";
+
+  /* 「当前 · 自何时起」（v7.12.1）。切换列表只列转折点，最新那条可能是十几小时前，
+     读者没法从「11-12 00:00 震荡→下行」判断现在还是不是下行 —— 于是觉得「不是最新的」。
+     这一行把当前状态、起点、已持续几根直接写出来，不用推断。 */
+  var curEl = $("btCur");
+  if(curEl){
+    var lastP = seq[seq.length - 1];
+    var since = seq[0].t, runN = seq.length;
+    for(var ci = seq.length - 1; ci > 0; ci--){
+      if(seq[ci - 1].state !== lastP.state){
+        since = seq[ci].t;
+        runN = seq.length - ci;
+        break;
+      }
+    }
+    curEl.innerHTML = '当前 <b class="' + lastP.state + '">' + btName(lastP.state) + "</b>" +
+      " · 自 " + btShort(since, k) + " 起 · 已 " + runN + " " + unit +
+      " · 命中 " + lastP.hits + "/5";
+  }
 
   if(!stat.switches.length){
     sw.innerHTML = '<div class="r"><span>区间内方向未发生切换</span></div>';

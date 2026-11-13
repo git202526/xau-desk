@@ -213,7 +213,14 @@ def test_av11_gram_scales_with_total(make_env):
     p = env.page
     pr0 = [r["price"] for r in rows(p)]
     plan0 = p.evaluate("() => window.__xt.planOf()")
-    p.evaluate("() => { window.__xt.state().TOTAL = 400; window.__xt.compute(); window.__xt.refreshAll(); }")
+    # 改 S.TOTAL 不够：配置归一化（S.TOTAL = S.cfg.TOTAL）在云端数据落地后会再跑一次，
+    # 并行下页面更慢，这一步恰好落在断言之后，把 400 改回 200 —— 实测 3 次红 2 次。
+    # 线上不会出现这种分裂（用户改 TOTAL 会连 cfg 一起存），所以是夹具要有意保持同源。
+    p.evaluate("""() => {
+        const s = window.__xt.state();
+        s.TOTAL = 400; s.cfg.TOTAL = 400;
+        window.__xt.compute(); window.__xt.refreshAll();
+    }""")
     # 等重算落地：固定 280ms 在并行下会被 CPU 争抢拖穿，导致读到旧计划
     p.wait_for_function("x => Math.abs(window.__xt.planOf()[0] - x) < 1e-6",
                         arg=plan0[0] * 2, timeout=4000)

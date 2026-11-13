@@ -334,3 +334,30 @@ def test_t293_card_stamp_not_clipped(make_env):
         })
         .filter(x => x.why || (x.sw > x.cw + 1))""")
     assert not bad, "卡片末根行被裁：%s" % bad
+
+
+def test_t294_bt_shows_current_state_and_since(make_env):
+    """必须单独写一行「当前 下行 · 自 11-12 00:00 起」。
+
+    切换列表只列**转折点**，最新那条可能是十几小时前的。4H 从 11-12 00:00
+    转下行之后连着 6 根都是下行 —— 列表停在 11-12 是对的，但读者没法从这一条
+    判断「现在还是不是下行」，于是得出「回溯不是最新的」。
+
+    「当前 + 起点 + 已持续几根」把这件事写死，不用推断。
+    """
+    env = make_env(xau=_doc_wave(int(time.time() * 1000) - 11 * HOUR_MS))
+    page = _open(env)
+    page.evaluate("() => window.__xt.setBtPeriod('4h')")
+    page.wait_for_timeout(400)
+
+    got = page.evaluate("""() => {
+        const last = window.__xt.btSeq('4h').slice(-1)[0];
+        return { txt: (document.querySelector('#btCur') || {}).textContent || '',
+                 state: last.state };
+    }""")
+    txt = got["txt"]
+    assert "当前" in txt, txt
+    assert "自" in txt and "起" in txt, txt
+    assert "已" in txt and "根" in txt, txt
+    want = {"up": "上行", "rg": "震荡", "dn": "下行"}[got["state"]]
+    assert want in txt, "当前状态与序列末根不一致：%s vs %s" % (txt, got["state"])
