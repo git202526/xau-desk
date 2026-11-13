@@ -1,0 +1,5 @@
+{
+  "_note": "P118 可选配置。留空即不启用，行为与 v7.11 一致。td_key = Twelve Data 免费 key（https://twelvedata.com/pricing 十秒注册，8 次/分、800 次/天）；hook_token = fine-grained PAT，只勾 Actions: write。两个都是公开文件里的明文：前者最坏是被别人用掉当日额度，后者最坏是被别人戳本仓库的构建，随时在 GitHub 吊销。",
+  "td_key": "",
+  "hook_token": ""
+}

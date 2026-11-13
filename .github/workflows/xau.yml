@@ -39,6 +39,10 @@ on:
         description: "循环轮数（0=只跑一次；默认 10 轮 × 30 分钟 ≈ 5 小时）"
         required: false
         default: "10"
+      relay:
+        description: "结束后自我接力（1=是；需配 secret PAT_DISPATCH。手动验证填 0）"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
@@ -117,3 +121,36 @@ jobs:
             fi
           done
           echo "循环结束，共 $((i - 1)) 轮"
+
+      # v7.12：自我接力。
+      # schedule 会被大量丢弃（实测 5.8–8.8 小时一次），单次长任务只覆盖 5 小时，
+      # 剩下的空窗就是「滞后 11 小时」的来源。这里在结束前再戳自己一次，
+      # 链就不断 —— 前提是配了 PAT_DISPATCH。为什么不能用 GITHUB_TOKEN：
+      # GitHub 明令「GITHUB_TOKEN 触发的 run 不会再创建新 run」（防递归），
+      # 只有 PAT / GitHub App 才能接力。
+      # 想在 24 小时里任意时刻点停：手动跑一次 loop=1、relay=0，链就在这一轮结束。
+      - name: 自我接力（需 PAT_DISPATCH）
+        env:
+          PAT: ${{ secrets.PAT_DISPATCH }}
+          RELAY: ${{ github.event.inputs.relay }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -u
+          if [ -z "${PAT:-}" ]; then
+            echo "未配置 secrets.PAT_DISPATCH，跳过接力（schedule 命中时仍会照常跑）"
+            exit 0
+          fi
+          # 手动 dispatch 默认不接力：验证一次就该停，否则每点一次都挂 5 小时。
+          if [ "${EVENT:-}" != "schedule" ] && [ "${RELAY:-0}" != "1" ]; then
+            echo "手动触发且 relay!=1，不接力"
+            exit 0
+          fi
+          # 留 3 分钟给 runner 收尾，避免接力请求还没发出去就被判超时
+          echo "接力：触发下一轮（relay=1）"
+          code=$(curl -s -o /tmp/relay.txt -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $PAT" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/xau.yml/dispatches" \
+            -d '{"ref":"main","inputs":{"days":"1","loop":"10","relay":"1"}}')
+          echo "dispatch -> $code"
+          cat /tmp/relay.txt || true

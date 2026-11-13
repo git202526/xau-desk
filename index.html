@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- XAU Desk v7.11.0 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.10 P114 事件防呆卡（结构页常驻，四态：正常/日历延迟/前 30 分预警/后 45 分静默；优先级 事件 > 日历不可用 > 无事件，内置 FOMC/非农照样报，不因主备日历全挂就静默）+ 箱体卡无形态兜底（有箱体走区间口径「高抛低吸」，无箱体走趋势口径「顺势跟随」，不再只写「未识别到箱体」）+ 宏观卡加一句推演（死区＝平盘震荡 / 方向相反＝拉锯 / 单向＝压制或支撑金银）与独立时间戳行+ 通道图下方结论改 12px 独立成行，主行同步抬到 13px 保住主次 + v7.9.1 P113 宏观新鲜度改按数据日（as_of 自然日差 ≤ 8 天，覆盖周末/长周末/假日与 T-1 滞后；as_of 缺失才退回抓取时刻 90 分钟兜底；单边过期只把那边写 --，状态「数据不完整」；页脚「数据截至」改数据日收盘，note 与抓取时刻移入 title）+ 结构摘要首行不再 ellipsis 截断，改自然换行并去掉「通道为主 通道」重复 + v7.9 P112 宏观定价卡（两列 10Y 实际利率 / 美元指数，数值固定 18px 白字，颜色只表达对金影响，四态 badge；单边缺失降级「数据不完整」而非整卡清空；死区 |Δbp|≤2.00、|Δ%|≤0.10 算平盘）+ 结构摘要固定化（首行主导/仲裁/ADX 单行省略，次行宏观 badge）+ #chLine 以 dataset.raw 为底防套娃 + 箱体结构卡（六项读数 / 触碰容差 min(0.25 ATR, 箱宽 8%) / 真·假突破按 0.5 ATR 判 / 形态推演 top2 且未破颈线优先 / 现价 20% 贴边判定 / 4 星窗口前 30 分后 45 分冻结触碰与突破）+ 修 boxDetect 真突破死代码（箱沿含当根最高价，c>上沿+0.5ATR 永不成立） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）+ v7.10.1 P115 判定链现价化（价格条件用现货价 / refreshPrice 现货主源自己推进末根 / 周线纳入推进 / 收盘根与未来根一律不改）+ 去 PAXG K 线兜底（产物不可用停算写「数据延迟」，只保留报价桥接让价格数字跳细；删 API_KLINE·fetchPaxgKlines·mapKline·mergeBars·KL_INC·代币 scale）+ 周期卡「盘中/滞后」角标与依据区「盘中口径 · 收盘口径 n/5」双行对照+ xauStale 按末根时间判落后（不再只看拉取时间）+ K 线源纳入 429 退避+ 修 refreshData 失败时把首屏报价一起短路（产物 404 时 #pNow 曾一直显示 --） + v7.11 P117 数据新鲜度（当天日文件是「残片」不是「空」→ 改由小时 tick 全量拼当天；tick 在 36h 窗口内优先、同时补日文件中部的洞；连续性校验下沉到小时段，只丢坏的那一小时而不是整晚 240 根；workflow 改成长任务循环 6 轮 × 50 分钟，绕开 schedule 被丢弃；滞后文案补「缺 N 根」，缺 ≥2 根时方向降级为参考） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
+<!-- XAU Desk v7.12.0 · 单引擎 + P6 循环档 + P7 深档兜底 + P8 配额下沉 + P9 档位可配（6–10 档、起止跌幅、区间模式、均价锚定档位、预警档位可选）+ P10 双口径均价（锚定均价 1–k 档 / 选定档位试算均价 全 n 档）+ P11 权重合计提示（超 100% 标橙 / 一键归一化）+ P12 下沉标签标克重 + P13 「估」字角标（成本为估算的旧标记）+ P14 设置页三卡分组 / 速览条 / 云端与维护折叠 + P15 计划模式可记账 / 账本模式可下沉 + P16 减仓摊派（卖出按各档净持占比摊到标记，溢出档不接收下沉）+ P16a 档位三态（已买 / 已买满 / 已买超）+ P16b 仓位进度卡（持仓 / 上限 + 五阶渐进 20 段）+ P16 通道 1 小时（1d/4h 各 90 根、1h 180 根）+ P17 设置页收尾（未保存浮条 / 脏值描边 / 档数归位）+ P19-1 判定回溯（方向色带 / 分布 / 切换记录）+ P22 阶梯头去重 / 重操作按钮实体化 / 仓位色阶去绿 + P20 单模式合一 + P21 摊派回滚（卖出记录带分摊快照，改克重/删记录按快照精确退回）+ P18 执行复盘（逐档计划价 vs 成交均价、四态执行、每克拉低）+ P23 文档一致性（README 补齐五期 / 术语表 / 约束文档 / 文档测试）+ P26 测试分层（冒烟 22 条 26 秒 / 全量 816 条 / strict-markers）+ P24 数据版本（schemaVersion / 迁移入口收敛为 1 处）+ P25 回溯逐条依据（点某天看五条条件各自的数值）+ P27 标记双币口径（克重/美元价/实付人民币三事实分离，人民币为唯一统计口径） + P30 档位体检（满仓成本 / 逐档累计均价）+ v6.49 策略回测整块下线（方法论有前视偏差，结论恒为跑输一次性；保留 P30 的两个静态指标）+ v6.50 四个体验修复（报价常驻涨跌色 / 判定回溯 chips 统一 / 未保存误报）+ v6.51 克重去尾零（最多 4 位，8.4570→8.457、8.0000→8）+ 建仓角标复原为常驻提醒+ P32 多账户仓位（账本记录带账户 / 持仓页按账户筛选 / 回本价 = 均价 + 加点 / 账户卡片与账户管理）+ J1 行情健壮性（定时器隐藏暂停 / 429 分级退避 / gold-api.cn 备源 / 超时）+ J3 金十中转（日历经 Actions 落盘 / K 线降频增量 / 未收盘逐笔推进）+ J4 收尾（快讯资讯下线 / 金十 K 线转常态校验 / 日历降级两级提示 / 失败请求也计额度）+ v6.55 K 线上限上调与四周期缓存键修复 + v6.56 按官方额度重定软上限 + v6.57 金十接入文档对齐与实测 + v6.58 金十只做日历 + v6.59 J 轮自检（K 线缺口判据 / 日历定时刷新 / 备源错误透传 / 删死代码）+ v6.60 成本下方历史计划位过滤 + v6.61 止盈阶梯分配与到价对账（计划量不超持仓 / 12% 保底给盈利位 / 聚类均价与簇跨度）+ v6.62 清仓均价卡与试算盈亏卡 / 账户改名与改单归属不再被云端合并盖回 + v6.63 到价待核销并入总账 / 账户区去重 / 盈亏试算卡 / 底仓输入前导零 + v6.64 已回本后显示每克盈利而不是「已过」+ v6.65 盈利测算独立成卡 / 六档两行三列 / 命中档红底闪动 + P33 多周期共振引擎（v7.0：5 条 4 维一维一票 / 日线定方向·周线定背景·4h 定节奏·1h 只做触发 / 置信拆方向与强度 / 结构六态 / 预热 209→60）+ v7.1 收尾（震荡卡按多数侧写 n/5 / 依据区取侧与回溯统一 / 震荡说明行）+ v7.3 对齐目标修复（按钮常驻 / 反解改用名义目标对准锚定档位价 / 失败按原因给具体提示 / 锚定均价与全档均价两个口径保留命中与差额）+ v7.4 对齐目标改以「前 1..k 档买完的锚定均价」为第一对象 —— 新增 frontCenter(w,k) 反解重心，档距 d=(p1−T)/frontCenter，第 k 档单档价与全档均价只作试算；均价卡主命中行、meta.hit、设置页锚定说明、对齐 toast 同步改口径；「目标总克重」标签行右侧新增「不设仓位上限」开关（cfg.noCap），仓位不足时开启可跳过已持仓折算、让档距仍按名义目标反解，连带同步仓位进度文案与说明行 + v7.4.1 建仓计划按剩余可用仓位分配：建仓各档计划克重不再写死按目标总克重分配，新增 planBudget() = 总仓上限 − 未标记档位的持仓（已分配到档位的持仓由各档 bought 自然扣减 pending，不重复扣预算；noCap 开启时预算回到 TOTAL），planBase / planSummary / 设置页权重草稿提示三处同源同步，仓位进度与超上限判定仍按 totalGrams() 口径 + v7.4.2 终止跌幅升为全局上限（§3.3.1）：gearBase 各模式算出 d₀ 后统一 min(d₀, capD)，capD=(终止−起始)/100×H/(n−1)，只压不拉——未越界时 min 取回 d₀、档位价零改动，区间模式 d₀≡capD 故 spanRange 不动；越界必须说明并给「目标改为可达值」「放开终止」两条互不串改的路径（α 先封顶时仍给放开终止，因果链写全：需 α 多少→按 3.5 最深多少→终止再收到多少→放开后锚定均价仍差多少）；档位形态卡底部加常驻「最深档·终止·余量」摘要；α 低于下限 0.6 不拉深、只说明；夹取说明改红字、两个上限拆开说、设置页终止跌幅文案与实现对齐 + v7.5 事件雷达改为「4 星以上 + 预期差判定」：只留 ≥4 星（FF High=4 / 金十 4–5），窗口为未来 7 天 + 近 3 天已公布；新增 EV_RULES 指标方向表（dir=数据超预期时对金的方向，失业率/初请取 +1，其余 -1），判定基准是「公布值 vs 预期值」而非绝对值（相对 1% 容差才算超/不及），无公布值一律「待定」+ 双情景、绝不拿前值冒充；地缘/流动性/央行购金/大选走 sp 分支（地缘拆避险脉冲与油价→通胀→利率两条链并说明 B 链权重更高）；表格 11 列 + 传导逻辑独占第二行（桌面 11 列网格吸顶表头，手机 4 列紧凑卡片靠 data-l 标签），表后输出 Top3 观察预案、双情景预案与 10 项自检清单；金十源的 av（公布值）此前在 loadCalendar 里被丢弃，本次透传到判定层  + v7.6 P2–P5（P2 结构六档仲裁与六形态标签 / P3 宏观 TIPS+DXY 引擎 / P4 宏观卡与三处文字融合 / P5 事件窗口防呆 + 雷达自检按 kind 分流并补齐地缘词表） + v7.6（P1）数据源切回真实 XAU/USD：Actions 抓 Dukascopy 原始分钟线（含年度日线文件补深度）→ L1 清洗剔除休市填充根 → 聚合 1h/4h/1d/1w → 落 xau/klines.json 同源读取；新增 marketOpenAt 按纽约时区判周末与每日结算停盘，缺口分 session/missing，通道图按断层分段不连线（X 轴仍是等距索引，不改通道回归基准）；不可用时整体降级 PAXG 并在通道标题旁标注「K线 PAXG 代用 · 非现货」+ v7.7 P110 卖出记账（持仓汇总拆「买入 / 卖出」双按钮 / 记账表单顶部买卖分段且编辑态禁切 / 「买入记录」改名「交易记录」并加全部·买入·卖出筛选 / 档位面板卖出态直达记账并预填该档净持 / allotLine 区分「无需摊入」与「分摊快照上线前的老记录」；结算口径一行未改：avg 分母恒为买入总克、卖出不改均价、realized = 卖出金额 − 卖出克 × avg） + v7.10 P114 事件防呆卡（结构页常驻，四态：正常/日历延迟/前 30 分预警/后 45 分静默；优先级 事件 > 日历不可用 > 无事件，内置 FOMC/非农照样报，不因主备日历全挂就静默）+ 箱体卡无形态兜底（有箱体走区间口径「高抛低吸」，无箱体走趋势口径「顺势跟随」，不再只写「未识别到箱体」）+ 宏观卡加一句推演（死区＝平盘震荡 / 方向相反＝拉锯 / 单向＝压制或支撑金银）与独立时间戳行+ 通道图下方结论改 12px 独立成行，主行同步抬到 13px 保住主次 + v7.9.1 P113 宏观新鲜度改按数据日（as_of 自然日差 ≤ 8 天，覆盖周末/长周末/假日与 T-1 滞后；as_of 缺失才退回抓取时刻 90 分钟兜底；单边过期只把那边写 --，状态「数据不完整」；页脚「数据截至」改数据日收盘，note 与抓取时刻移入 title）+ 结构摘要首行不再 ellipsis 截断，改自然换行并去掉「通道为主 通道」重复 + v7.9 P112 宏观定价卡（两列 10Y 实际利率 / 美元指数，数值固定 18px 白字，颜色只表达对金影响，四态 badge；单边缺失降级「数据不完整」而非整卡清空；死区 |Δbp|≤2.00、|Δ%|≤0.10 算平盘）+ 结构摘要固定化（首行主导/仲裁/ADX 单行省略，次行宏观 badge）+ #chLine 以 dataset.raw 为底防套娃 + 箱体结构卡（六项读数 / 触碰容差 min(0.25 ATR, 箱宽 8%) / 真·假突破按 0.5 ATR 判 / 形态推演 top2 且未破颈线优先 / 现价 20% 贴边判定 / 4 星窗口前 30 分后 45 分冻结触碰与突破）+ 修 boxDetect 真突破死代码（箱沿含当根最高价，c>上沿+0.5ATR 永不成立） + v7.8 P111 多周期依据可点开（四张周期卡点按切换下方判定依据、选中态金边加圆点、键盘 Enter/Space 可达、缺数据周期如实说明、选择只存内存刷新回日线）+ 判定链三修（二对一否决后 1 小时不再写「触发」、同向分母改用实际投票数 valid、日线缺数据时旁注置空）+ 未保存浮条改按「用户是否真的编辑过」判定（派生显示不再误报，保存后清空 touched 表，持仓变化时同步底仓显示值）+ v7.10.1 P115 判定链现价化（价格条件用现货价 / refreshPrice 现货主源自己推进末根 / 周线纳入推进 / 收盘根与未来根一律不改）+ 去 PAXG K 线兜底（产物不可用停算写「数据延迟」，只保留报价桥接让价格数字跳细；删 API_KLINE·fetchPaxgKlines·mapKline·mergeBars·KL_INC·代币 scale）+ 周期卡「盘中/滞后」角标与依据区「盘中口径 · 收盘口径 n/5」双行对照+ xauStale 按末根时间判落后（不再只看拉取时间）+ K 线源纳入 429 退避+ 修 refreshData 失败时把首屏报价一起短路（产物 404 时 #pNow 曾一直显示 --） + v7.12 P118 页面直连补数据（产物落后时从 Twelve Data 直取 1h/4h/1d，只填不覆盖地并进序列，绕开 Actions 的 schedule 丢弃；key 走 TD_KEY 或 ?tdk=，留空即不启用）+ 产物落后 ≥90 分钟主动催一次 workflow_dispatch（30 分钟冷却 + 跨标签锁，token 只勾 Actions:write）+ workflow 自我接力（配 secret PAT_DISPATCH 后一轮接一轮，GITHUB_TOKEN 触发的 run 不会再建 run，只有 PAT 能接） + v7.11 P117 数据新鲜度（当天日文件是「残片」不是「空」→ 改由小时 tick 全量拼当天；tick 在 36h 窗口内优先、同时补日文件中部的洞；连续性校验下沉到小时段，只丢坏的那一小时而不是整晚 240 根；workflow 改成长任务循环 6 轮 × 50 分钟，绕开 schedule 被丢弃；滞后文案补「缺 N 根」，缺 ≥2 根时方向降级为参考） · 移动优先 · 数据以 GitHub 私有仓库为唯一来源，浏览器不保存业务数据 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -1089,7 +1089,7 @@ body.tab-ov .tpx{display:none}
       </svg>
       <div>
         <h1>XAU Desk</h1>
-        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.11.0 · 11/13</span></div>
+        <div class="sub"><span class="sdesc">伦敦金行情智能分析 · </span><span id="verTag">v7.12.0 · 11/13</span></div>
       </div>
     </div>
     <div class="stat">
@@ -1663,6 +1663,16 @@ var API_TICK  = "https://data-api.binance.vision/api/v3/ticker/price?symbol=PAXG
 var JN_DIR = "jin10/";
 var JN_TTL = { cal: 1200000 };
 var API_FX = "https://open.er-api.com/v6/latest/USD";
+/* P118：可选的直连补数据（Twelve Data 免费版：8 次/分、800 次/天）。
+   留空 = 不启用 —— 产物仍是唯一数据源，行为与 v7.11 完全一致。
+   填了以后，产物落后时页面自己拉 1h/4h/1d 补齐，页面开着数据就是新的。
+   也可以临时用 ?tdk=xxx 覆盖（验证用，不落文件）。 */
+var TD_KEY = "";
+/* P118：可选的 Actions 触发 token（fine-grained PAT，**只勾 Actions: write**）。
+   留空 = 不启用。产物落后 90 分钟时页面会触发一次 workflow_dispatch，
+   让后台把历史补回来。这个 token 读不到代码、写不了代码、动不了 secret，
+   最坏影响是别人也能戳这个仓库的构建 —— 不想要了随时在 GitHub 吊销。 */
+var HOOK_TOKEN = "";
 var OZ_PER_G = 31.1035;   /* 1 金衡盎司 = 31.1035 克 */
 var OZ = OZ_PER_G;
 var TICK_MS = 15000;
@@ -1981,6 +1991,9 @@ function applyXauDoc(doc, now){
   V76.doc = doc; V76.at = now; V76.src = "dukascopy"; V76.err = null;
   srcOk("kline");
   V76.synthetic = syn; V76.dup = dup;
+  /* 产物重拉会整段替换 S.kl。此时 TD 缓存里的根必须重放，否则产物一旧，
+     页面就会「新鲜 → 滞后 → 新鲜」来回跳（实测 60 秒一次）。 */
+  tdReapply();
   return { got:put, skipped:PERIODS.length - put, failed:0, usable:PERIODS.length };
 }
 /* 产物本身是否落后：末根时间 + 一个周期 < 现在。
@@ -2030,6 +2043,203 @@ function fetchKlines(force){
   /* v7.10.1：只剩 Dukascopy 一份。XAU 产物不可用就返回 null（停算 + 数据延迟），
      不再静默退回 PAXG —— 代币是 24/7 的，用它补出来的通道和 ADX 不是伦敦金的形态。 */
   return fetchXauKlines(force);
+}
+
+/* ===== P118：页面直连补数据 + 主动催一次 =====
+   为什么要有这一段：产物由 GitHub Actions 生成，而 Actions 对公共仓库的
+   schedule 触发会被大量丢弃（实测间隔 5.8/8.8/7.2/6.5/7.8 小时）。管线侧已经
+   把单次触发做成长任务循环（10 轮 × 30 分钟），但只能覆盖 5 小时——空窗期没人跑，
+   产物就停在那里，页面显示「滞后 11 小时」。管线已经到极限，页面这一层不能再等。
+
+   两件事，都不改判定链（拿到的根直接并进 S.kl，之后走同一套 compute）：
+     1) 直连拿 1h/4h/1d（Twelve Data），只填不覆盖；
+     2) 产物落后 ≥90 分钟时触发一次 Actions（30 分钟冷却，跨标签共用一把锁）。
+   两个开关都靠配置位，留空即整块空转 —— 默认部署与 v7.11 行为一致。 */
+var TD = {
+  key:"", sym:"XAU/USD", base:"https://api.twelvedata.com/time_series",
+  ks:["1h","4h","1d"], iv:{"1h":"1h","4h":"4h","1d":"1day"},
+  n:{"1h":200,"4h":120,"1d":120},
+  minGap:600000,          /* 10 分钟最多一次：免费额度 800/天，不能当轮询用 */
+  at:0, ok:0, fail:0, req:0, err:null, added:{},
+  /* 最近一次拿到的根。产物每次重拉都会整段替换 S.kl（applyXauDoc），
+     而产物本身还是旧的 —— 不缓存的话页面会每 60 秒在「新鲜」和「滞后 11 小时」
+     之间来回跳。缓存只用于重放，不占额度。 */
+  cache:{}
+};
+var HOOK = {
+  token:"", repo:"git202526/xau-desk", wf:"xau.yml", ref:"main",
+  afterMs:5400000,        /* 产物落后 ≥90 分钟才催（再短就是替长任务打架） */
+  coolMs:1800000,         /* 同一浏览器 30 分钟一次，跨标签共用 */
+  sent:0, err:null, lockKey:"wb_xau_hook_at"
+};
+function qparam(n){
+  var m = new RegExp("[?&]" + n + "=([^&]*)").exec(location.search);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+TD.key = TD_KEY || qparam("tdk");
+HOOK.token = HOOK_TOKEN || qparam("hkt");
+
+/* TD 的时间是「交易所本地时间」字符串，请求里带了 timezone=UTC 所以直接用。
+   日线只给 "2026-11-13"，补 00:00:00 再解析，否则 Safari 会当本地时区。 */
+function tdTimeOf(s){
+  if(!s) return 0;
+  var str = String(s).trim();
+  if(str.length <= 10) str += " 00:00:00";
+  var t = Date.parse(str.replace(" ", "T") + "Z");
+  return isFinite(t) ? t : 0;
+}
+/* 解析成页面统一的 bar 对象。停盘那一小时 TD 会给空字符串——必须跳过，
+   用 0 填会把均线整条拽下去。同 t 取后出现的（values 里同一根不会重复，防御）。 */
+function tdParse(json, k){
+  if(!json || json.status === "error") return [];
+  var vals = json.values || [];
+  var map = {}, out = [];
+  for(var i = 0; i < vals.length; i++){
+    var v = vals[i];
+    if(!v) continue;
+    var o = parseFloat(v.open), h = parseFloat(v.high),
+        l = parseFloat(v.low), c = parseFloat(v.close);
+    if(!(o > 0 && h > 0 && l > 0 && c > 0)) continue;
+    var t = tdTimeOf(v.datetime);
+    if(!t) continue;
+    map[t] = { t:t, o:o, h:h, l:l, c:c, v:(parseFloat(v.volume) || 0) };
+  }
+  Object.keys(map).forEach(function(t){ out.push(map[t]); });
+  out.sort(function(a, b){ return a.t - b.t; });
+  return out;
+}
+/* 只填不覆盖。TD 与 Dukascopy 是两路报价（现货/期货、mid/bid），同一根价差能到
+   0.3%；覆盖会让接缝处出现台阶，MA 与 ATR 跟着跳。重叠一律保留产物原值。
+   洞和尾巴都要补 —— 只补尾巴是 v7.11 上线第一次就踩过的坑（5 小时洞在末根之前）。 */
+function tdMerge(k, bars){
+  if(!bars || !bars.length) return 0;
+  var cur = S.kl[k];
+  if(!cur || !cur.length){ S.kl[k] = bars.slice(); return bars.length; }
+  var have = {}, extra = [];
+  cur.forEach(function(b){ have[b.t] = 1; });
+  bars.forEach(function(b){ if(!have[b.t]){ have[b.t] = 1; extra.push(b); } });
+  if(!extra.length) return 0;
+  S.kl[k] = cur.concat(extra).sort(function(a, b){ return a.t - b.t; });
+  return extra.length;
+}
+/* 四周期里最落后的那一个。只看 1h 会让 4H/1D 继续滞后 11 小时，而四张卡都投票。 */
+function tdWorstLag(now){
+  var worst = 0;
+  TD.ks.forEach(function(k){
+    var b = S.kl[k];
+    if(!b || !b.length){ worst = Infinity; return; }
+    var d = now - b[b.length-1].t;
+    if(d > worst) worst = d;
+  });
+  return worst;
+}
+/* at=0 表示「从没拉过」。lag 传数值时用它（单测），否则取四周期最差值。 */
+function tdDue(now, at, lastT){
+  if(!TD.key) return false;
+  now = now || Date.now();
+  at = (at === undefined) ? TD.at : at;
+  if(at && now - at < TD.minGap) return false;
+  var lag = (lastT === undefined || lastT === null) ? tdWorstLag(now) : (now - lastT);
+  if(!isFinite(lag)) return true;          /* 某个周期整段缺失，更该拉 */
+  return lag >= 3600000;
+}
+/* 把缓存里的 TD 根重新并回去。纯本地操作，不花额度。
+   调用点两处：每次 tdSync 拿到新数据后、以及产物重拉覆盖 S.kl 之后。 */
+function tdReapply(){
+  var added = 0;
+  TD.ks.forEach(function(k){
+    var c = TD.cache[k];
+    if(c && c.length){
+      var n = tdMerge(k, c);
+      if(n){ added += n; V76.gaps[k] = v76GapsOf(S.kl[k], k); }
+    }
+  });
+  return added;
+}
+function tdSync(force){
+  var now = Date.now();
+  if(!tdDue(now) && !(force && TD.key)) return Promise.resolve(0);
+  TD.at = now;
+  var jobs = TD.ks.map(function(k){
+    TD.req++;
+    var url = TD.base + "?symbol=" + encodeURIComponent(TD.sym) +
+      "&interval=" + TD.iv[k] + "&outputsize=" + TD.n[k] +
+      "&timezone=UTC&order=ASC&apikey=" + encodeURIComponent(TD.key);
+    return fetchJson(url, 12000).then(function(j){ return { k:k, j:j }; },
+                                      function(e){ TD.err = e; TD.fail++; return null; });
+  });
+  return Promise.all(jobs).then(function(rs){
+    rs.forEach(function(r){
+      if(!r) return;
+      var bars = tdParse(r.j, r.k);
+      if(!bars.length) return;
+      /* 只留最近 300 根：缓存是为了重放最近这段，不是留档 */
+      TD.cache[r.k] = bars.slice(-300);
+      TD.added[r.k] = (TD.added[r.k] || 0) + bars.length;
+      TD.ok++;
+    });
+    var added = tdReapply();      /* 合并与重放走同一条路，口径只有一处 */
+    if(added){ applyScale(); compute(); refreshAll(); }
+    return added;
+  });
+}
+/* 配置落在同源静态文件 xau/config.json 里，换手机换浏览器都不用重填。
+   优先级：URL 参数（验证用）> config.json > 文件顶部常量。
+   没有这个文件时只 404 一次，静默 —— 默认部署就是没有。 */
+var TD_CFG_AT = 0;
+function loadTdCfg(){
+  if(TD_CFG_AT && Date.now() - TD_CFG_AT < 3600000) return Promise.resolve(false);
+  TD_CFG_AT = Date.now();
+  return fetchJson("xau/config.json?t=" + Date.now(), 8000).then(function(c){
+    if(!c) return false;
+    var changed = false;
+    if(!TD.key && c.td_key){ TD.key = String(c.td_key); changed = true; }
+    if(!HOOK.token && c.hook_token){ HOOK.token = String(c.hook_token); changed = true; }
+    /* 配置是启动后才到的：马上补一次，别等下一个 5 分钟 tick */
+    if(changed) tdSync().then(function(){ hookRun(); }, function(){ hookRun(); });
+    return changed;
+  }).catch(function(){ return false; });
+}
+
+/* 1h 末根离现在多久（毫秒）。没有 1h 时退到 4h，都没有算无穷大。 */
+function hookLagMs(now){
+  now = now || Date.now();
+  var b = S.kl["1h"];
+  if(!b || !b.length) b = S.kl["4h"];
+  if(!b || !b.length) return Infinity;
+  return now - b[b.length-1].t;
+}
+function hookOk(now, lagMs, lastAt, hasTok){
+  if(!hasTok) return false;
+  if(!isFinite(lagMs) || lagMs < HOOK.afterMs) return false;
+  return !(lastAt && now - lastAt < HOOK.coolMs);
+}
+function hookLockAt(){
+  try{ return Number(localStorage.getItem(HOOK.lockKey)) || 0; }catch(e){ return 0; }
+}
+function hookSetLock(t){
+  try{ localStorage.setItem(HOOK.lockKey, String(t)); }catch(e){}
+}
+/* 先占锁再发：多标签同时开着也只会有一个请求。失败一律吞掉——
+   用户开页面是来看行情的，不是来看「触发失败」的。 */
+function hookRun(){
+  var now = Date.now();
+  if(!hookOk(now, hookLagMs(now), hookLockAt(), !!HOOK.token)) return false;
+  hookSetLock(now);
+  HOOK.sent++;
+  var url = "https://api.github.com/repos/" + HOOK.repo +
+            "/actions/workflows/" + HOOK.wf + "/dispatches";
+  try{
+    fetch(url, {
+      method:"POST",
+      headers:{ "Authorization":"Bearer " + HOOK.token,
+                "Accept":"application/vnd.github+json",
+                "Content-Type":"application/json" },
+      body: JSON.stringify({ ref:HOOK.ref,
+                             inputs:{ days:"2", loop:"10" } })
+    }).catch(function(e){ HOOK.err = e; });
+  }catch(e){ HOOK.err = e; }
+  return true;
 }
 
 /* 未收盘的 K 线用现货价本地推进：不等下次全量，图上最后一根就能跟着动。
@@ -11491,13 +11701,19 @@ function refreshData(force){
     /* K 线挂了不能连报价一起停：gold-api 是独立源，启动时的首屏价就靠这一次。
        v7.10.1 前有 PAXG 兜底（r.usable 恒 >0）掩盖了这个短路，去掉兜底后
        产物 404 会让 #pNow 一直显示「--」直到 15 秒后的定时器。 */
-    if(!r || !r.usable){ S.fail++; renderChart(); setConn(); refreshPrice(); return; }
-    if(r.got){
-      applyScale();
-      compute();
-      refreshAll();
+    if(!r || !r.usable){
+      S.fail++; renderChart(); setConn(); refreshPrice();
+    }else{
+      if(r.got){
+        applyScale();
+        compute();
+        refreshAll();
+      }
+      refreshPrice();
     }
-    refreshPrice();
+    /* P118：产物落后时直连补 1h/4h/1d，再决定要不要催一次 Actions。
+       两条都在内部判 key/token：未配置时是空操作，行为与 v7.11 完全一致。 */
+    tdSync().then(function(){ hookRun(); }, function(){ hookRun(); });
   });
 }
 
@@ -12477,6 +12693,7 @@ function boot(){
   setSync(ghOn() ? "idle" : "off", "");
   refreshAll();
   refreshData();
+  loadTdCfg();                                 /* P118：可选配置（没文件就静默跳过） */
   if(ghOn()){
     doPull(false).then(function(){
       if(countCfg(S.cfg) === 0) offerLegacy();
@@ -12541,6 +12758,26 @@ if(/[?&]xt=1/.test(location.search)){
     klStale:function(t){ return xauStale(t || Date.now()); },
     /* v7.11：滞后小时数 + 缺根数，页面文案与用例共用一处口径 */
     klLagInfo:function(){ return klLagInfo(); },
+    /* P118：直连补数据与催构建。纯函数出口，单测直接打这里 */
+    v712:{
+      tdParse:tdParse,
+      tdMerge:tdMerge,
+      tdDue:tdDue,
+      hookOk:hookOk,
+      hookRun:hookRun,
+      tdSeed:function(k, bars){ S.kl[k] = bars.slice(); V76.gaps[k] = []; },
+      tdCache:function(k, bars){ TD.cache[k] = bars || []; return tdReapply(); },
+      tdSync:function(){ return tdSync(true); },
+      loadCfg:function(){ TD_CFG_AT = 0; return loadTdCfg(); },
+      tdState:function(){
+        return { key:!!TD.key, at:TD.at, ok:TD.ok, fail:TD.fail, req:TD.req,
+                 added:TD.added, err:TD.err ? String(TD.err.message || TD.err) : "" };
+      },
+      hookState:function(){
+        return { on:!!HOOK.token, sent:HOOK.sent, lagMs:hookLagMs(Date.now()),
+                 at:hookLockAt(), err:HOOK.err ? String(HOOK.err.message || HOOK.err) : "" };
+      }
+    },
     /* v7.6 L1：清洗 / 休市 / 缺口 / 箱体 / 快照。纯函数为主，单测直接打这里 */
     v76:{
       sanitizeBars:sanitizeBars,

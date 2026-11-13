@@ -155,6 +155,8 @@ class GhState:
         self.puts = 0
         self.gets = 0
         self.put_bodies = []
+        # P118：页面端催 Actions（workflow_dispatch）的请求体，用来断言「只发一次」
+        self.dispatches = []
 
     def as_content(self):
         raw = json.dumps(self.cfg, ensure_ascii=False).encode()
@@ -190,7 +192,7 @@ def make_env(browser):
     def _make(cfg=CFG_NORMAL, width=390, height=844, token="t0ken",
               gh_on=True, price=PRICE, reduced_motion=False, path="/index.html?xt=1",
               hash_="", bars=None, calendar=None, tz=None, jn=None, xau="auto",
-              macro=None, tick=None):
+              macro=None, tick=None, td=None, td_cfg=None):
         opts = dict(
             viewport={"width": width, "height": height},
             device_scale_factor=1,
@@ -277,6 +279,10 @@ def make_env(browser):
         def github(route):
             req = route.request
             url = req.url
+            if req.method == "POST" and url.endswith("/dispatches"):
+                gh.dispatches.append(req.post_data_json or {})
+                route.fulfill(status=204, content_type="application/json", body="")
+                return
             if req.method == "PUT":
                 gh.puts += 1
                 body = req.post_data_json or {}
@@ -300,6 +306,43 @@ def make_env(browser):
                                                "private": True}))
 
         page.route("**/api.github.com/**", github)
+
+        # P118：Twelve Data 直连补数据。默认回 401（等价于「没配 key 也是这个结局」），
+        # 页面必须静默吞掉；用例传 td={"1h": {...}, "4h": {...}} 才真正供数。
+        td_calls = []
+
+        def td_route(route):
+            url = route.request.url
+            itv = "1h"
+            for k in ("1d", "4h", "1h"):
+                if "interval=" + k in url:
+                    itv = k
+                    break
+            td_calls.append(itv)
+            if not isinstance(td, dict) or "error" in td:
+                route.fulfill(status=401, content_type="application/json",
+                              body=json.dumps((td or {}).get("error") or
+                                              {"code": 401, "status": "error",
+                                               "message": "no key"}))
+                return
+            body = td.get(itv)
+            if body is None:
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps({"code": 400, "status": "error",
+                                               "message": "bad interval"}))
+                return
+            route.fulfill(status=200, content_type="application/json",
+                          body=json.dumps(body))
+        page.route("**api.twelvedata.com/**", td_route)
+
+        # P118：可选配置文件的加载路径。默认 404 = 「没配」，页面必须静默跳过。
+        def cfg_route(route):
+            if isinstance(td_cfg, dict):
+                route.fulfill(status=200, content_type="application/json",
+                              body=json.dumps(td_cfg))
+            else:
+                route.fulfill(status=404, content_type="application/json", body="{}")
+        page.route("**/xau/config.json*", cfg_route)
         # 事件日历：默认按「取不到」处理，保持 v6.13 之前的行为（只有内置 FOMC + 非农）；
         # 需要测实时日历的用例显式传 calendar=dict
         def _cal(route):
