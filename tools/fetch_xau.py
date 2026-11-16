@@ -277,14 +277,20 @@ def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOU
     return [h for h in hrs if h not in have or h >= cur]
 
 
-def day_plan(today, days=4, failed=None, keep_days=30):
-    """要抓日文件的日期（不含 today）。
+def day_plan(today, days=4, failed=None, keep_days=30, include_today=False):
+    """要抓日文件的日期。
 
-    当天不抓：残留的日文件既断又缺，是洞的来源；tick 覆盖同一时段时更完整。
+    include_today=True 时把**当天**也排进来（v7.12.2）。
+    当天文件确实是「按小时异步追加」的残片（v7.11 因此把它整段排除），但它不是空
+    文件：tick 一旦被源限流打挂（线上 2026-11-16 06:08 那轮 05/06 两小时 fail=2），
+    当天日文件就是唯一还能把 1H 往前推的数据。合并口径不变 —— 窗口内 tick 优先，
+    残片只填 tick 没拿到的时段；下一轮 tick 恢复后按 tick 覆盖。
+
     已失败日期（30 天窗内）要重新排进来，否则一次 503 就永久丢一天。
     """
     n = max(1, int(days))
-    out = [today - dt.timedelta(days=i) for i in range(n - 1, 0, -1)]
+    stop = -1 if include_today else 0
+    out = [today - dt.timedelta(days=i) for i in range(n - 1, stop, -1)]
     have = set(out)
     floor = today - dt.timedelta(days=keep_days)
     for s in failed or []:
@@ -663,7 +669,7 @@ def main():
         days.sort()
         log("只补失败日期：%d 天" % len(days))
     else:
-        days = day_plan(today, days=args.days, failed=old_failed)
+        days = day_plan(today, days=args.days, failed=old_failed, include_today=True)
         log("日文件计划：%d 天（%s → %s，当天由 tick 提供）" % (
             len(days), str(days[0]) if days else "-", str(days[-1]) if days else "-"))
 

@@ -250,3 +250,52 @@ def test_t305_weekly_card_shows_this_monday(make_env):
     stamp = "%02d-%02d" % (d.month, d.day)
     txt = page.inner_text("#pgrid")
     assert "末根 " + stamp in txt, (stamp, txt)
+
+
+# ---------------- 当天日文件兜底 ----------------
+
+
+def test_t306_day_plan_can_include_today():
+    """include_today=True 把当天排进来（tick 全挂时唯一能推进 1H 的来源）。"""
+    today = dt.date(2026, 11, 16)
+    got = F.day_plan(today, days=3, include_today=True)
+    assert got == [dt.date(2026, 11, 14), dt.date(2026, 11, 15), today], got
+    no = F.day_plan(today, days=3, include_today=False)
+    assert today not in no and len(no) == 2, no
+
+
+def test_t307_today_day_file_advances_1h_when_tick_fails(tmp_path, monkeypatch):
+    """tick 全部 fail 时，当天日文件的残片仍必须把 1H 推到它写到的位置。
+
+    线上 2026-11-16 06:08 那轮就是 tick ok=0 / fail=2（05、06 两小时被源拒），
+    1H 卡在 04:00。当天文件不是空的，只是按小时异步追加 —— 用它兜底比停在
+    两小时前强，下一轮 tick 恢复后按 tick 覆盖。
+    """
+    now = dt.datetime.now(UTC)
+    today = now.date()
+    last_done_h = now.hour - 1                     # 最近一个已收小时
+    assert last_done_h >= 1, "UTC 0 点跑这条没有已收小时可测"
+
+    def fake_day(day, tries=4):
+        if day != today:
+            return []
+        base = int(dt.datetime(today.year, today.month, today.day, tzinfo=UTC).timestamp())
+        return [(base + h * 3600 + m * 60, 3_900_000, 3_901_000, 3_899_000,
+                 3_900_000, 1.0) for h in range(last_done_h + 1) for m in range(60)]
+
+    def fake_ticks(**kw):
+        return [], {"hours": 2, "ok": 0, "empty": 0, "fail": 2,
+                    "fail_hours": ["x", "y"]}
+
+    monkeypatch.setattr(F, "OUT", str(tmp_path / "klines.json"))
+    monkeypatch.setattr(F, "fetch_day", fake_day)
+    monkeypatch.setattr(F, "fetch_recent_ticks", fake_ticks)
+    monkeypatch.setattr(F, "fetch_year_daily", lambda y, tries=2: [])
+    monkeypatch.setattr(sys, "argv", ["fetch_xau.py", "--days", "3"])
+    assert F.main() == 0
+
+    doc = json.loads((tmp_path / "klines.json").read_text(encoding="utf-8"))
+    want = int(dt.datetime(today.year, today.month, today.day, last_done_h,
+                           tzinfo=UTC).timestamp()) * 1000
+    assert doc["kl"]["1h"][-1][0] == want, (doc["kl"]["1h"][-1][0], want)
+    assert doc["window"]["ticks"]["fail"] == 2
