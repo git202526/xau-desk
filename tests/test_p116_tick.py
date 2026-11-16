@@ -135,14 +135,18 @@ def test_t236_stitch_keeps_normal_segment():
 
 
 def test_t237_tick_window_bounds():
-    """要拉的小时区间：从日文件末根所在小时起，到「当前小时 - 1」止。"""
+    """要拉的小时区间：从日文件末根所在小时起，到**当前小时**止。
+
+    v7.12.2 起含当前小时：不含的话页面永远停在上一小时（13:14 看到 10:00），
+    这正是 2026-11-16 现场的核心投诉。
+    """
     last_ts = hour_start(2026, 11, 9, 23) + 12 * 60
     now = hour_start(2026, 11, 10, 3) + 40 * 60
 
     hrs = F.tick_hours(last_ts, now)
     assert hrs[0] == hour_start(2026, 11, 9, 23), hrs[0]
-    assert hrs[-1] == hour_start(2026, 11, 10, 2), "当前这一小时还没收，不拉"
-    assert len(hrs) == 4, hrs
+    assert hrs[-1] == hour_start(2026, 11, 10, 3), "当前小时要进窗口，页面才能显示本根"
+    assert len(hrs) == 5, hrs
 
 
 def test_t238_tick_window_capped():
@@ -152,13 +156,15 @@ def test_t238_tick_window_capped():
 
     hrs = F.tick_hours(last_ts, now, max_hours=30)
     assert len(hrs) == 30, len(hrs)
-    assert hrs[-1] == hour_start(2026, 11, 10, 2), "要从现在往回数，不是从旧末根往后数"
+    assert hrs[-1] == hour_start(2026, 11, 10, 3), "要从现在往回数，不是从旧末根往后数"
 
 
-def test_t239_no_window_when_fresh():
-    """日文件已经覆盖到当前小时之前 → 不需要 tick（周末/刚跑完就是这种情况）。"""
+def test_t239_window_always_covers_current_hour():
+    """末根已经是上一小时 → 仍然要拉当前小时（本根正在走，页面要显示盘中）。"""
     now = hour_start(2026, 11, 10, 3) + 40 * 60
-    assert F.tick_hours(hour_start(2026, 11, 10, 2), now) == []
+    hrs = F.tick_hours(hour_start(2026, 11, 10, 2), now)
+    assert hrs[-1] == hour_start(2026, 11, 10, 3), hrs
+    assert hour_start(2026, 11, 10, 3) in hrs
 
 
 @pytest.mark.parametrize("scale,ok", [(1000.0, True), (100.0, False)])

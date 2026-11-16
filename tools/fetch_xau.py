@@ -197,14 +197,18 @@ def stitch_rows_checked(day_rows, tick_rows, max_dev=0.03):
 
 
 def tick_hours(last_ts, now, max_hours=30):
-    """要补的小时起点：从 last_ts 所在小时，到「当前小时的前一小时」止。
+    """要补的小时起点：从 last_ts 所在小时，到「当前小时」止（含当前）。
 
-    当前这小时还没走完，tick 文件只有半根；拉它会得到一个低点偏高的假根，
-    留给页面用实时价推进更准。max_hours 从「现在」往回数，不是从旧末根往后数：
-    产物停了一周时，补最近 30 小时比补七天前的 30 小时有用得多。
+    v7.12.2 起包含当前这一小时。旧口径把当前小时排除，理由是「半根的低点偏高」，
+    但代价是页面永远停在上一小时：13:14 看到的末根是 10:00（上一轮 push 再丢一次
+    就是 3 小时前），而用户要的是「13 点这根现在走到哪」。半根本来就是未收盘根，
+    页面用「盘中口径」标注，下一轮拉到完整文件后按 tick 优先覆盖，不留假数据。
+
+    休市小时不排：源上本来就没有文件，每轮重拉只会把 fail 计数刷满。
+    max_hours 从「现在」往回数，不是从旧末根往后数。
     """
     start = last_ts - last_ts % 3600
-    end = now - now % 3600 - 3600
+    end = now - now % 3600
     if end <= start:
         return []
     hrs = list(range(start, end + 3600, 3600))
@@ -244,9 +248,19 @@ def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOU
     have 给定时（产物里已有的整点集合）只返回**缺的小时**：每轮重拉 24 个文件
     会把 Dukascopy 打到限流 —— 实测同一窗口第一轮 ok=16/24、第二轮 ok=5/24。
     缺的小时下一轮还会再来，所以不需要全量重拉。
-    当前这一小时还没走完，tick 文件只有半根，一律不拉（留给页面用现价推进）。
+
+    v7.12.2 两处改动（现场 2026-11-16 13:14，1H 卡「末根 10:00」而实际已 13 点）：
+      1. **当前小时进窗口**：旧代码 `end = 当前小时 - 3600`，永远差一根；再加上
+         产物 push 一丢就是 2–3 小时，页面看着像「不更新」。半根是未收根，页面
+         标「盘中」，下一轮拉到完整文件覆盖。
+      2. **当前小时不被 have 过滤**：否则上一轮写进去的半根会被当成「已有」，
+         永远不再刷新，低点偏高就定死了。
+      3. 休市小时直接跳过（周六全天、周日 17 前、周五 17 后、每日 17–18 停盘）：
+         源上本来没有文件，每轮重拉纯属刷 fail 计数（线上 11-15 那轮 fail=9
+         全是休市小时）。
     """
-    end = now - now % 3600 - 3600
+    cur = now - now % 3600
+    end = cur
     if end <= 0:
         return []
     start_win = end - (max(1, lookback_h) - 1) * 3600
@@ -257,10 +271,10 @@ def tick_window(last_ts, now, lookback_h=TICK_LOOKBACK_H, max_hours=TICK_MAX_HOU
         start = floor
     if start > end:
         return []
-    hrs = list(range(start, end + 3600, 3600))
+    hrs = [h for h in range(start, end + 3600, 3600) if not is_closed(h)]
     if have is None:
         return hrs
-    return [h for h in hrs if h not in have]
+    return [h for h in hrs if h not in have or h >= cur]
 
 
 def day_plan(today, days=4, failed=None, keep_days=30):
@@ -423,9 +437,18 @@ def day_start_ts(d):
 
 
 def week_start_ts(ts):
-    """周线桶：UTC 周一 00:00。用周一而不是周日，与 utcWeekKey() 前端判据同源。"""
-    t = dt.datetime.fromtimestamp(ts, UTC)
-    mon = t - dt.timedelta(days=t.weekday())
+    """周线桶：日线时间戳 → 它所属**交易日**那一周的周一 00:00 UTC。
+
+    ⚠️ 不能直接按 ts 的 UTC 日历日取周一。
+    日线 ts 是纽约 17:00 换日后的值（夏令时 21:00 / 冬令时 22:00 UTC），
+    折算成 UTC 日历日**永远比交易日早一天**：周一这个交易日的日线 ts 落在
+    「周日 22:00 UTC」。直接取 weekday 会得到周日，再减 6 天就进了上一周 ——
+    后果是本周周根永不生成，上周那根的 close 被最新价天天空顶。线上
+    2026-11-16 13:14 的现场就是：周线末根停在 11-09，close 却等于当时的现价。
+    先把 ts 归到交易日（+1 天），再取那一天所在周的周一。
+    """
+    d = dt.datetime.fromtimestamp(ts, UTC).date() + dt.timedelta(days=1)
+    mon = d - dt.timedelta(days=d.weekday())
     return int(dt.datetime(mon.year, mon.month, mon.day, tzinfo=UTC).timestamp())
 
 

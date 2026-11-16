@@ -49,7 +49,15 @@ permissions:
 
 concurrency:
   group: xau-klines
-  cancel-in-progress: false
+  # v7.12.2：false → true。
+  # false 时新 run 排队，但线上实测出现了**两个 run 同时 in_progress**
+  # （43780005050 00:22–05:18 与 43793465849 02:39–05:18 并行）。两边都在
+  # `git push` 同一个 xau/klines.json，rebase 互相打架：02:39 那个 run 只在
+  # 03:09 推成功一次，其后 03:39/04:09/04:39/05:09 四轮全丢 —— 这就是
+  # 「13:14 看到 10:00 的末根」的直接原因（2 小时 9 分钟没有任何提交）。
+  # 改成 true 后任何时刻只有一个 run 在写，新 run 启动即取消旧的；旧 run 的
+  # 剩余轮次没有额外价值（新 run 首轮就抓当前小时），但并发冲突从根上消失。
+  cancel-in-progress: true
 
 jobs:
   fetch:

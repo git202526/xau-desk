@@ -25,6 +25,7 @@ v7.9 按 SRS 2.1 做了「单行 + ellipsis」，390px 上真实数据是
 右侧被切掉，「箱体未成立」的原因和 4H 状态读者永远看不到。省略号在这里
 不是排版手段，是丢信息。改为自然换行，并顺手去掉「通道为主 通道」的重复。
 """
+import datetime as _dt
 import json
 import time
 
@@ -146,14 +147,19 @@ def test_t195_fresh_of_pure_function(make_env):
 
 
 def test_t196_footer_shows_data_date(make_env):
-    """页脚写「数据截至」就该是数据日，不是抓取时刻。"""
-    page = make_env(macro=doc()).page
+    """页脚写「数据截至」就该是数据日，不是抓取时刻。
+
+    数据日必须相对真实今天取：页面渲染用的是 Date.now()，写死 2026-11-06 的
+    夹具在 11-16 打开是 10 天前，会先被判「管线停摆」降级，页脚根本没有日期。
+    """
+    as_of = (_dt.datetime.now(_dt.timezone.utc).date() - _dt.timedelta(days=2)).isoformat()
+    page = make_env(macro=doc(tips_as_of=as_of, dxy_as_of=as_of)).page
     page.wait_for_timeout(1000)
     r = page.evaluate("""() => {
       const s = document.querySelector('#mcAs');
       return {txt: (s.textContent||'').trim(), title: s.getAttribute('title') || ''};
     }""")
-    assert "2026-11-06" in r["title"] or "11-06" in r["txt"], r
+    assert as_of in r["title"] or as_of[5:] in r["txt"], r
     assert "--" not in r["txt"], r
 
 

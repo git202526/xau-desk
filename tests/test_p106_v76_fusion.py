@@ -7,6 +7,7 @@
   - `.pnote` 改成结构 + 宏观的一行验证结论
   - 390px 宽度不得出现横向滚动
 """
+import datetime as _dt
 import math
 import time
 
@@ -45,12 +46,20 @@ def xau_doc(bars):
             "stats": {}, "gaps": {}, "kl": {"1d": bars, "4h": bars}}
 
 
+def _as_of(days_ago=1):
+    """数据日必须跟着真实今天走。写死 2026-11-05 在 11-16 打开就是 11 天前，
+    页面按「>8 天 = 管线停摆」判过期，卡片整块降级 —— 这不是产品回归，
+    是夹具的时间炸弹（2026-11-16 全量跑时炸出来的）。"""
+    d = _dt.datetime.now(_dt.timezone.utc).date() - _dt.timedelta(days=days_ago)
+    return d.isoformat()
+
+
 def macro_doc(age_min=0):
     return {"fetched_at": int(time.time() * 1000) - int(age_min * 60000),
             "src": "fred+cnbc",
-            "tips_10y": {"value": 2.15, "change_bp": 3.0, "trend_5d": 2.0, "as_of": "2026-11-05"},
+            "tips_10y": {"value": 2.15, "change_bp": 3.0, "trend_5d": 2.0, "as_of": _as_of()},
             "dxy": {"value": 105.2, "change_pct": 0.2, "trend_5d": 0.3,
-                    "as_of": "2026-11-06", "src": "cnbc"}}
+                    "as_of": _as_of(), "src": "cnbc"}}
 
 
 def boot(make_env, adx=None, **kw):

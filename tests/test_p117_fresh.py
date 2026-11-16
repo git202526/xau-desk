@@ -54,9 +54,9 @@ def test_t243_tick_window_is_fixed_lookback():
     last = ts(2026, 11, 12, 8, 0)
     hrs = F.tick_window(last, now, lookback_h=36)
 
-    assert hrs[-1] == ts(2026, 11, 12, 11), "当前小时 12 点未收，不拉"
-    assert len(hrs) == 36
-    assert hrs[0] == ts(2026, 11, 12, 11) - 35 * HOUR
+    assert hrs[-1] == ts(2026, 11, 12, 12), "当前小时要进窗口（v7.12.2）"
+    assert len(hrs) == 35, "36 个小时点里 11-11 22:00 是每日停盘，被跳过"
+    assert hrs[0] == ts(2026, 11, 12, 12) - 35 * HOUR
     assert last in hrs, "末根所在小时必须在窗口内"
     assert hrs[0] < last, "窗口起点要早于末根，否则补不到末根之前的洞"
 
@@ -65,25 +65,29 @@ def test_t244_tick_window_lookback_when_product_stale():
     """产物停三天：从末根起补，但受 max_hours 截断（默认 48 小时）。"""
     now = ts(2026, 11, 12, 12, 30)
     hrs = F.tick_window(ts(2026, 11, 9, 8, 0), now, lookback_h=36)
-    assert len(hrs) == 48
-    assert hrs[-1] == ts(2026, 11, 12, 11)
-    assert hrs[0] == ts(2026, 11, 12, 11) - 47 * HOUR
+    assert len(hrs) == 46, "48 个小时点减去两个每日停盘（11-10 22:00、11-11 22:00）"
+    assert hrs[-1] == ts(2026, 11, 12, 12)
+    assert hrs[0] == ts(2026, 11, 12, 12) - 47 * HOUR
 
 
 def test_t245_tick_window_max_hours_cap():
     """max_hours 是硬上限：即使 lookback 更大，也不会一次拉几百个小时。"""
     now = ts(2026, 11, 12, 12, 30)
     hrs = F.tick_window(ts(2026, 11, 1, 0, 0), now, lookback_h=400, max_hours=48)
-    assert len(hrs) == 48
+    assert len(hrs) == 46, "上限 48 个点，减两个每日停盘"
 
 
-def test_t246_tick_window_excludes_forming_hour():
-    """当前这一小时永远不进窗口（tick 文件只有半根，会造出低点偏高的假根）。"""
+def test_t246_tick_window_includes_forming_hour():
+    """当前这一小时**要**进窗口。
+
+    v7.12.2 反转了这条：旧口径怕「半根低点偏高」而排除当前小时，代价是页面永远
+    停在上一小时；13:14 看到 10:00 的末根，用户只会认为「不自动更新」。半根本来
+    就是未收盘根，页面标「盘中」，下一轮拉到完整文件后按 tick 优先覆盖。
+    """
     now = ts(2026, 11, 12, 0, 20)
     hrs = F.tick_window(now, now, lookback_h=6)
     assert hrs, "窗口固定，不应该因为 now 在 0 点就返回空"
-    assert hrs[-1] == ts(2026, 11, 11, 23), "当前小时（00 点）不能进窗口"
-    assert ts(2026, 11, 12, 0) not in hrs
+    assert hrs[-1] == ts(2026, 11, 12, 0), "当前小时（00 点）必须进窗口"
 
 
 # ---------------- 合并 ----------------
@@ -210,8 +214,8 @@ def test_t256_today_tick_span_covers_from_midnight():
     hrs = F.tick_window(ts(2026, 11, 12, 0), now, lookback_h=36)
     assert hrs[0] <= ts(2026, 11, 12, 0), "窗口要早于当天零点"
     assert ts(2026, 11, 12, 0) in hrs
-    assert hrs[-1] == ts(2026, 11, 12, 14)
-    assert len(hrs) == 36
+    assert hrs[-1] == ts(2026, 11, 12, 15), "当前小时也要在窗口里（v7.12.2）"
+    assert len(hrs) == 35, "36 个点减 11-11 22:00 的每日停盘"
 
 
 # ---------------- 端到端（不联网） ----------------
@@ -410,22 +414,24 @@ def test_t263_ticks_only_keeps_history(tmp_path, monkeypatch):
 
 
 def test_t264_tick_window_skips_hours_already_present():
-    """产物里已有的小时不重拉：只补缺的。
+    """产物里已有的小时不重拉：只补缺的 + 当前小时。
 
     实测同一 24 小时窗口连着跑两轮：第一轮 ok=16 / fail=7，第二轮 ok=5 / fail=19
     —— 全量重拉把源打到限流，真正的新小时反而补不进来。只拉缺的以后，正常一轮
-    只有 1–2 个请求（新小时 + 每日停盘那个永远为空的 22 点）。
+    只有 1–2 个请求（新小时 + 当前小时）。
+
+    当前小时例外：上一轮写进去的是半根，必须每轮重拉才能补全（v7.12.2）。
     """
     end = ts(2026, 11, 12, 11)
     have = set(range(end - 35 * HOUR, end + 1, HOUR)) - {ts(2026, 11, 12, 5)}
     hrs = F.tick_window(ts(2026, 11, 12, 8), ts(2026, 11, 12, 12, 30),
                         lookback_h=36, have=have)
-    assert hrs == [ts(2026, 11, 12, 5)], hrs
+    assert hrs == [ts(2026, 11, 12, 5), ts(2026, 11, 12, 12)], hrs
 
 
-def test_t265_tick_window_all_present_returns_empty():
-    """一个不缺时一个请求都不发。"""
+def test_t265_tick_window_only_current_hour_when_rest_present():
+    """除当前小时外都齐了 → 只重拉当前这一根，不发多余请求。"""
     end = ts(2026, 11, 12, 11)
     have = set(range(end - 35 * HOUR, end + 1, HOUR))
     assert F.tick_window(ts(2026, 11, 12, 10), ts(2026, 11, 12, 12, 30),
-                         lookback_h=36, have=have) == []
+                         lookback_h=36, have=have) == [ts(2026, 11, 12, 12)]
