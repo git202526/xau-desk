@@ -825,6 +825,23 @@ def main():
                "days_ok": days_ok, "days_empty": days_empty, "ticks": tst,
                "failed_n": len(failed), "failed": failed[:20]}
 
+    # v7.12.2：没有新根就不写盘。
+    # 每轮都刷新 updated 会让 klines.json 每次都产生一个 commit —— 15 分钟一轮
+    # 就是一天 96 次空提交，仓库体积和 Pages 构建次数都白烧。只有序列真的推进
+    # （或历史被修正）时才落盘，页面判新鲜看的是末根时间，不依赖 updated。
+    if old:
+        same = True
+        for per in ("1h", "4h", "1d", "1w"):
+            a = json.dumps(kl.get(per) or [], separators=(",", ":"))
+            b = json.dumps(old.get(per) or [], separators=(",", ":"))
+            if a != b:
+                same = False
+                break
+        if same:
+            log("未产生新根，跳过写入（tick ok=%d 空=%d 失败=%d）" % (
+                tst["ok"], tst["empty"], tst["fail"]))
+            return 0
+
     doc = {
         "updated": int(time.time() * 1000),
         "src": "dukascopy",

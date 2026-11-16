@@ -299,3 +299,30 @@ def test_t307_today_day_file_advances_1h_when_tick_fails(tmp_path, monkeypatch):
                            tzinfo=UTC).timestamp()) * 1000
     assert doc["kl"]["1h"][-1][0] == want, (doc["kl"]["1h"][-1][0], want)
     assert doc["window"]["ticks"]["fail"] == 2
+
+
+def test_t308_no_new_bar_skips_write(tmp_path, monkeypatch):
+    """同一份数据跑第二遍不重写文件 —— 否则每 15 分钟就产生一个空 commit。
+
+    `updated` 每次都刷新会让 klines.json 每轮都变，仓库体积与 Pages 构建次数
+    都白烧；页面判新鲜看末根，不看 updated。
+    """
+    cur = int(dt.datetime.now(UTC).timestamp()) // HOUR * HOUR
+
+    def fake_ticks(**kw):
+        rows = [(cur - HOUR + m * 60, 3_900_000, 3_900_000, 3_900_000,
+                 3_900_000, 1.0) for m in range(60)]
+        return rows, {"hours": 1, "ok": 1, "empty": 0, "fail": 0, "fail_hours": []}
+
+    p = tmp_path / "klines.json"
+    monkeypatch.setattr(F, "OUT", str(p))
+    monkeypatch.setattr(F, "fetch_recent_ticks", fake_ticks)
+    monkeypatch.setattr(sys, "argv", ["fetch_xau.py", "--ticks-only"])
+
+    assert F.main() == 0
+    first = json.loads(p.read_text(encoding="utf-8"))
+    assert first["kl"]["1h"], "第一遍必须落盘"
+
+    assert F.main() == 0
+    second = json.loads(p.read_text(encoding="utf-8"))
+    assert second["updated"] == first["updated"], "无新根时不能重写 updated"
