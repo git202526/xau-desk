@@ -156,6 +156,9 @@ def test_ah5_off_target_is_flagged(make_env):
     """档距按 α=0.8 排 → 均价明显高于目标，判不命中。"""
     env = make_env(CFG_H, bars=BARS)
     p = env.page
+    # spanSrc 要判 "atr" 而不是 "fallback"，必须等 ATR 真的算出来（并行跑时
+    # K 线解码会晚几十毫秒，不等就会偶发落到 fallback）。
+    p.wait_for_function("() => window.__xt.atrUsd() > 0", timeout=8000)
     p.evaluate("() => window.__xt.setAlpha(0.8)")
     p.evaluate("() => window.__xt.setTargetT(3950)")
     p.evaluate("() => window.__xt.setAlpha(0.8)")     # 最后编辑的是 α

@@ -271,24 +271,28 @@ def test_n9_over_budget_tag(env):
 
 # ---------- 批三：均价口径按持仓判定 ----------
 
-def test_o1_held_fold_hits_target(env):
-    """有 100g 持仓 + 目标均价 → 折算后的剩余均价让「持仓 + 补满」整体命中 T。"""
+def test_o1_held_position_does_not_move_target(env):
+    """有 100g 持仓 + 目标均价 → 目标仍是名义值，持仓不进反解（P122）。
+
+    v7.12.3 及以前会把持仓的人民币均价按当前汇率折成美元，
+    算出 T_eff=(T×总仓−持仓均价×持仓克重)/剩余克重 再反解。
+    用户 2026-11-19 明确否掉：老仓是补登记的高位货、没标已买档位，
+    且标记价 $/oz 与持仓均价 ¥/g 混算，汇率一飘就不稳。现在只剩参考读数。
+    """
     e = env(buys=[buy("b1", 100, None, 900.0)])
     p = e.page
     p.evaluate("() => window.__xt.setTargetT(3900)")
-    got = p.evaluate("() => window.__xt.gearBase().targetEff")
-    want = p.evaluate("""() => {
-      var hs = window.__xt.holdStats();
-      var usd = window.__xt.cnyToUsd(hs.avg);
-      return (3900 * 200 - usd * hs.grams) / (200 - hs.grams);
-    }""")
-    assert got == pytest.approx(want, abs=0.5)
-    # 剩余均价明显低于目标价：手上有便宜的货，剩下的钱要少花
-    assert got < 3900
+    assert p.evaluate("() => window.__xt.gearBase().targetEff") == pytest.approx(3900, abs=0.01)
+    m = p.evaluate("() => window.__xt.gearMeta()")
+    assert m["targetEff"] == pytest.approx(3900, abs=0.01)
+    assert m["hitBasis"] == "anchor"
+    # 整体均价还在（含持仓 100g），但明确不参与判定
+    assert m["mix"]["held"] == pytest.approx(100, abs=0.01)
+    assert m["hit"] == m["hitAnchor"]
 
 
 def test_o2_no_hold_no_fold(env):
-    """无持仓 → 不做折算，targetEff 就是 T。"""
+    """无持仓 → targetEff 就是 T（P122 起有持仓也一样）。"""
     e = env()
     p = e.page
     p.evaluate("() => window.__xt.setTargetT(3900)")

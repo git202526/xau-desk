@@ -254,57 +254,62 @@ def test_set_and_reset_weights(env):
     assert [round(x, 4) for x in plan] == [16.0, 24.0, 48.0, 72.0, 24.0, 16.0]
 
 
-# ---------------------------------------------------------------- 已持仓折算
+# ---------------------------------------------------------------- 目标不折算（P122）
 
-def test_held_cost_folded_into_target(env):
-    # 60g @ 4100$/oz，T=3980，W=200 → T_new = (3980*200 − 4100*60)/140 = 3928.571
+def test_target_not_folded_by_holdings(env):
+    """有持仓也不折算目标：targetEff ≡ 名义目标，档距只按建仓计划反解。
+
+    v7.12.3 曾经算过 T_eff = (T×总仓 − 持仓均价×持仓克重)/剩余克重，
+    把老仓的人民币均价按汇率折成美元后混进反解。用户 2026-11-19 指出这是错的：
+    老仓是后来补登记的高位套牢货、没标已买档位，且标记价是 $/oz、持仓均价是 ¥/g，
+    汇率一飘两套均价互算就不稳。P122 全部撤回 —— 60g @ 4100 在这里
+    只影响「整体均价」这行参考读数，不影响任何一档的价格。
+    """
     c = cfg(buys=[buy(60, 4100 * 7.10 / 31.1035)])
     p = env(c).page
     assert near(p.evaluate("() => window.__xt.holdStats().grams"), 60, 0.01)
     p.evaluate("() => window.__xt.setTargetT(3980)")
     b = p.evaluate("() => window.__xt.gearBase()")
-    assert near(b["targetEff"], 3928.571, 0.2)
-    # v7.12.3：有持仓时命中判「整体均价」，反解重心随之换成「剩余待买档」
-    # （pendingCenter）。旧口径用前 k 档重心 2.1，解出的档距偏大，
-    # 落地后整体均价与全档试算各差一截 —— 也就是「点对齐总差一点」。
+    assert near(b["targetEff"], 3980, 0.2), "有货也不折算目标"
+    # 反解重心是前 1..k 档（frontCenter），不是「剩余待买档」（pendingCenter）
     want = p.evaluate("""() => {
         const X = window.__xt, m = X.gearMeta();
-        return (X.p1Of(m.he) - m.targetEff) / X.pendingCenter(X.planBase());
+        return (X.p1Of(m.he) - m.target) / X.frontCenter(X.curW(), m.anchorK);
     }""")
     assert near(b["d"], want, 0.2)
     meta = p.evaluate("() => window.__xt.gearMeta()")
-    # 新口径下「整体均价」精确落到名义目标：60g@4100 + 剩余 140g 按档表买，
-    # 加权正好是 3980。旧口径（前 k 档重心反解）这里会差 20 多美元。
-    assert near(meta["mix"]["avg"], 3980, 1.0)
-    assert meta["mix"]["hit"] is True
+    assert meta["hitBasis"] == "anchor"
+    assert near(meta["avgAnchor"], 3980, 0.5), "锚定均价才是对齐对象"
+    # 整体均价仍算，但只作读数：60g@4100 + 剩余按档表买，不保证等于 3980
     assert meta["mix"]["held"] == pytest.approx(60, abs=0.01)
+    assert "reachMix" not in meta
 
 
-def test_held_already_better_than_target(env):
-    # 195g @ 4000，T=3900，W=200 → T_new = (780000−780000)/5 = 0 → 已达标
+def test_holdings_better_than_target_still_solves(env):
+    """持仓均价优于目标，也不再判「已达标」——那套逻辑是折算时代的产物。
+
+    旧版 195g@4000 + T=3900 会折出 T_eff≈0 → hint="done"，档距不再反解。
+    P122 起档距只对建仓计划负责，目标 3900 照常反解。
+    """
     c = cfg(buys=[buy(195, 4000 * 7.10 / 31.1035)])
     p = env(c).page
     p.evaluate("() => window.__xt.setTargetT(3900)")
     b = p.evaluate("() => window.__xt.gearBase()")
-    assert near(b["targetEff"], 0, 0.5)
-    assert b["hint"] == "done"
+    assert near(b["targetEff"], 3900, 0.5)
+    assert b["hint"] != "done", b
+    assert b["d"] > 0, "仍要按目标反解出正档距"
 
 
-def test_held_conversion_no_mode_switch(env):
-    """已持仓折算只看「手里有没有货」，没有模式开关了。
-
-    P20 契约变更：这一条原名 `test_planonly_skips_held_conversion`，守的是
-    「计划模式下不折算」。模式合并后那个维度消失，折算判据改成真实持仓 ——
-    有持仓就折，没有就跳过（o2/o5 覆盖空仓与临界值）。
-    """
+def test_no_mode_switch_around_folding(env):
+    """折算整段删掉后，老接口 setPlanOnly 只留兼容，不再影响 targetEff。"""
     c = cfg(buys=[buy(60, 4100 * 7.10 / 31.1035)])
     p = env(c).page
     p.evaluate("() => window.__xt.setTargetT(3980)")
-    assert near(p.evaluate("() => window.__xt.gearBase().targetEff"), 3928.571, 0.2)
+    assert near(p.evaluate("() => window.__xt.gearBase().targetEff"), 3980, 0.2)
     # 老接口留着但不再改变行为（返回 false，状态不动）
     assert p.evaluate("() => window.__xt.setPlanOnly(true)") is False
     b = p.evaluate("() => window.__xt.gearBase()")
-    assert near(b["targetEff"], 3928.571, 0.2)
+    assert near(b["targetEff"], 3980, 0.2)
 
 
 # ---------------------------------------------------------------- ATR 兜底

@@ -9,6 +9,10 @@
   2. 对齐成功时把「目标均价」方式偷换成 α，用户下次改权重才不会自动重解；
   3. 有持仓时锚定均价天生低于目标（它不含持仓），拿它判命中等于永远判不中，
      同一张卡上还会出现「锚定 3616.7 偏低 182」和「当前可达 3799」两个矛盾的数；
+     —— 这一条的修法在 P122 被推翻：不是改成判「整体均价（含持仓）」，
+     而是把口径钉死为「目标均价只对建仓计划负责」。老持仓是后补登记的高位套牢货、
+     没标已买档位，且标记价是 $/oz、持仓均价是 ¥/g，两套货币按浮动汇率互算，
+     会让同一套参数今天命中、明天不命中。详见 tests/test_p122_plan_only.py。
   4. 夹取阈值按美元 0.005 判，文案四舍五入成「需 −26.00% / 收到 −26.00%」。
 
 本文件锁的是：三种方式各自怎么落地、落在哪个边界、命中的是哪个数。
@@ -54,6 +58,9 @@ def toast(p):
 
 def align(p):
     open_plan(p)
+    # 并行跑时首帧渲染会晚几十毫秒：不等到按钮出现就点，querySelector 拿到 null，
+    # click 抛错后断言读到的还是旧 meta —— 表现为「偶发对不齐」。
+    p.wait_for_selector("#avgCard [data-align]", timeout=8000)
     p.evaluate("() => document.querySelector('#avgCard [data-align]').click()")
     p.wait_for_timeout(320)
 
@@ -134,27 +141,31 @@ def test_t312_align_is_idempotent(make_env):
 
 # ---------------------------------------------------------------- 命中基准：有货判整体
 
-def test_t313_held_position_judges_mix_not_anchor(make_env):
-    """有持仓且没开 noCap：命中判「整体均价（含持仓）」，对齐按 T_eff 反解。
+def test_t313_held_position_still_judges_anchor(make_env):
+    """有持仓也只判锚定均价，目标不做「已持仓折算」（P122）。
 
-    锚定均价只覆盖前 1..k 档、不含已有持仓，有货时它天生低于目标。
-    旧版拿它判命中 → 永远判不中；而「当前可达」用的又是另一个重心 →
-    同屏出现 3616.7 / 3799 两个矛盾的数。
+    旧版把持仓的人民币均价按当前汇率折成美元，算出
+    T_eff=(T×总仓−持仓均价×持仓克重)/剩余克重 再反解档距，命中改判整体均价。
+    老仓是后来补登记的高位套牢货、也没标已买档位，混进来只会让整张档表偏移；
+    标记价是 $/oz、持仓均价是 ¥/g，汇率一抖两套均价互算就永远不稳。
     """
     p = make_env(cfg(buys=HELD), price=4120.90).page
     p.evaluate("() => { window.__xt.state().fx = 7.1; window.__xt.compute(); window.__xt.refreshAll(); }")
     p.wait_for_timeout(150)
     m0 = meta(p)
-    assert m0["hitBasis"] == "mix", m0
-    assert m0["targetEff"] != pytest.approx(T, abs=1.0), "有货时折算后目标必然不同于名义目标"
-    assert m0["hit"] == m0["mix"]["hit"]
+    assert m0["hitBasis"] == "anchor", m0["hitBasis"]
+    assert m0["targetEff"] == pytest.approx(T, abs=0.01), "有货也不再折算目标"
+    assert m0["hit"] == m0["hitAnchor"]
+    assert m0["mix"] is not None and m0["mix"]["held"] == pytest.approx(30, abs=0.01), "整体均价仍算，但只作读数"
+    assert "reachMix" not in m0, "整体均价不参与可达/反解，不该再有 reachMix"
 
     align(p)
     m1 = meta(p)
-    assert m1["hitBasis"] == "mix", m1
-    assert m1["mix"]["hit"] is True, m1
-    assert "整体均价·含持仓" in toast(p)
-    assert "锚定均价·读数" in toast(p)
+    assert m1["hitBasis"] == "anchor", m1
+    assert m1["hitAnchor"] is True, m1
+    t = toast(p)
+    assert "锚定均价·第 1–5 档" in t, t
+    assert "按建仓计划反解，不含已有持仓" in t, t
 
 
 def test_t314_no_position_judges_anchor(make_env):
@@ -165,20 +176,22 @@ def test_t314_no_position_judges_anchor(make_env):
     assert m["hit"] == m["hitAnchor"]
 
 
-def test_t315_card_main_row_switches_with_basis(make_env):
-    """卡片主行跟着基准走：有货写「整体均价 · 含持仓」，无货写「锚定均价 · 第 1–5 档」。"""
+def test_t315_card_main_row_is_always_anchor(make_env):
+    """卡片主行恒为锚定均价；有持仓时整体均价单列一行「参考，不参与对齐」。"""
     p = make_env(cfg(), price=4120.90).page
     open_plan(p)
     t0 = p.evaluate("() => document.getElementById('avgCard').textContent")
     assert "锚定均价 · 第 1–5 档" in t0, t0
+    assert "整体均价" not in t0, "没持仓不该出现整体均价行"
 
     p2 = make_env(cfg(buys=HELD), price=4120.90).page
     p2.evaluate("() => { window.__xt.state().fx = 7.1; window.__xt.compute(); window.__xt.refreshAll(); }")
     p2.wait_for_timeout(150)
     open_plan(p2)
     t1 = p2.evaluate("() => document.getElementById('avgCard').textContent")
-    assert "整体均价 · 含持仓 30g" in t1, t1
-    assert "锚定均价 · 第 1–5 档（不含持仓，读数）" in t1, t1
+    assert "锚定均价 · 第 1–5 档" in t1, t1
+    assert "整体均价 · 含持仓 30g（参考，不参与对齐）" in t1, t1
+    assert "读数）" not in t1, "主行不能再被降级成「读数」"
 
 
 # ---------------------------------------------------------------- 边界：α 上下限
@@ -306,35 +319,48 @@ def test_t323_anchor_and_reach_share_one_center(make_env):
     assert m["reach"] == pytest.approx(calc, abs=0.05), (m["reach"], calc)
 
 
-def test_t324_reach_uses_mix_when_holdings(make_env):
-    """有持仓且被终止夹住时，「当前可达」与「目标改为 X」必须走整体口径。
+def test_t324_reach_ignores_holdings(make_env):
+    """有持仓且被终止夹住时，「当前可达」仍走锚定口径，与「目标改为 X」同源。
 
-    旧版这里报的是锚定口径 p1−c_front·capD，用户点「目标改为 3802」之后
-    整体均价仍是 3882 —— 差了 80，于是再点一次，还是差 80。
+    P121 曾让可达改走整体口径（reachMix），于是点「目标改为 3802」之后
+    锚定均价已经到位、整体均价还差 80 —— 用户只能再点一次，永远差 80。
+    P122 起两个数都只对建仓计划负责，点一次就到了。
     """
     p = make_env(cfg(buys=HELD, endDrop=15), price=3500.0).page
     p.evaluate("() => { window.__xt.state().fx = 7.1; window.__xt.compute(); window.__xt.refreshAll(); }")
     set_end(p, 15)
     open_plan(p)
     m = meta(p)
-    assert m["clamped"] is True and m["hitBasis"] == "mix", m
-    assert m["reachMix"] is not None
-    assert m["reach"] == pytest.approx(m["reachMix"], abs=0.01)
-    assert m["reach"] != pytest.approx(m["reachAnchor"], abs=1.0), "两个口径不能相等，否则测不出区别"
+    assert m["clamped"] is True and m["hitBasis"] == "anchor", m
+    calc = p.evaluate("""() => {
+        const X = window.__xt, m = X.gearMeta();
+        return X.p1Of(m.he) - X.frontCenter(X.curW(), m.anchorK) * m.capD;
+    }""")
+    assert m["reach"] == pytest.approx(calc, abs=0.05), (m["reach"], calc)
+    assert m["reach"] == pytest.approx(m["reachAnchor"], abs=0.01), "只能有一个可达口径"
+
     btn = p.evaluate("""() => {
         const b = document.querySelector('#avgCard [data-retarget]');
         return b ? Number(b.getAttribute('data-retarget')) : null;
     }""")
-    assert btn is not None
+    assert btn is not None, "夹住且没命中时必须给「目标改为」这条路径"
     assert abs(btn - m["reach"]) <= 1.0, (btn, m["reach"])
+
+    p.evaluate("() => document.querySelector('#avgCard [data-retarget]').click()")
+    p.wait_for_timeout(320)
+    m2 = meta(p)
+    assert m2["avgAnchor"] == pytest.approx(m2["target"], abs=m2["band"]), (m2["avgAnchor"], m2["target"])
+    assert m2["hit"] is True, m2
 
 
 def test_t325_holdings_card_has_one_basis_only(make_env):
-    """有持仓时卡片只能有一套对齐依据：不能再写「锚定均价落入区间」。"""
+    """有持仓时卡片只能有一套对齐依据：锚定均价；整体均价必须标成参考。"""
     p = make_env(cfg(buys=HELD, endDrop=15), price=3500.0).page
     p.evaluate("() => { window.__xt.state().fx = 7.1; window.__xt.compute(); window.__xt.refreshAll(); }")
     set_end(p, 15)
     open_plan(p)
     t = p.evaluate("() => document.getElementById('avgCard').textContent")
-    assert "整体均价落入目标" in t, t
-    assert "买完的锚定均价落入区间" not in t, t
+    assert "买完的锚定均价落入区间" in t, t
+    assert "目标均价只对建仓计划负责，不含已有持仓" in t, t
+    assert "整体均价落入目标" not in t, t
+    assert "整体均价 · 含持仓" in t and "参考，不参与对齐" in t, t

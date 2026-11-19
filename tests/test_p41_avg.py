@@ -230,16 +230,22 @@ def test_av11_gram_scales_with_total(make_env):
 
 
 def test_av12_held_better_than_target(make_env):
-    """已持仓成本优于目标 → 明确提示「已达标」，不给错误的档距。"""
+    """已持仓成本优于目标，也不再说「已达标」—— 那是折算时代的判据（P122）。
+
+    旧版 199g@4000 + 目标 X 会折出 T_eff ≤ 0 → hint="done"、档距不再反解。
+    现在档距只对建仓计划负责，目标照常反解；「老仓已经比目标便宜」这件事
+    归用户自己判断（均价卡上的整体均价只作参考读数）。
+    """
     cny = 4000 * 7.10 / 31.1035
     c = dict(CFG_T, buys=[{"id": "b1", "name": "底仓", "gram": 199,
                            "priceCny": cny, "time": "2026-09-01T02:00:00.000Z",
                            "note": "", "gear": None}])
     env = make_env(c, bars=BARS)
     p = env.page
-    assert base(p)["hint"] == "done"
+    assert base(p)["hint"] != "done", base(p)
+    assert base(p)["targetEff"] == pytest.approx(base(p)["target"], abs=0.01)
     open_plan(p)
-    assert "已持仓成本优于目标" in avgcard(p)["text"]
+    assert "已持仓成本优于目标" not in avgcard(p)["text"]
 
 
 def test_av9_card_hit(make_env):
@@ -255,11 +261,12 @@ def test_av9_card_hit(make_env):
 
 
 def test_av10_card_off_target(make_env):
-    """持仓成本太高、剩余额度换不回目标 → 档距撞上限，卡片明确「做不到」。"""
-    cny = 4700 * 7.10 / 31.1035
-    c = dict(CFG_T, buys=[{"id": "b1", "name": "高位仓", "gram": 60,
-                           "priceCny": cny, "time": "2026-09-01T02:00:00.000Z",
-                           "note": "", "gear": None}])
+    """目标高到档距撞上限时，卡片明确「做不到」。
+
+    P122 之后持仓不再影响档距，所以这条不能再用「高位仓把均价顶上去」来构造：
+    直接把目标压低到需要 α > 3.5 的位置。
+    """
+    c = dict(CFG_T, avgTarget=3000.0)
     env = make_env(c, bars=BARS)
     p = env.page
     open_plan(p)

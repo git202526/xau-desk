@@ -7,6 +7,8 @@
      不作第一优先对齐对象；
   3. 「目标总克重」旁新增「不设仓位上限」，仓位不足时开启可让档距仍按
      名义目标反解，不被已持仓折算打断。
+     —— 第 3 条在 v7.12.4（P122）之后只剩前半句：折算整段删掉了，
+     档距恒按名义目标反解，noCap 只决定克重怎么分配（见 f8）。
 
 夹具：H=4696、起始跌幅 14% → p1=4038.56；10 档、显式锚定第 5 档
 → 前 5 档 [4,5,8,11,14] 的 frontCenter = 110/42 ≈ 2.619、全档 wCenter=4.83。
@@ -144,28 +146,64 @@ def test_f7_nocap_defaults_off_for_old_data(make_env):
         "() => document.getElementById('setNoCapNote').textContent")
 
 
-def test_f8_nocap_cuts_folding_when_position_full(make_env):
-    """仓位已满时开启 → 档距按名义目标反解、锚定均价命中；关回恢复折算。"""
-    p = make_env(cfg(buys=BUY), price=4120.90).page
+def test_f8_nocap_only_moves_weights_not_span(make_env):
+    """仓位已满时，「不设仓位上限」只改克重分配，不改档距（P122）。
+
+    旧版这里开关一开，档距从「退回 α」变成「按 T_eff 反解」，同一份参数
+    开出两套档位价 —— 而 T_eff 用的是持仓的人民币均价折美元，汇率一漂就不一样。
+    现在开关只影响 Σplan（按总仓全额 / 按剩余可买），d 与锚定均价一动不动。
+    """
+    # 用 60g/100 的持仓（不是 BUY 的 120g 满仓）：剩余可买 40g > 0，
+    # 开关两侧都有均价可看，才能验「档距与均价一个字节不变」。
+    # 满仓那种极端情形下 planBudget=0、锚定均价本就是 null，见 f8b。
+    held = [{"id": "b1", "name": "老仓", "gram": 60, "priceCny": 1050.0,
+             "time": "2026-08-12T02:00:00.000Z", "note": "", "gear": None}]
+    p = make_env(cfg(buys=held), price=4120.90).page
     b0 = gb(p)
-    assert b0["targetEff"] is None and b0["spanSrc"] != "target", b0
+    assert b0["targetEff"] == pytest.approx(T, abs=0.01), b0
+    assert b0["spanSrc"] == "target", b0
+    assert b0["anchor"] == pytest.approx(T, abs=BAND), b0
+    plan0 = p.evaluate("() => window.__xt.planOf().reduce((a, b) => a + b, 0)")
+    assert plan0 == pytest.approx(40, abs=0.01), plan0
 
     open_set(p)
     p.check("#setNoCap")
     p.wait_for_timeout(340)
     assert p.evaluate("() => window.__xt.state().cfg.noCap") is True
     b1 = gb(p)
-    assert b1["targetEff"] == T and b1["spanSrc"] == "target", b1
-    assert abs(b1["anchor"] - T) <= BAND, b1
-    assert abs(b1["all"] - T) > BAND, b1
+    assert b1["targetEff"] == pytest.approx(T, abs=0.01), b1
+    assert b1["spanSrc"] == "target", b1
+    assert b1["d"] == pytest.approx(b0["d"], abs=1e-9), "档距不能因为开关而变化"
+    assert b1["anchor"] == pytest.approx(b0["anchor"], abs=1e-9)
+
+    plan1 = p.evaluate("() => window.__xt.planOf().reduce((a, b) => a + b, 0)")
+    assert plan1 > plan0 + 1, ("开关必须真的改分配", plan0, plan1)
 
     p.uncheck("#setNoCap")
     p.wait_for_timeout(340)
-    assert gb(p)["targetEff"] is None, "关回后折算应恢复"
+    b2 = gb(p)
+    assert b2["targetEff"] == pytest.approx(T, abs=0.01), "关回也不折算"
+    assert b2["d"] == pytest.approx(b0["d"], abs=1e-9)
+    assert b2["anchor"] == pytest.approx(b0["anchor"], abs=1e-9)
+
+
+def test_f8b_position_full_still_solves_span(make_env):
+    """持仓已达总仓上限时：档距照常按目标反解，只是「可买额度」为 0、锚定均价无意义。
+
+    旧版这里会把 targetEff 置 null 并退回 α —— 用户看到的是「我填了目标，
+    档距却按 ATR 排」，而且开关一开档位价整体跳走。
+    """
+    p = make_env(cfg(buys=BUY), price=4120.90).page
+    b = gb(p)
+    assert b["targetEff"] == pytest.approx(T, abs=0.01), b
+    assert b["spanSrc"] == "target", b
+    assert b["d"] > 0
+    assert b["anchor"] is None, "可买额度 0 → 没有加权均价可报，如实留空"
+    assert p.evaluate("() => window.__xt.planOf().reduce((a, b) => a + b, 0)") == pytest.approx(0, abs=0.01)
 
 
 def test_f9_nocap_align_has_no_shortfall_notice(make_env):
-    """开启后点对齐目标，不再追加「无多余仓位可分配 / 剩余仓位不足」。"""
+    """点对齐目标，不再追加「无多余仓位可分配 / 剩余仓位不足」这类折算时代的话。"""
     p = make_env(cfg(buys=BUY), price=4120.90).page
     open_set(p)
     p.check("#setNoCap")

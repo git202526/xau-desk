@@ -92,17 +92,22 @@ def test_a3_button_stays_after_success(make_env):
 # ---------------------------------------------------------------- 对齐口径
 
 def test_a4_uses_nominal_target_even_with_holdings(make_env):
-    """有持仓导致折算目标为负时，仍按名义目标把前 1–5 档买完的均价对齐到 3900。"""
+    """有持仓也按名义目标，把前 1–5 档买完的均价对齐到 3900。
+
+    v7.12.4（P122）起不再有「折算目标」这回事：targetEff ≡ 名义目标。
+    老仓只影响均价卡上那行「整体均价（参考）」，不影响反解。
+    """
     p = make_env(cfg(avgTarget=T_OK, buys=BUY), price=4120.90).page
     open_plan(p)
     m0 = p.evaluate("() => window.__xt.gearMeta()")
-    assert m0["targetEff"] < 0, m0          # 复现用户现场：折算目标已为负
+    assert m0["targetEff"] == pytest.approx(T_OK, abs=0.01), m0["targetEff"]
+    assert m0["hitBasis"] == "anchor"
 
     t = click_align(p)
     assert "已对齐" in t, t
     assert "锚定均价·第 1–5 档" in t and "命中" in t, t
     assert anchor_avg(p) == pytest.approx(T_OK, abs=1.0), anchor_avg(p)
-    assert "剩余仓位不足以把整体均价压到目标" in t, t
+    assert "按建仓计划反解，不含已有持仓" in t, t
     # 全档均价只作试算回报
     assert "全档均价·试算" in t, t
 
@@ -168,15 +173,16 @@ def test_a11_320px_button_always_on_without_overflow(make_env):
 
 
 def test_a10_holdings_no_longer_break_reverse_solve(make_env):
-    """用户最初报的现场：目标 3500 + 持仓 → 折算目标为负。
+    """用户最初报的现场：目标 3500 + 持仓。
 
     旧实现拿折算目标去反解，会报「当前分布无法反解档距，先加重 3–6 档」；
     新实现用名义目标，报的应是「α 超上限」这一真实原因。
+    （P122 之后连折算都没有了，这条只剩「别报错原因」这半句还成立。）
     """
     p = make_env(cfg(avgTarget=3500.0, buys=BUY), price=4120.90).page
     open_plan(p)
     m0 = p.evaluate("() => window.__xt.gearMeta()")
-    assert m0["targetEff"] < 0, m0
+    assert m0["targetEff"] == pytest.approx(3500.0, abs=0.01), m0["targetEff"]
     t = click_align(p)
     assert "超过上限" in t and "够不到" in t, t
     assert "无法反解档距" not in t and "加重 3–6 档" not in t, t

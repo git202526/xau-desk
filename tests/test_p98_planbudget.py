@@ -175,7 +175,8 @@ def test_b12_note_explains_remaining_budget(make_env):
     """设置页说明行写清「未标档持仓先扣、按剩余可用仓位分配」。"""
     p = make_env(cfg(buys=buy(60))).page
     txt = p.evaluate("() => document.getElementById('setNoCapNote').textContent")
-    assert "剩余可用仓位" in txt and "未标记档位" in txt, txt
+    # P122 起这条说明只讲克重分配（档距与持仓无关，不再提折算）
+    assert "剩余可买克重" in txt and "未标记档位" in txt, txt
 
 
 def test_b13_budget_reacts_to_new_buy_record(make_env):
