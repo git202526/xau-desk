@@ -10176,7 +10176,8 @@ function renderSetSummary(){
       var margin = edv + deep;              /* 终止 − |最深|（deep 为负） */
       /* 夹取后 margin 恒 ≥ 0（最深档最浅也只到终止），所以没有 warn 态；
          余量 0 就是「已经顶到终止上限」，直接说出来比留一个永不触发的红字有用。 */
-      dd.textContent = "最深档 −" + num(-deep, 2) + "% · 终止 " + edv + "% · 余量 " + num(margin, 2) + "pp" +
+      dd.textContent = "最深档 −" + num(-deep, 2) + "% · 终止 " + edv + "% · 余量 " +
+        num(Math.max(0, margin), 2) + "pp" +
         (mm.clamped && margin < 0.05 ? " · 已到终止上限" : "");
       dd.className = "wn";
     }
@@ -10314,7 +10315,8 @@ function renderSpanUI(){
       ? ("当前「区间」方式：起始 " + startDropOf() + "% ~ 终止 " + endDropOf() + "% 均分 " + gearCount() +
          " 档，两个值都参与计算；终止同时是最深档的上限")
       : ("当前「" + modeName + "」方式：起始 " + startDropOf() + "% 定第 1 档，终止 " + endDropOf() +
-         "% 是从此往下的最大深度；算出更深会自动压到 " + endDropOf() + "% 并给出放开入口");
+                  "% 是从此往下的最大深度；算出更深会自动压到 " + endDropOf() +
+         "%（点「对齐目标」会按需求把它放开到够用为止）");
     dn.className = "wn";
   }
 
