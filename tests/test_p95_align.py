@@ -120,24 +120,33 @@ def test_a5_two_avg_metrics_keep_hit_and_diff(make_env):
 # ---------------------------------------------------------------- 失败提示
 
 def test_a6_alpha_over_cap_reports_reason(make_env):
-    """α 超上限：报需要的 α、上限、按上限能到哪、差多少，且不改配置、不报已对齐。"""
+    """α 超上限：按上限 3.5 落地，并如实报需要的 α、能到哪、差多少。
+
+    v7.12.3 改：旧版「不写配置、只报原因」，用户点完参数一个不变，只能反复点。
+    现在按边界落地（toast 写「已尽量对齐」而不是「已对齐」），并给「切区间」这条出路。
+    """
     p = make_env(cfg(avgTarget=T_CAP), price=4120.90).page
     open_plan(p)
     t = click_align(p)
     assert "α=" in t and "超过上限" in t and "够不到" in t, t
-    assert "已对齐" not in t, t
-    assert p.evaluate("() => window.__xt.state().cfg.alpha") == 2.0
+    assert "已尽量对齐" in t and "已对齐（" not in t, t
+    assert p.evaluate("() => window.__xt.state().cfg.alpha") == 3.5
     assert p.evaluate("() => window.__xt.state().cfg.spanMode") == "alpha"
 
 
-def test_a7_alpha_below_min_aligns_at_boundary(make_env):
-    """α 低于下限：按边界 0.6 写入，偏差仍在容差内 → 报「已按边界对齐」且命中。"""
+def test_a7_alpha_below_min_aligns_exactly(make_env):
+    """α 反解到 0.6 以下：按实际值写入，锚定均价精确落到目标。
+
+    v7.12.3 改：0.6 是「各档会挤在一起」的提示线，不是硬门槛。旧版先抬到 0.6 再写，
+    写进去的 α 与命中判据对不上，均价因此差几十美元（用户说的「总是差一点」）。
+    """
     p = make_env(cfg(avgTarget=T_NARROW), price=4120.90).page
     open_plan(p)
     t = click_align(p)
-    assert "已按边界对齐" in t and "0.60" in t and "命中" in t, t
-    assert p.evaluate("() => window.__xt.state().cfg.alpha") == 0.6
-    assert abs(anchor_avg(p) - T_NARROW) <= BAND, anchor_avg(p)
+    assert "已对齐" in t and "命中" in t, t
+    a = p.evaluate("() => window.__xt.state().cfg.alpha")
+    assert 0.1 <= a < 0.6, a
+    assert anchor_avg(p) == pytest.approx(T_NARROW, abs=2.0), anchor_avg(p)
 
 
 def test_a8_target_above_first_gear_reports_reason(make_env):

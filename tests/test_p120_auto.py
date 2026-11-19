@@ -153,29 +153,43 @@ def _daily_series(n, end_date, base=3900.0):
 
 
 def test_t303_stale_product_self_heals_weekly(tmp_path, monkeypatch):
-    """旧产物里 1w 末根停在 11-09（close 被最新价顶掉）→ 下一轮自动纠正。
+    """旧产物里 1w 末根停在「上上周」→ 下一轮自动纠正。
 
-    线上正是这个状态：11-09 那根 close=3867.796，和 1h 末根一模一样。
+    线上 2026-11-16 的状态：1w 末根 11-09、close 被最新价顶掉（= 1h 末根）。
+
+    ⚠️ 日期一律取真实今天。写死 2026-11-16 的夹具只在当天成立：过了那天，
+    `main()` 里的 now 是真实时间，tick 全部落在窗口外，会直接返回 1
+    （2026-11-19 全量跑时就是这么炸的，与前两期修的时间炸弹同一类）。
     """
-    now = int(dt.datetime(2026, 11, 16, 5, 20, tzinfo=UTC).timestamp())
+    now_dt = dt.datetime.now(UTC)
+    now = int(now_dt.timestamp())
     cur = now - now % HOUR
+    # 纽约 17:00 换日：UTC 22:00 之后算次日交易日
+    trade = (now_dt.date() + dt.timedelta(days=1)) if now_dt.hour >= 22 else now_dt.date()
+    mon_this = trade - dt.timedelta(days=trade.weekday())
+    mon_prev = mon_this - dt.timedelta(days=7)
+    mon_prev2 = mon_this - dt.timedelta(days=14)
+
+    def ms(d):
+        return int(dt.datetime(d.year, d.month, d.day, tzinfo=UTC).timestamp()) * 1000
 
     def fake_ticks(**kw):
         rows = [(cur + m * 60, 3_999_000, 3_999_500, 3_998_500, 3_999_000, 1.0)
                 for m in range(40)]
         return rows, {"hours": 1, "ok": 1, "empty": 0, "fail": 0, "fail_hours": []}
 
-    bad_weekly = [[ts(2026, 11, 2) * 1000, "3900", "3950", "3880", "3920", "1"],
-                  [ts(2026, 11, 9) * 1000, "3920", "3960", "3850", "3900.5", "1"]]
+    bad_weekly = [[ms(mon_prev2), "3900", "3950", "3880", "3920", "1"],
+                  [ms(mon_prev), "3920", "3960", "3850", "3900.5", "1"]]
     old = {
         "updated": (cur - 3 * HOUR) * 1000,
         "src": "dukascopy", "symbol": "XAUUSD", "price_type": "bid",
-        "window": {"from": "2026-06-12", "to": "2026-11-16", "days_ok": 3,
+        "window": {"from": (mon_this - dt.timedelta(days=150)).isoformat(),
+                   "to": trade.isoformat(), "days_ok": 3,
                    "days_empty": 0, "failed_n": 0, "failed": []},
         "sanitized": {"synthetic": 0, "dup": 0}, "stats": {}, "gaps": {},
         "kl": {"1h": [[(cur - 2 * HOUR) * 1000, "3900", "3902", "3898", "3901", "1"]],
                "4h": [[(cur - 4 * HOUR) * 1000, "3900", "3902", "3898", "3901", "1"]],
-               "1d": _daily_series(60, dt.date(2026, 11, 15)),
+               "1d": _daily_series(60, mon_this - dt.timedelta(days=1)),
                "1w": bad_weekly},
     }
     p = tmp_path / "klines.json"
@@ -188,7 +202,7 @@ def test_t303_stale_product_self_heals_weekly(tmp_path, monkeypatch):
 
     doc = json.loads(p.read_text(encoding="utf-8"))
     wk = doc["kl"]["1w"]
-    assert wk[-1][0] == ts(2026, 11, 16) * 1000, "周线末根必须推进到本周"
+    assert wk[-1][0] == ms(mon_this), "周线末根必须推进到本周"
     assert len(wk) >= 10, "60 天日线派生出的周线历史不能丢"
     # 本周 close 跟着今天的 tick 走（3999），上周那根被重算成周五收盘、绝不能
     # 再被最新价顶掉 —— 旧实现里两者会相等

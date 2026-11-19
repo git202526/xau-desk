@@ -264,9 +264,19 @@ def test_held_cost_folded_into_target(env):
     p.evaluate("() => window.__xt.setTargetT(3980)")
     b = p.evaluate("() => window.__xt.gearBase()")
     assert near(b["targetEff"], 3928.571, 0.2)
-    assert near(b["d"], (4089 - 3928.571) / 2.1, 0.2)
+    # v7.12.3：有持仓时命中判「整体均价」，反解重心随之换成「剩余待买档」
+    # （pendingCenter）。旧口径用前 k 档重心 2.1，解出的档距偏大，
+    # 落地后整体均价与全档试算各差一截 —— 也就是「点对齐总差一点」。
+    want = p.evaluate("""() => {
+        const X = window.__xt, m = X.gearMeta();
+        return (X.p1Of(m.he) - m.targetEff) / X.pendingCenter(X.planBase());
+    }""")
+    assert near(b["d"], want, 0.2)
     meta = p.evaluate("() => window.__xt.gearMeta()")
-    assert near(meta["mix"]["avg"], 3955.4, 1.0)
+    # 新口径下「整体均价」精确落到名义目标：60g@4100 + 剩余 140g 按档表买，
+    # 加权正好是 3980。旧口径（前 k 档重心反解）这里会差 20 多美元。
+    assert near(meta["mix"]["avg"], 3980, 1.0)
+    assert meta["mix"]["hit"] is True
     assert meta["mix"]["held"] == pytest.approx(60, abs=0.01)
 
 
