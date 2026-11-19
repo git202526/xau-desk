@@ -4512,8 +4512,12 @@ function gearBase(){
        稳定后 avgAnchor 恒等于目标 —— p1 − c·d 里 c 与 d 同源，数学上精确。 */
     if(span && Number(span.d) > 0 && ((cfg.realloc || {}).on)){
       var kIt = anchorKOf(w), cPrev = Number(span.cSolve) || 0;
-      for(var it = 0; it < 3; it++){
-        var cIt = frontCenter(planAtD(he, span.d), kIt);
+      /* 重心必须按「真正会落地的档距」算：终止跌幅会把它夹到 capD，
+         用未被夹的 span.d 去算 planAtD，等于拿一张不存在的档表求重心（差 17 美元）。 */
+      var capPre = (endDropOf() - startDropOf()) / 100 * he / Math.max(1, gearCount() - 1);
+      for(var it = 0; it < 6; it++){
+        var dEff = (capPre > 0) ? Math.min(Number(span.d), capPre) : Number(span.d);
+        var cIt = frontCenter(planAtD(he, dEff), kIt);
         if(!(cIt > 0) || Math.abs(cIt - cPrev) < 1e-6) break;
         var spIt = spanForTarget(he, T, w, cIt);
         if(!(Number(spIt.d) > 0)) break;
@@ -9978,6 +9982,29 @@ function alignSpanToTarget(){
   }
 
   saveCfg(); compute(); refreshAll();
+
+  /* P123：夹取后的二次收敛。
+     target / range 方式的档距由「终止跌幅」定死（d = capD），而 capD 与实际重心 c
+     又互相影响（下沉判定看档价 vs 现价）—— 一次写入会差一点：实测目标 3600
+     写进 endDrop=30.68% 只落到 3637.5，容差 20 的用户会判「没对上」，再点一次也不动。
+     这里按落地后的真实重心再解一次终止跌幅，最多 3 轮。
+     α 方式不走这条：它的档距由 alpha 值定，改了终止只会被 min 掉。 */
+  for(var pass = 0; pass < 3 && mode !== "alpha"; pass++){
+    var m0 = S.gearMeta || {};
+    var a0 = m0.avgAnchor;
+    if(a0 === null || a0 === undefined) break;
+    /* 只有被终止跌幅夹住时，endDrop 才是 d 的约束；没夹时改它是空转。 */
+    if(!m0.clamped) break;
+    if(Math.abs(a0 - T) <= Math.max(0.5, band * 0.1)) break;   // 已经足够准
+    if(!(Number(m0.d) > 0) || !(Number(m0.cFront) > 0)) break;
+    var dNeed2 = (p1 - T) / Number(m0.cFront);
+    if(!(dNeed2 > 0)) break;
+    var endNeed2 = startDropOf() + dNeed2 * seg / H * 100;
+    endNeed2 = Math.min(END_DROP_MAX, Math.max(startDropOf() + 0.01, Math.ceil(endNeed2 * 100) / 100));
+    if(Math.abs(endNeed2 - endDropOf()) < 0.005) break;        // 已经写不进去了
+    cfg.endDrop = endNeed2; endNew = endNeed2;
+    saveCfg(); compute(); refreshAll();
+  }
 
   var mm = S.gearMeta || {};
   var parts = [], hit = false;

@@ -385,10 +385,10 @@ v7.12.4 曾让 `avgAnchor` 用 `planBase`（未下沉）、`avgAll` 用 `planOf`
 用户照着它买 —— 均价不按它算，卡片报的就是一个买不到的价。
 
 **自指与迭代**：`plan` 依赖档距（下沉判定看档价 vs 现价），档距又依赖 `plan` 的重心。
-`gearBase()` 的 target 分支做不动点迭代（≤3 轮，重心变化 < 1e-6 即停）：
+`gearBase()` 的 target 分支做不动点迭代（≤6 轮，重心变化 < 1e-6 即停）：
 
 ```js
-for(var it = 0; it < 3; it++){
+for(var it = 0; it < 6; it++){
   var cIt = frontCenter(planAtD(he, span.d), kIt);   // 给定档距算生效计划（dry，不写滞回态）
   if(Math.abs(cIt - cPrev) < 1e-6) break;
   span = spanForTarget(he, T, w, cIt);

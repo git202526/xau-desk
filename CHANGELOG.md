@@ -61,10 +61,10 @@ P121 把 **锚定均价** 从 `plan` 切到 `planBase`，理由是「与反解�
 3. 用户 P122 的诉求是「两个数要一致」，而「实际能买到的均价」才是他真正会用来判断的数。
 
 **代价与解法**：`plan` 依赖档距（下沉判定看档价 vs 现价），档距又依赖 `plan` 的重心 —— 自指。
-于是在 `gearBase()` 的 target 分支做**不动点迭代**（最多 3 轮，重心变化 < 1e-6 即停）：
+于是在 `gearBase()` 的 target 分支做**不动点迭代**（最多 6 轮，重心变化 < 1e-6 即停）：
 
 ```js
-for(var it = 0; it < 3; it++){
+for(var it = 0; it < 6; it++){
   var cIt = frontCenter(planAtD(he, span.d), kIt);
   if(Math.abs(cIt - cPrev) < 1e-6) break;
   span = spanForTarget(he, T, w, cIt);   // 用实际重心重解

@@ -45,6 +45,10 @@ def meta(p):
     return p.evaluate("() => window.__xt.gearMeta()")
 
 
+def cf(p):
+    return p.evaluate("() => window.__xt.cfg()")
+
+
 def open_plan(p):
     p.evaluate("() => document.querySelector('.tabbar button[data-tab=\"plan\"]').click()")
     p.wait_for_timeout(300)
