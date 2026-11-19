@@ -366,9 +366,41 @@ v7.12.3 曾把持仓折成美元并进反解（`T_eff=(T×总仓−持仓均价�
 **满仓时锚定均价为 `null`**：`planBudget()=0` → 没有可买克重，也就没有加权均价可报；
 但档距仍按目标反解，**不退回 α**（旧版会退，用户看到的是"我填了目标，档距却按 ATR 排"）。
 
-**均价口径一律用未下沉计划**：`avgAnchor` 与 `mix` 都按 `planBase`（未下沉）加权。
-配额下沉是"钱跟着价格走"的临时调整，价格回弹就撤销，不该污染均价口径；
-用 `planOf` 还会绕成 `gearBase → planOf → reallocPlan → gearBase` 的环。
+**均价口径一律用生效计划 `plan`（含配额下沉）**（v7.12.5 起）
+
+v7.12.4 曾让 `avgAnchor` 用 `planBase`（未下沉）、`avgAll` 用 `planOf`（含下沉），
+结果同一组档位给出两个均价 —— 用户 11/19 20:17 截图：
+「锚定均价 · 第 1–6 档 3601.4」与「选定档位试算 · 全 6 档均价 3531.7」。
+锚定档位铺到最后一档时两者是**同一个集合**，数学上必须相等。
+
+定稿三条：
+
+| 量 | 口径 |
+|---|---|
+| `avgAnchor` | `avgOfFront(pr, plan, k)` —— 生效计划前 1..k 档加权 |
+| `avgAll` | `planAvgOf(pr, plan)` —— 生效计划全 n 档加权 |
+| 反解重心 | `frontCenter(plan, k)`，与上面同源 |
+
+为什么是 `plan` 不是 `planBase`：下沉把**买不到的浅档额度**挪给深档，档表显示的就是挪完的克重，
+用户照着它买 —— 均价不按它算，卡片报的就是一个买不到的价。
+
+**自指与迭代**：`plan` 依赖档距（下沉判定看档价 vs 现价），档距又依赖 `plan` 的重心。
+`gearBase()` 的 target 分支做不动点迭代（≤3 轮，重心变化 < 1e-6 即停）：
+
+```js
+for(var it = 0; it < 3; it++){
+  var cIt = frontCenter(planAtD(he, span.d), kIt);   // 给定档距算生效计划（dry，不写滞回态）
+  if(Math.abs(cIt - cPrev) < 1e-6) break;
+  span = spanForTarget(he, T, w, cIt);
+  cPrev = cIt;
+}
+```
+
+防环两处：`reallocPlan()` 的 `gearBase()` 惰性取（`ctx.prices` 给了就不调）；
+`reallocPlan()` 的 `dry` 模式只读滞回状态、不回写。
+
+收敛后 `avgAnchor = p1 − c·d` 里 c 与 d 同源，**恒等于目标** —— 点对齐精确命中。
+满仓（`planBudget()=0`）时 `plan` 全 0，锚定均价如实 `null`，档距仍按目标反解。
 
 ### 5.5 配额下沉（可选，默认关）
 
